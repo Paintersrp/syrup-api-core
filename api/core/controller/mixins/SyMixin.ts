@@ -3,35 +3,10 @@ import validator from 'validator';
 import { Logger } from 'pino';
 import { ModelStatic, FindOptions, Transaction } from 'sequelize';
 
-import { HttpStatus, ResponseMessages } from '../../lib';
+import { HttpStatus, Responses } from '../../lib';
 import { BadRequestError, NotFoundError } from '../../errors/SyError';
 import { ControllerMixinOptions, ControllerQueryOptions } from '../types';
-
-/**
- * @todo Implement more specific error handling for different error types.
- * @todo Refactor findItemById to also include support for other unique identifiers (e.g. slug, username).
- * @todo Add more specific type annotations where 'any' is currently used.
- * @todo Refactor isValidFilterColumn and isValidSortOption to reduce duplication. Possibly abstract into a validation class.
- * @todo Add unit tests to verify functionality. Integrate with a CI/CD system.
- * @todo Evaluate performance, possibly add caching for certain methods.
- * @todo Consider splitting class into smaller classes or modules if it grows in complexity.
- * @todo Document all methods and their respective purposes within the system.
- * @todo Consider adding event emitters for significant actions within the class (e.g. on successful entity creation).
- * @todo Evaluate the need for soft deletes or archiving of data instead of actual deletion.
- * @todo Implement a change tracking mechanism or auditing system for changes to important data.
- * @todo Implement proper logging and exception tracking system.
- * @todo Add more detailed validation to processPayload method.
- * @todo Handle edge cases in pagination and sort/filtering mechanism in processQueryParams method.
- * @todo Make error messages more user friendly.
- * @todo Extend functionality to allow more complex queries, such as querying across relationships.
- * @todo Add a mechanism to prevent SQL injection attacks and ensure data security.
- * @todo Consider adding hooks or middleware for common functionality across different routes.
- * @todo Evaluate and improve error messages and codes returned by BadRequestError and NotFoundError.
- */
-
-interface BulkIDsBody {
-  ids: string[];
-}
+import { BulkIDsBody } from './types';
 
 /**
  * SyMixin is an abstract class designed to be extended by other mixin classes.
@@ -75,7 +50,7 @@ export abstract class SyMixin {
     const { id } = ctx.params;
 
     if (!id) {
-      throw new BadRequestError(ResponseMessages.ID_FAIL, id, ctx.url);
+      throw new BadRequestError(Responses.ID_FAIL, id, ctx.url);
     }
 
     return id;
@@ -91,7 +66,7 @@ export abstract class SyMixin {
     const { ids } = ctx.request.body as BulkIDsBody;
 
     if (!ids) {
-      throw new BadRequestError(ResponseMessages.IDS_FAIL, ids, ctx.url);
+      throw new BadRequestError(Responses.IDS_FAIL, ids, ctx.url);
     }
 
     return ids;
@@ -108,12 +83,12 @@ export abstract class SyMixin {
     const payload = ctx.request.body;
 
     if (!payload) {
-      throw new BadRequestError(ResponseMessages.PAYLOAD_FAIL, payload, ctx.url);
+      throw new BadRequestError(Responses.PAYLOAD_FAIL, payload, ctx.url);
     }
 
     if (arrayCheck) {
       if (!Array.isArray(payload)) {
-        throw new BadRequestError(ResponseMessages.ARRAY_FAIL, payload, ctx.url);
+        throw new BadRequestError(Responses.ARRAY_FAIL, payload, ctx.url);
       }
     }
 
@@ -131,7 +106,7 @@ export abstract class SyMixin {
     const item = await this.model.findByPk(id, { transaction });
 
     if (!item) {
-      throw new NotFoundError(ResponseMessages.ID_FAIL, item);
+      throw new NotFoundError(Responses.ID_FAIL, item);
     }
 
     return item;

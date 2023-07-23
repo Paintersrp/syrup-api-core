@@ -6,22 +6,6 @@ import { SyMixin } from '../SyMixin';
 import { ControllerMixinOptions } from '../../types';
 
 /**
- * @todo - Implement robust user authentication and access control mechanisms to prevent unauthorized instance creation
- * @todo - Add comprehensive error handling and recovery for the `create` and `bulkCreate` methods, including Sequelize transaction rollbacks where applicable
- * @todo - Integrate structured logging using a logging library (e.g., Winston or Bunyan) to facilitate debugging, error tracking, and application monitoring
- * @todo - Include data validation and sanitation before creating instances to prevent SQL injection attacks and ensure data consistency
- * @todo - Review and revise JsDoc comments to ensure they accurately describe the functionality and behavior of each method and class
- * @todo - Develop extensive unit and integration tests to confirm correct functionality, including tests for edge cases and unexpected inputs
- * @todo - Implement additional RESTful endpoints as needed to support operations like update, delete, and read for completeness
- * @todo - Add rate limiting to protect the API from abuse and maintain service quality
- * @todo - Implement input payload size limits to prevent large payloads from causing memory or performance issues
- * @todo - Consider adding pagination to the bulk create endpoint, to support large numbers of creations without overloading the server
- * @todo - Develop performance benchmarks and conduct performance testing to ensure the application meets necessary performance criteria
- * @todo - Consider using dependency injection to make the class more modular and easier to unit test
- * @todo - Document all API endpoints using a tool such as Swagger, to provide easy-to-understand API documentation for end users
- */
-
-/**
  * SyCreateMixin is a mixin class which extends the abstract SyMixin.
  * It provides functionality for creating instances of a model, including single
  * and bulk creations.

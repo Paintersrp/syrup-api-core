@@ -5,7 +5,9 @@ import { ModelStatic, Optional, Transaction } from 'sequelize';
 
 import { ORM } from '../../settings';
 import { ETag, Log, Monitor } from '../lib/decorators/controllers';
-import { ResponseMessages } from '../lib';
+import { Retry } from '../lib/decorators/general';
+import { Responses } from '../lib';
+import { InternalServerError } from '../errors/SyError';
 import {
   SyCreateMixin,
   SyDeleteMixin,
@@ -14,7 +16,6 @@ import {
   SyMiddlewareMixin,
   SyUpdateMixin,
 } from './mixins';
-import { InternalServerError } from '../errors/SyError';
 import { SyControllerOptions } from './types';
 
 /**
@@ -56,12 +57,12 @@ export abstract class SyController extends EventEmitter {
     'getMetadata',
   ];
 
-  protected createMixin: SyCreateMixin;
-  protected readMixin: SyReadMixin;
-  protected updateMixin: SyUpdateMixin;
-  protected deleteMixin: SyDeleteMixin;
-  protected middlewareMixin: SyMiddlewareMixin;
-  protected metaMixin: SyMetaMixin;
+  protected declare createMixin: SyCreateMixin;
+  protected declare readMixin: SyReadMixin;
+  protected declare updateMixin: SyUpdateMixin;
+  protected declare deleteMixin: SyDeleteMixin;
+  protected declare middlewareMixin: SyMiddlewareMixin;
+  protected declare metaMixin: SyMetaMixin;
 
   /**
    * @desc Constructs a new instance of the SyController class and initializes the Mixins which
@@ -81,22 +82,29 @@ export abstract class SyController extends EventEmitter {
     this.logger = logger;
     this.customMiddlewares = middlewares;
 
-    let mixinOptions = { model, logger: this.logger };
+    this.setupMixins();
+    this.bindMethods(this.internalMethodsToBind);
+  }
+
+  /**
+   * @desc This method initializes the Mixins, which provide the main functionality
+   * of the SyController. It creates instances of various Mixin classes and assigns them
+   * to the corresponding properties of the SyController.
+   */
+  private setupMixins(): void {
+    const mixinOptions = { model: this.model, logger: this.logger };
+
     this.createMixin = new SyCreateMixin(mixinOptions);
     this.readMixin = new SyReadMixin(mixinOptions);
     this.updateMixin = new SyUpdateMixin(mixinOptions);
     this.deleteMixin = new SyDeleteMixin(mixinOptions);
-    this.middlewareMixin = new SyMiddlewareMixin({ ...mixinOptions, schema });
     this.metaMixin = new SyMetaMixin(mixinOptions);
-
-    this.bindMethods(this.internalMethodsToBind);
+    this.middlewareMixin = new SyMiddlewareMixin({ ...mixinOptions, schema: this.schema });
   }
 
   /**
    * Apply middleware to a specific Koa router.
    * @param {Router} router - Koa router where the middleware will be applied.
-   * @example
-   * userController.applyMiddleware(userRouter);
    */
   protected applyMiddleware(router: Router) {
     this.customMiddlewares.forEach((middleware) => router.use(middleware));
@@ -142,7 +150,7 @@ export abstract class SyController extends EventEmitter {
 
       this.logger.error(error, 'Transaction failed');
       this.emit('error', error);
-      throw new InternalServerError(ResponseMessages.INTERNAL_SERVER, transaction, ctx.url);
+      throw new InternalServerError(Responses.INTERNAL_SERVER, transaction, ctx.url);
     }
   }
 
@@ -184,6 +192,7 @@ export abstract class SyController extends EventEmitter {
    * @see SyListMixin#read
    */
   @Log
+  @Retry()
   public async read(ctx: Router.RouterContext) {
     return this.readMixin.read(ctx);
   }

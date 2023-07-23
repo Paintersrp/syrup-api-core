@@ -7,22 +7,6 @@ import { SyMixin } from '../SyMixin';
 import { BadRequestError } from '../../../errors/SyError';
 
 /**
- * @todo Add extensive error handling for ControllerMixinOptions in the constructor. Validate the options for types, boundaries, and logical consistency.
- * @todo Add functionality to the constructor to allow for options to be changed after instantiation.
- * @todo Implement advanced caching mechanism in getMetadata function, using a least-recently-used (LRU) cache or similar to improve performance on repeated requests. Benchmark the performance before and after implementing caching.
- * @todo Handle edge cases and potential errors when fetching Sequelize model's attributes and associations. Ensure that all possible types of associations are handled correctly.
- * @todo Develop error handling for the stringifyDataType method to ensure it handles all possible data types that Sequelize can generate.
- * @todo For the stringifyDataType method, add functionality to handle any options that may be present for the different data types, like length for STRING.
- * @todo Implement a security review of the code to identify and rectify potential security issues, such as SQL injection or denial-of-service (DoS) vulnerabilities.
- * @todo Implement unit tests for all methods in this class, ensuring high coverage and testing all edge cases. Include performance testing as well.
- * @todo Implement continuous integration (CI) to run these tests on all pull requests.
- * @todo Implement logging for all important events, such as failed data fetching, or high request rates. Consider using a logging service to aggregate and analyze these logs.
- * @todo Review and refactor the code for readability and maintainability, adhering to established best practices and design patterns where necessary.
- * @todo Document all public methods and important private methods in the class. Ensure documentation is comprehensive and clear, and includes examples of usage.
- * @todo Implement accessibility features in any user-facing components that make use of this data, following best practices for accessibility.
- * @todo Implement a feedback mechanism to understand how the data provided by this class is used and whether it meets users' needs.
- */
-/**
  * Constant of DataTypes to be handled
  */
 const DATA_TYPES: Record<string, string> = {

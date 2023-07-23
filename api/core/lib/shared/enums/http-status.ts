@@ -1,30 +1,8 @@
-export enum Time {
-  Milliseconds = 1,
-  Seconds = 1_000 * Milliseconds,
-  Minutes = 60 * Seconds,
-  Hours = 60 * Minutes,
-  Days = 24 * Hours,
-  Weeks = 7 * Days,
-  Months = (365.2425 / 12) * Days,
-  Years = 365.2425 * Days,
-}
-
-export enum Interval {
-  Hourly = Time.Hours,
-  Bidaily = 2 * Time.Days,
-  Daily = Time.Days,
-  Triweekly = 3 * Time.Days,
-  Weekly = Time.Weeks,
-  Biweekly = 2 * Time.Weeks,
-  Monthly = Time.Months,
-  Quarterly = 3 * Time.Months,
-  Biannually = 6 * Time.Months,
-  Annually = Time.Years,
-  Biennially = 2 * Time.Years,
-  Decennially = 10 * Time.Years,
-  Centennially = 100 * Time.Years,
-}
-
+/**
+ * Enum for HTTP status codes.
+ *
+ * @enum {number}
+ */
 export enum HttpStatus {
   CONTINUE = 100,
   SWITCHING_PROTOCOLS = 101,
@@ -79,21 +57,4 @@ export enum HttpStatus {
   LOOP_DETECTED = 508,
   NOT_EXTENDED = 510,
   NETWORK_AUTHENTICATION_REQUIRED = 511,
-}
-
-export enum ResponseMessages {
-  ARRAY_FAIL = 'Request body must be an array',
-  DEL_OK = 'Item deleted successfully',
-  DELS_OK = 'Items deleted successfully',
-  ID_FAIL = 'Invalid ID',
-  IDS_FAIL = 'Invalid IDs',
-  INTERNAL_SERVER = "Internal Server Error",
-  ITEM_FAIL = 'Item not found',
-  ITEMS_FAIL = 'No matching items found',
-  NO_ID = 'No ID Param Found',
-  NO_PAYLOAD = 'No Payload Found',
-  PAYLOAD_FAIL = 'Invalid Payload (fields)',
-  SOFT_DEL_FAIL = 'Unable to soft delete the item',
-  SOFT_DEL_OK = 'Item soft deleted successfully',
-  SOFT_DELS_OK = `Items soft deleted successfully`,
 }

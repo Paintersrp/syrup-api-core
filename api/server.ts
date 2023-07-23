@@ -1,4 +1,8 @@
 /**
+ * @todo Better Config
+ * @todo Log Rotation / Log Separation (Separate Error Log, etc)
+ * @todo
+ *
  * Koa Server
  *
  * This file initializes and starts a Koa server with middlewares and views.

@@ -1,5 +1,7 @@
 /**
- * Enum representing standard error codes.
+ * Enum for error codes.
+ *
+ * @enum {string}
  */
 export enum ErrorCodes {
   BAD_REQUEST = 'BAD_REQUEST',

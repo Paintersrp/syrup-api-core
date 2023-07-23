@@ -6,35 +6,6 @@ import { cache } from '../../../../settings';
 import { BadRequestError } from '../../../errors/SyError';
 import { ControllerMixinMiddlewareOptions } from '../../types';
 import { SyMixin } from '../SyMixin';
-/**
- * @todo - Implement a structured logging system for better observability of the application.
- * @todo - Build a strategy for handling edge cases and graceful degradation when the caching system is unavailable.
- * @todo - Design a centralized error handling mechanism that can normalize errors from different parts of the code.
- * @todo - Integrate rate-limiting middleware to prevent API abuse.
- * @todo - Consider using dependency injection for better testability and decoupling of components.
- * @todo - Evaluate if the class structure is the best choice here or if the module pattern would be more suitable.
- * @todo - Implement i18n support for error messages and responses.
- * @todo - Implement metrics collection to measure cache hit rates, validation errors, and more.
- * @todo - Investigate performance improvement options like payload compression, keep-alive HTTP connections, etc.
- * @todo - Design a system for versioning the API endpoints to ensure backward compatibility.
- * @todo - Examine the need for role-based access control (RBAC) in these endpoints.
- * @todo - Evaluate and plan for horizontal scalability of the caching system.
- * @todo - Research on the possibility of leveraging HTTP caching mechanisms (eTag, Last-Modified, etc.).
- * @todo - Add security measures such as XSS and CSRF protection.
- * @todo - Consider using a more sophisticated cache eviction strategy based on Least Recently Used (LRU) or Time Aware Least Recently Used (TARU) algorithms.
- * @todo - Review the need for API request throttling or debouncing.
- * @todo - Conduct a security audit for potential vulnerabilities in the endpoint logic.
- *
- * @todo - Add error handling for cases when caching fails in cacheEndpoint method.
- * @todo - Implement tests for validateBody and cacheEndpoint methods.
- * @todo - Add support for custom error messages in the Yup schema validation.
- * @todo - Include schema validation for request headers and query parameters as well.
- * @todo - Refactor cacheEndpoint to allow varying cache durations based on specific endpoints.
- * @todo - Review and add additional JSDoc comments for better code understanding and maintenance.
- * @todo - Make the caching functionality optional during mixin construction.
- * @todo - Develop a mechanism to invalidate cache entries when the data changes.
- * @todo - Ensure the cache keys are unique even when the URL parameters order changes.
- */
 
 /**
  * SyMiddlewareMixin is a mixin class that extends the base SyMixin.

@@ -6,5 +6,4 @@ export { ETag } from './etag';
 export { Log } from './log';
 export { Monitor } from './monitor';
 export { Redirect } from './redirect';
-export { Retry } from './retry';
 export { Role } from './role';
