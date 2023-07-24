@@ -2,7 +2,8 @@ import Koa, { DefaultContext, ParameterizedContext } from 'koa';
 import compose from 'koa-compose';
 import { Logger } from 'pino';
 import { RouteConstructor } from '../../types';
-import { SyCache } from '../cache/SyCache';
+import { SyLFUCache } from '../cache/SyLFUCache';
+import { SyLRUCache } from '../cache/SyLRUCache';
 import { SyDatabase } from '../database/SyDatabase';
 
 /**
@@ -33,7 +34,7 @@ export interface SyServerOptions {
   logger: Logger;
 
   /** The cache implementation used for server caching. */
-  cache: SyCache<any>;
+  cache: SyLFUCache<any> | SyLRUCache<any>;
 
   /** The database connection instance used for server database operations. */
   ORM: SyDatabase;

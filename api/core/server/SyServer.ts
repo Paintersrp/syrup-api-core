@@ -2,11 +2,12 @@ import Koa from 'koa';
 import { Server } from 'http';
 import { Logger } from 'pino';
 
-import { SyCache } from '../cache/SyCache';
 import { SyDatabase } from '../database/SyDatabase';
 
 import { SyServerOptions } from './types';
 import { SyHealthMixin } from './mixins/SyHealthMixin';
+import { SyLFUCache } from '../cache/SyLFUCache';
+import { SyLRUCache } from '../cache/SyLRUCache';
 
 /**
  * The SyServer class represents a Koa-based server with built-in functionalities like
@@ -23,7 +24,7 @@ export class SyServer {
   logger: Logger;
 
   /** The cache implementation used for server caching. */
-  cache: SyCache<any>;
+  cache: SyLFUCache<any> | SyLRUCache<any>;
 
   /** The database connection instance used for server database operations. */
   ORM: SyDatabase;

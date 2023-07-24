@@ -2,7 +2,19 @@ import path from 'path';
 import fs from 'fs-extra';
 import { Sequelize, Options } from 'sequelize';
 import { Logger } from 'pino';
+
 import { Retry } from '../lib/decorators/general';
+import {
+  DatabaseLogMixin,
+  DatabaseOpsMixin,
+  DatabaseRecoveryMixin,
+  DatabaseTestMixin,
+} from './mixins';
+import { HealthCheck } from './types';
+
+/**
+ * @todo Postgres/SQL/MySql in config for restore / backup settings
+ */
 
 /**
  * A class to manage the interaction between your application and the database.
@@ -11,159 +23,203 @@ import { Retry } from '../lib/decorators/general';
  * It can be extended to add more features like metrics collection, automated testing, and scalability strategies.
  */
 export class SyDatabase {
-  database: Sequelize;
-  databasePath?: string;
-  logger: Logger;
-  queriesLogger: Logger;
+  public readonly database: Sequelize;
+  public readonly databasePath?: string;
+  public readonly logger: Logger;
+  public readonly queriesLogger: Logger;
+  private healthChecks: HealthCheck[] = [];
+
+  declare recoveryMixin: DatabaseRecoveryMixin;
+  declare operationsMixin: DatabaseOpsMixin;
+  declare testMixin: DatabaseTestMixin;
+  declare logMixin: DatabaseLogMixin;
 
   /**
-   * Constructs a new SyDatabase instance.
-   * @param config The configuration options for Sequelize.
-   * @param logger The logger instance for general logging.
-   * @param queriesLogger The logger instance for query-specific logging.
+   * @constructor
+   * @param config - The configuration options for Sequelize.
+   * @param logger - The logger instance for general logging.
+   * @param queriesLogger - The logger instance for query-specific logging.
    */
   constructor(config: Options, logger: Logger, queriesLogger: Logger) {
     this.database = new Sequelize(config);
+
     this.logger = logger;
     this.queriesLogger = queriesLogger;
 
     if (config.dialect === 'sqlite') {
       this.databasePath = config.storage;
     }
+
+    this.initMixins();
   }
 
   /**
-   * Checks the database connection status.
-   * @param options Optional parameters for configuring the database check.
-   * @param options.retries The number of times to retry the connection check if it fails. Defaults to 3.
-   * @param options.retryDelay The delay in milliseconds between retries. Defaults to 1000.
-   * @returns A promise that resolves to a boolean indicating the database health.
+   * @method initMixins
+   * @description Initializes instances of RecoveryMixin, OperationsMixin, and DatabaseTestMixin
+   * @returns void
    */
-  @Retry({ retries: 3, retryDelay: 1000 })
-  async checkDatabase() {
-    try {
-      await this.database.authenticate();
-      this.logger.info('Database connection successful');
-      return true;
-    } catch (error) {
-      this.logger.error('Database connection failed.', error);
-    }
+  protected initMixins() {
+    this.recoveryMixin = new DatabaseRecoveryMixin(this.database, this.logger, this.databasePath);
+    this.operationsMixin = new DatabaseOpsMixin(this.database, this.logger);
+    this.testMixin = new DatabaseTestMixin(this.database, this.logger);
+    this.logMixin = new DatabaseLogMixin(this.database, this.logger, this.queriesLogger);
   }
 
   /**
-   * Starts the database, performs health checks, logging, and error handling.
-   * Can also be configured to run automated tests and implement scalability strategies based on the environment.
+   * @method startDatabase
+   * @description Initiates the database, performs health checks, starts logging, and error handling
+   * @returns Promise<void>
    */
-  async startDatabase() {
+  public async startDatabase() {
     this.checkDatabase();
     const environment = process.env.NODE_ENV || 'development';
-
     if (this.databasePath) {
-      try {
-        const databasePath = path.resolve(__dirname, '../../', this.databasePath);
-        const databaseExists = fs.existsSync(databasePath);
-
-        // this.startMetricsCollection();
-        this.startQueryLogging();
-        this.startErrorLogging();
-
-        await this.database.sync({ force: false });
-
-        if (databaseExists) {
-          this.logger.info('Existing database used.');
-        } else {
-          this.logger.info('New database created.');
-          // Perform seeding here? Dev only?
-        }
-      } catch (error) {
-        this.logger.error('Error connecting to the database:', error);
-      }
-
-      if (environment === 'test') {
-        this.runAutomatedTests();
-      }
-
-      if (environment === 'production') {
-        // this.implementScalabilityStrategies();
-      }
+      const databasePath = path.resolve(__dirname, '../../', this.databasePath);
+      await this.syncAndLogDatabase(databasePath, environment);
     } else {
       this.logger.error('No database path');
     }
   }
 
   /**
-   * Backs up the database if the dialect is SQLite. If successful, the backup file path is returned.
-   * @returns The path of the backup file.
+   * @method checkDatabase
+   * @description Checks the database connection status
+   * @returns Promise<boolean>
    */
-  async backupDatabase(): Promise<string | null> {
-    if (this.databasePath && this.database.getDialect() === 'sqlite') {
-      const backupPath = `${this.databasePath}.bak`;
-      await fs.copy(this.databasePath, backupPath);
-      return backupPath;
+  @Retry({ retries: 3, retryDelay: 1000, exponentialBackoff: true, backoffMultiplier: 3 })
+  public async checkDatabase() {
+    try {
+      await this.database.authenticate();
+      this.logger.info('Database connection successful');
+      return true;
+    } catch (error) {
+      this.logger.error('Database connection failed.', error);
+      return false;
     }
-    return null;
   }
 
   /**
-   * Explains a SQL query so it can be analyzed.
-   * @param sql The SQL query to explain.
-   * @returns The explanation of the query.
+   * @method syncAndLogDatabase
+   * @description Starts query logging and error logging, syncs the database, logs database status,
+   * runs automated tests in test environment, and implements scalability strategies in production environment
+   * @param {string} databasePath - The path to the database
+   * @param {string} environment - The environment in which the application is running
+   * @returns {Promise<void>} A Promise that resolves when the operations are complete
    */
-  async explainQuery(sql: string): Promise<any> {
-    const [result] = await this.database.query(`EXPLAIN ${sql}`);
-    return result;
-  }
+  private async syncAndLogDatabase(databasePath: string, environment: string): Promise<void> {
+    try {
+      const databaseExists = fs.existsSync(databasePath);
+      this.logMixin.startQueryLogging();
+      this.logMixin.startErrorLogging();
+      await this.database.sync({ force: false });
 
-  /**
-   * Adds hooks to the Sequelize instance to start logging before and after every query.
-   */
-  private startQueryLogging() {
-    this.database.addHook('beforeQuery', (options: any) => {
-      options.start_time = Date.now();
-    });
-
-    this.database.addHook('afterQuery', (_, options: any) => {
-      const duration = Date.now() - options.start_time;
-      this.queriesLogger.info({ query: options.sql, duration }, 'Executed query');
-      if (duration > 2000) {
-        this.logger.warn(`Slow query detected. Query: ${options.sql}, Duration: ${duration}`);
+      if (databaseExists) {
+        this.logger.info('Existing database used.');
+      } else {
+        this.logger.info('New database created.');
       }
-    });
+
+      if (environment === 'test') {
+        this.testMixin.runAutomatedTests();
+      }
+
+      if (environment === 'production') {
+        // this.implementScalabilityStrategies();
+      }
+    } catch (error) {
+      this.logger.error('Error connecting to the database:', error);
+    }
   }
 
   /**
-   * Starts logging unhandled promise rejections using the general logger.
-   */
-  private startErrorLogging() {
-    process.on('unhandledRejection', (error) => {
-      this.logger.error(error, 'Unhandled Promise Rejection');
-    });
-
-    process.on('SIGINT', async () => {
-      await this.database.close();
-      this.logger.info('Database connection closed');
-      process.exit(0);
-    });
-  }
-
-  /**
-   * Runs automated tests on the database to ensure it's functioning correctly.
-   * For example, it might check that basic arithmetic operations are working as expected.
+   * @method backupDatabase
+   * Backs up the current state of the database. The method varies depending on the database dialect.
    *
-   * @todo Extend this method to add more complex tests.
+   * @see DatabaseRecoveryMixin#backupDatabase
    */
-  private runAutomatedTests() {
-    // Implement some actual testing
-    this.database
-      .query('SELECT 1+1 AS result')
-      .then(([result]: any) => {
-        if (result[0]['result'] !== 2) {
-          throw new Error('1+1 did not equal 2');
-        }
-        this.logger.info(result);
-      })
-      .catch((err) => {
-        this.logger.error('Test failed:', err);
-      });
+  public async backupDatabase(): Promise<string | null> {
+    return this.recoveryMixin.backupDatabase();
+  }
+
+  /**
+   * @method restoreDatabase
+   * Restores the database from a backup
+   *
+   * @see DatabaseRecoveryMixin#restoreDatabase
+   */
+  public async restoreDatabase(backupPath: string): Promise<boolean> {
+    return this.recoveryMixin.restoreDatabase(backupPath);
+  }
+
+  /**
+   * @method performBulkOperations
+   * Perform bulk operations within a database transaction.
+   *
+   * @see DatabaseOpsMixin#performBulkOperations
+   */
+  public async performBulkOperations(operations: Array<Function>): Promise<void> {
+    this.operationsMixin.performBulkOperations(operations);
+  }
+
+  /**
+   * @method query
+   * Execute a database query with optional query options and a timeout.
+   *
+   * @see DatabaseOpsMixin#query
+   */
+  public async query(sql: string, options: any, timeout: number): Promise<any> {
+    return await this.operationsMixin.query(sql, options, timeout);
+  }
+
+  /**
+   * @method explainQuery
+   * Explains a SQL query so it can be analyzed.
+   *
+   * @see DatabaseOpsMixin#explainQuery
+   */
+  public async explainQuery(sql: string): Promise<any> {
+    return await this.operationsMixin.explainQuery(sql);
+  }
+
+  /**
+   * @method registerHealthCheck
+   * @description Registers a new health check function
+   * @returns {void}
+   */
+  public registerHealthCheck(check: HealthCheck): void {
+    this.healthChecks.push(check);
+  }
+
+  /**
+   * @method performHealthChecks
+   * @description Performs all registered health checks
+   * @returns {Promise<boolean>}
+   */
+  public async performHealthChecks(): Promise<boolean> {
+    for (let check of this.healthChecks) {
+      if (!(await this.performHealthCheck(check))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @method performHealthCheck
+   * @description Executes a health check function, logs an error if the check fails
+   * @param {HealthCheck} check - A function that performs a health check and returns a Promise<boolean> indicating the health status
+   * @returns {Promise<boolean>}
+   */
+  private async performHealthCheck(check: HealthCheck): Promise<boolean> {
+    try {
+      const result = await check();
+      if (!result) {
+        throw new Error('Health check failed');
+      }
+      return true;
+    } catch (error) {
+      this.logger.error('Health check failed:', error);
+      return false;
+    }
   }
 }

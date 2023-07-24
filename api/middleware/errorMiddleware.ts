@@ -2,7 +2,7 @@ import Koa from 'koa';
 import { ValidationError } from 'sequelize';
 import { HttpStatus } from '../core/lib';
 import { SyError } from '../core/errors/SyError';
-import { ErrorResponse } from '../core/types/error';
+import { ErrorResponse } from '../core/errors/types';
 
 /**
  * Koa middleware to handle errors. Catches any errors that occur during
@@ -15,22 +15,30 @@ export const errorMiddleware: Koa.Middleware = async (ctx, next) => {
   try {
     await next();
   } catch (error) {
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = 'Internal server error';
+    let details = {};
+
     if (error instanceof SyError) {
       const errorResponse: ErrorResponse = error.toResponse();
-      ctx.status = errorResponse.status;
-      ctx.body = errorResponse;
-      ctx.logger.error(errorResponse);
+      status = errorResponse.status;
+      message = errorResponse.message;
+      details = errorResponse.details;
+      ctx.logger.error(`${message} ${JSON.stringify(details)}`);
     } else if (error instanceof ValidationError) {
-      ctx.status = HttpStatus.UNPROCESSABLE_ENTITY;
-      ctx.body = { error: error.message };
-      ctx.logger.error(error.message, { error });
+      status = HttpStatus.UNPROCESSABLE_ENTITY;
+      message = error.message;
+      ctx.logger.error(message);
     } else {
-      ctx.status = HttpStatus.INTERNAL_SERVER_ERROR;
-      ctx.body = {
-        status: ctx.status,
-        message: 'Internal server error',
-      };
       ctx.logger.error(error);
+      throw error; // rethrow the error after logging
     }
+
+    ctx.status = status;
+    ctx.body = {
+      status: status,
+      message: message,
+      details: details,
+    };
   }
 };

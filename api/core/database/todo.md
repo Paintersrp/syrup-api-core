@@ -1,60 +1,91 @@
 # TODO LIST:
 
-## SyDatabase Class:
+## **SyDatabase Class:**
 
-- [ ] Implement different database connection pool strategies (like a fixed size, dynamic size, etc.)
-- [ ] Add functionality to log all database operations, not just errors
-- [ ] Implement a configurable connection timeout setting for the Sequelize instance
-- [ ] Implement data sharding strategies for large datasets
-- [ ] Support other database dialects in backupDatabase() method
-- [ ] Implement a restoreDatabase() method to restore a backup
-- [ ] Add bulk operations support like transaction management for batch operations
-- [ ] Implement a system to handle database connection drop situations (automatic reconnect, exponential backoff)
-- [ ] Include query timeout setting in the query options
-- [ ] Add support for read and write replicas
-- [ ] Provide an option for automated database migration handling
-- [ ] Add support for database failover mechanisms
-- [ ] Implement secure data masking and anonymization for privacy
+- [x] ~~Implement different database connection pool strategies (like a fixed size, dynamic size, etc.)~~
+  - Handled in DB Config
+    ###
+- [x] ~~Add functionality to log all database operations, not just errors~~
+- [x] ~~Implement a configurable connection timeout setting for the Sequelize instance~~
+  - Handled in DB Config
+    ###
+- [x] ~~Support other database dialects in backupDatabase() method~~
+- [x] ~~Implement a restoreDatabase() method to restore a backup~~
+- [x] ~~Add bulk operations support like transaction management for batch operations~~
+- [x] ~~Implement a system to handle database connection drop situations (automatic reconnect, exponential backoff)~~
+  - Handled in DB Config
+    ###
+- [x] ~~Include query timeout setting in the query options~~
 
-## Database Health Check:
+#### - **[!] Provide an option for automated database migration handling**
 
-- [ ] Optimize the health check mechanism, make it more intelligent (e.g., adaptive retry delay based on previous failures)
-- [ ] Create an interface to allow for custom health checks
-- [ ] Implement a routine to clean up idle or stale connections from the pool
+###
 
-## Error Logging and Query Logging:
+- [->] Implement data sharding strategies for large datasets
+- [->] Add support for read and write replicas
+  - Config Option Implementation
+    ###
 
-- [ ] Add customizable log levels for different types of operations
-- [ ] Implement query optimization suggestions in query log for slow queries
-- [ ] Add option to store logs persistently (e.g., to disk, cloud logging service, etc.)
-- [ ] Implement a mechanism for auditing database transactions
-- [ ] Log database resource utilization statistics
+## ~~Database Health Check:~~
 
-## Query and Data Management:
+- [x] ~~Optimize the health check mechanism, make it more intelligent (e.g., adaptive retry delay based on previous failures)~~
+- [x] ~~Create an interface to allow for custom health checks~~
+- [x] ~~Implement a routine to clean up idle or stale connections from the pool~~
+  - Handled in DB Config
+    ###
 
-- [ ] Add support for complex data types and their operations
-- [ ] Implement ORM-level caching to improve performance
-- [ ] Add support for data indexing for efficient data retrieval
-- [ ] Implement data partitioning strategies for large tables
+## ~~Error Logging and Query Logging:~~
 
-## Automated Testing:
+- [x] ~~Add customizable log levels for different types of operations~~
+- [x] ~~Implement query optimization suggestions in query log for slow queries~~
+- [x] ~~Add option to store logs persistently (e.g., to disk, cloud logging service, etc.)~~
+- [x] ~~Implement a mechanism for auditing database transactions~~
+- [x] ~~Log database resource utilization statistics~~
 
-- [ ] Extend runAutomatedTests() method with more complex test cases
-- [ ] Test behavior under high database load
-- [ ] Mock dependencies like database and logger for unit testing
-- [ ] Test behavior during system shutdown and recovery
-- [ ] Add tests for database schema consistency and validation
+## ~~Query and Data Management:~~
 
-## Documentation and Code Quality:
+- [x] ~~Add support for complex data types and their operations~~
+- [x] ~~Add support for data indexing for efficient data retrieval~~
 
-- [ ] Improve inline comments for all methods
-- [ ] Add jsdoc style comments for all classes, methods, and interfaces
-- [ ] Refactor code for better readability
-- [ ] Create a README.md with usage examples and API documentation
-- [ ] Document database schema and data flow diagrams
+###
 
-## Scalability:
+## ~~Documentation and Code Quality:~~
 
-- [ ] Implement scalability strategies for production (like sharding, read-write splitting, etc.)
-- [ ] Implement mechanism for managing database resources based on load
-- [ ] Add support for distributed database systems
+- [x] ~~Improve inline comments for all methods~~
+- [x] ~~Add jsdoc style comments for all classes, methods, and interfaces~~
+- [x] ~~Refactor code for better readability~~
+- [x] ~~Create a README.md with usage examples and API documentation~~
+
+## **Automated Testing:**
+
+- [x] ~~Extend runAutomatedTests() method with more complex test cases~~
+- [x] ~~Test behavior under high database load~~
+- [x] ~~Mock dependencies like database and logger for unit testing~~
+
+###
+
+- [->] Test behavior during system shutdown and recovery
+- [->] Add tests for database schema consistency and validation
+- [->] Implement Jest Test Library
+- [->] 100% Coverage
+
+## **Future Dev:**
+
+- [->] Implement ORM-level caching to improve performance
+- [->] Implement data partitioning strategies for large tables
+
+###
+
+- [ ] Migrations
+- [ ] Postgres
+- [ ] MySql
+- [ ] GraphQL (?)
+- [ ] Cloud (?)
+- [ ] Implement SyLFUCache to Sequelize for Queries
+- [ ] Implement Redis Cache for Production
+
+## **Scalability:**
+
+- [->] Implement scalability strategies for production (like sharding, read-write splitting, etc.)
+- [->] Implement mechanism for managing database resources based on load
+- [->] Add support for distributed database systems

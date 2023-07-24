@@ -98,7 +98,8 @@ export class User extends SyModel<
    * Creates a blank profile for the user.
    * @param user The user instance.
    */
-  public async createBlankProfile(user: User) {
+  public async createBlankProfile() {
+    return;
     const fields = Profile.getKeys();
     const emptyProfile: { [key: string]: string } = {};
 
@@ -109,6 +110,7 @@ export class User extends SyModel<
     try {
       await this.createProfile(emptyProfile);
     } catch (error) {
+      console.log(error);
       logger.error('Failed to create blank profile:', error);
     }
   }
@@ -151,7 +153,7 @@ export class User extends SyModel<
       await Promise.all(promises);
     },
     afterCreate: async (user: User) => {
-      user.createBlankProfile(user);
+      user.createBlankProfile();
     },
   };
 

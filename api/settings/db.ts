@@ -8,6 +8,21 @@ export const DB_CONFIG = {
   dialect: DB_TYPE,
   storage: DB_PATH,
   logging: false,
+  pool: {
+    max: 5,
+    min: 0,
+    idle: 10000,
+    acquire: 30000,
+    evict: 5000,
+  },
+  dialectOptions: {
+    connectTimeout: 60000,
+  },
+  retry: {
+    max: 5,
+    backoffBase: 100,
+    backoffExponent: 1.1,
+  },
 };
 
 export const ORM = new SyDatabase(DB_CONFIG, logger, queriesLogger);
