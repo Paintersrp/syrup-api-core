@@ -16,6 +16,13 @@ import { SyModel } from '../core/model/SyModel';
 import { Profile } from './profile';
 import { faker } from '@faker-js/faker';
 
+export type UserSession = {
+  id: number;
+  username: string;
+  role?: UserRoleEnum;
+  theme?: string;
+};
+
 /**
  * @todo Soft Deletion
  * @todo _previousDataValues
@@ -93,6 +100,46 @@ export class User extends SyModel<
   declare createProfile: HasOneCreateAssociationMixin<Profile>;
   declare setProfile: HasOneSetAssociationMixin<Profile, 'userId'>;
   declare profile?: NonAttribute<Profile>;
+
+  /**
+   * Finds a user by their refresh token.
+   * @param token The refresh token.
+   * @returns The user if found, otherwise null.
+   */
+  static async findByToken(token: string) {
+    try {
+      const user = await User.findOne({ where: { refreshToken: token } });
+      return user;
+    } catch (error) {
+      logger.error('Failed to find user by token:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * `generateSessionObject` asynchronously generates a session object that contains essential user information.
+   *
+   * This function is used to generate a minimal object containing the user's information that can be stored in the session.
+   * It does not contain sensitive information such as the user's password or refresh token.
+   *
+   * @returns {Promise<UserSession>} A promise that resolves with a UserSession object. The UserSession object contains
+   * the user's id, username, role, and theme.
+   *
+   * @example
+   * const userSession = await user.generateSessionObject();
+   * console.log(userSession);
+   * // Output: { id: 1, username: 'JohnDoe', role: 'admin', theme: 'dark' }
+   *
+   * @public
+   */
+  public async generateSessionObject(): Promise<UserSession> {
+    return {
+      id: this.id,
+      username: this.username,
+      role: this.role,
+      theme: this.theme,
+    };
+  }
 
   /**
    * Creates a blank profile for the user.

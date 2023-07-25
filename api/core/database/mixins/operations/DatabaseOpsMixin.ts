@@ -1,5 +1,5 @@
 import { Logger } from 'pino';
-import { Sequelize } from 'sequelize';
+import { Optional, Sequelize } from 'sequelize';
 
 /**
  * A mixin class that contains methods for performing operations on a database.
@@ -25,50 +25,100 @@ export class DatabaseOpsMixin {
   }
 
   /**
-   * Perform bulk operations within a database transaction.
+   * Executes multiple operations within a single database transaction.
    *
-   * @param operations - An array of async functions representing individual operations to be performed within the transaction.
+   * @param {Function[]} operations - An array of async functions representing individual operations to be performed within the transaction.
    *
-   * @returns A Promise that resolves when all the operations have been successfully executed within the transaction, or rejects if any operation fails.
-   * If successful, the transaction is committed, and if any operation fails, the transaction is rolled back.
+   * @returns {Promise<void>} A Promise that resolves when all operations have been executed successfully, or rejects if any operation fails.
+   * If successful, the transaction is committed. If any operation fails, the transaction is rolled back.
    */
-  public async performBulkOperations(operations: Array<Function>): Promise<void> {
-    const t = await this.database.transaction();
-
-    try {
-      for (const operation of operations) {
-        await operation(t);
+  public async performBulkOperations(
+    operations: Array<Function>,
+    retries: number = 2
+  ): Promise<void> {
+    for (let i = 0; i <= retries; i++) {
+      const t = await this.database.transaction();
+      try {
+        for (const operation of operations) {
+          await operation(t);
+        }
+        // If all operations were successful, commit the transaction.
+        await t.commit();
+        break;
+      } catch (error) {
+        // If any operation failed, roll back the transaction.
+        await t.rollback();
+        if (i < retries) {
+          this.logger.warn('Error occurred during transaction. Retrying...');
+        } else {
+          this.logger.error('Error occurred during transaction. All retries failed.');
+          throw error;
+        }
       }
-
-      await t.commit();
-    } catch (error) {
-      await t.rollback();
-      this.logger.error('Transaction failed and has been rolled back.', error);
-      throw error;
     }
   }
 
   /**
-   * Execute a database query with optional query options and a timeout.
+   * Executes a database query with optional query options and a timeout.
    *
-   * @param sql - The SQL query to be executed.
-   * @param options - Optional query options to be passed to the database query function.
-   * @param timeout - Optional timeout value for the database query, in milliseconds.
+   * @param {string} sql - The SQL query to be executed.
+   * @param {any} options - Optional query options to be passed to the database query function.
+   * @param {number} timeout - Optional timeout value for the database query, in milliseconds.
    *
-   * @returns A Promise that resolves with the result of the database query, or rejects if the query encounters an error.
+   * @returns {Promise<any>} A Promise that resolves with the result of the database query, or rejects if the query encounters an error.
    */
   public async query(sql: string, options: any, timeout: number): Promise<any> {
+    if (typeof sql !== 'string') {
+      throw new TypeError('sql must be a string');
+    }
+
+    if (typeof timeout !== 'number') {
+      throw new TypeError('timeout must be a number');
+    }
+
     return await this.database.query(sql, { ...options, timeout });
   }
 
   /**
-   * Explains a SQL query so it can be analyzed.   *
-   * @param sql - The SQL query to explain.   *
-   * @returns A Promise that resolves with the explanation of the query, or rejects if the query encounters an error.
+   * Executes an EXPLAIN SQL query and logs the result.
+   *
+   * @param {string} sql - The SQL query to be explained.
+   *
+   * @returns {Promise<any>} A Promise that resolves with the explanation of the query, or rejects if the query encounters an error.
    */
   public async explainQuery(sql: string): Promise<any> {
     const [result] = await this.database.query(`EXPLAIN ${sql}`);
     this.logger.info(result);
     return result;
+  }
+
+  /**
+   * Executes a set of SQL queries within a single database transaction.
+   *
+   * @param {string[]} queries - An array of SQL queries to be executed.
+   *
+   * @returns {Promise<any>} A Promise that resolves when all queries have been executed successfully, or rejects if any query fails.
+   */
+  public async compoundQuery(queries: string[]): Promise<any> {
+    const operations = queries.map((query) => {
+      return async () => {
+        await this.database.query(query);
+      };
+    });
+    await this.performBulkOperations(operations);
+  }
+
+  /**
+   * Inserts a new record into the specified model, or updates it if it already exists.
+   *
+   * @param {string} model - The name of the model into which the record should be upserted.
+   * @param {any} values - The values of the record to be upserted.
+   *
+   * @returns {Promise<any>} A Promise that resolves with the result of the upsert operation, or rejects if the operation fails.
+   */
+  public async upsert(model: string, values: Optional<any, string>): Promise<any> {
+    const Model = this.database.models[model];
+    if (!Model) throw new Error('Model does not exist');
+    return Model.upsert(values);
   }
 }

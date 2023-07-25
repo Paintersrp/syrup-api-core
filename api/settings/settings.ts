@@ -24,6 +24,7 @@ export const MIDDLEWARES = [
   Middleware.responseTime(),
   Middleware.rateLimitMiddleware,
   Middleware.jwtMiddleware,
+  Middleware.sessionMiddleware,
   Middleware.loggingMiddleware,
   Middleware.errorMiddleware,
   Middleware.notFoundMiddleware,

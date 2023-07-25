@@ -1,0 +1,35 @@
+openapi: '3.0.0'
+info:
+  title: 'Health Check API'
+  version: '1.0.0'
+paths:
+  /health:
+    get:
+      summary: 'Checks the overall health status of the application'
+      responses:
+        '200':
+          description: 'Health status of the application'
+  /health/db:
+    get:
+      summary: 'Checks the health status of the database'
+      responses:
+        '200':
+          description: 'Database health status'
+  /health/frontend:
+    get:
+      summary: 'Checks the health status of the frontend service'
+      responses:
+        '200':
+          description: 'Frontend service health status'
+  /health/system:
+    get:
+      summary: 'Checks the availability and usage of system resources'
+      responses:
+        '200':
+          description: 'System resources usage status'
+  /health/version:
+    get:
+      summary: 'Returns the version of the server'
+      responses:
+        '200':
+          description: 'Server version'

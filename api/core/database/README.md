@@ -1,111 +1,190 @@
-# SyDatabase - Advanced Database Management
+# SyDatabase: Comprehensive Database Management Class
 
-SyDatabase is a database management module for Node.js applications, using Sequelize for database operations and pino for logging. This utility handles database health checks, connection retries, query logging, error logging, and can be extended to support features like metrics collection, automated testing, and scalability strategies.
+SyDatabase is a robust class for managing interactions between your application and the database. It's built around Sequelize for database operations, uses Pino for logging, and offers features like database health checks, connection retries, query logging, and error logging.
 
 ## Table of Contents
 
-1. [Usage](#usage)
-2. [API Documentation](#api-documentation)
-3. [Testing](#testing)
-4. [License](#license)
+- [Installation](#installation)
+- [Initialization](#initialization)
+- [Usage Examples](#usage-examples)
+- [API Documentation](#api-documentation)
 
-## Usage
+## Installation
 
-First, import the necessary modules and initialize the SyDatabase class.
+First, you need to install SyDatabase in your Node.js application. You can import it using:
 
 ```javascript
-import { Sequelize } from 'sequelize';
-import { Logger } from 'pino';
-import { SyDatabase } from 'sydatabase';
+import { SyDatabase } from 'syrup-core-api';
+```
 
-const config = {
+## Initialization
+
+You can initialize an instance of SyDatabase like this:
+
+```javascript
+import path from 'path';
+import { Logger } from 'pino';
+import { Options } from 'sequelize';
+import { SyDatabase } from 'path-to-sydatabase';
+
+const config: Options = {
   dialect: 'sqlite',
-  storage: './database.sqlite',
+  storage: path.join(__dirname, 'db.sqlite'),
 };
 
 const logger = Logger();
 const queriesLogger = Logger();
 
-const sydb = new SyDatabase(config, logger, queriesLogger);
+const database = new SyDatabase(config, logger, queriesLogger);
 ```
 
-After initializing, you can use the class methods for different operations.
+## Usage Examples
+
+You can then use the SyDatabase instance to manage your database operations:
 
 ```javascript
-sydb
-  .startDatabase()
-  .then(() => {
-    console.log('Database started');
-  })
-  .catch((error) => {
-    console.error('Failed to start database:', error);
-  });
+// Start the database
+await database.startDatabase();
 
-// Register a health check
-sydb.registerHealthCheck(async () => {
-  // Perform a health check and return the status
-  const status = await someHealthCheck();
-  return status;
-});
+// Check the database connection
+const isConnected = await database.checkDatabase();
+console.log('Database connected:', isConnected);
 
-// Perform all registered health checks
-sydb
-  .performHealthChecks()
-  .then((result) => {
-    console.log('Health check result:', result);
-  })
-  .catch((error) => {
-    console.error('Health check failed:', error);
-  });
+// Backup the database
+const backupPath = await database.backupDatabase();
+console.log('Database backup:', backupPath);
 
-// Perform a database query
-const sql = 'SELECT * FROM table';
-const options = {};
-const timeout = 5000;
-sydb
-  .query(sql, options, timeout)
-  .then((result) => {
-    console.log('Query result:', result);
-  })
-  .catch((error) => {
-    console.error('Query failed:', error);
-  });
+// Restore the database from a backup
+const isRestored = await database.restoreDatabase(backupPath);
+console.log('Database restored:', isRestored);
+
+// Execute a database query
+const results = await database.query('SELECT * FROM users', {}, 5000);
+console.log('Query results:', results);
 ```
 
 ## API Documentation
 
-- **constructor(config: Options, logger: Logger, queriesLogger: Logger)**: Initializes the SyDatabase class with the provided Sequelize configuration and loggers.
-- **startDatabase(): Promise<void>**: Initiates the database, performs health checks, starts logging, and handles errors.
-- **checkDatabase(): Promise<boolean>**: Checks the database connection status.
-- **backupDatabase(): Promise<string | null>**: Backs up the current state of the database. The method varies depending on the database dialect.
-- **restoreDatabase(backupPath: string): Promise<boolean>**: Restores the database from a backup.
-- **performBulkOperations(operations: Array<Function>): Promise<void>**: Performs bulk operations within a database transaction.
-- **query(sql: string, options: any, timeout: number): Promise<any>**: Executes a database query with optional query options and a timeout.
-- **explainQuery(sql: string): Promise<any>**: Explains a SQL query so it can be analyzed.
-- **registerHealthCheck(check: HealthCheck): void**: Registers a new health check function.
-- **performHealthChecks(): Promise<boolean>**: Performs all registered health checks.
+SyDatabase includes several methods for managing your database:
 
-## Testing
+### `constructor(config: Options, logger: Logger, queriesLogger: Logger)`
 
-To run automated tests, use the `testMixin.runAutomatedTests()` method after starting the database.
+Initializes a new SyDatabase instance.
 
-```javascript
-sydb
-  .startDatabase()
-  .then(() => {
-    sydb.testMixin.runAutomatedTests();
-  })
-  .catch((error) => {
-    console.error('Failed to start database or run tests:', error);
-  });
-```
+- `config`: The configuration options for Sequelize.
+- `logger`: The logger instance for general logging.
+- `queriesLogger`: The logger instance for query-specific logging.
 
-## License
+---
 
-SyDatabase is licensed under [MIT](LICENSE).
+### `async startDatabase()`
 
-## Contribute
+Initiates the database, performs health checks, starts logging, and handles errors.
 
-Contributions, issues and feature requests are welcome!
+---
 
-Feel free to check [issues page](https://github.com/your-repo/sydatabase/issues). You can also take a look at the [contributing guide](https://github.com/your-repo/sydatabase/blob/master/CONTRIBUTING.md).
+### `async checkDatabase()`
+
+Checks the database connection status and returns a boolean indicating the status.
+
+---
+
+### `async backupDatabase()`
+
+Backs up the current state of the database. The method varies depending on the database dialect.
+
+---
+
+### `async restoreDatabase(backupPath: string)`
+
+Restores the database from a backup.
+
+- `backupPath`: The path to the backup file.
+
+---
+
+### `async performBulkOperations(operations: Array<Function>)`
+
+Performs bulk operations within a database transaction.
+
+- `operations`: An array of functions, each representing a database operation.
+
+---
+
+### `async query(sql: string, options: any, timeout: number)`
+
+Executes a database query with optional query options and a timeout.
+
+- `sql`: The SQL query to execute.
+- `options`: Optional query options.
+- `timeout`: The timeout for the query in milliseconds.
+
+---
+
+### `async compoundQuery(queries: string[])`
+
+Executes a set of SQL queries within a single database transaction.
+
+- `queries`: An array of SQL queries to execute.
+
+---
+
+### `async explainQuery(sql: string)`
+
+Explains a SQL query so it can be analyzed.
+
+- `sql`: The SQL query to explain.
+
+---
+
+### `async upsert(model: string, values: Optional<any, string>)`
+
+Inserts a new record into the specified model, or updates it if it already exists.
+
+- `model`: The model to update.
+- `values`: The values to insert or update.
+
+---
+
+### `registerHealthCheck(name: string, check: HealthCheck)`
+
+Registers a new health check function with a given name.
+
+- `name`: The name of the health check function.
+- `check`: The health check function to register.
+
+---
+
+### `unregisterHealthCheck(name: string)`
+
+Unregisters a health check function with a given name.
+
+- `name`: The name of the health check function to unregister.
+
+---
+
+### `async performHealthChecks()`
+
+Performs all registered health checks and returns a boolean indicating the health status.
+
+---
+
+### `async performHealthCheck(check: string | HealthCheck)`
+
+Executes a health check function by name or direct and returns a boolean indicating the health status.
+
+- `check`: The name of the health check function or the function itself.
+
+---
+
+### `scheduleHealthChecks(interval: number)`
+
+Schedules health checks at a given interval in milliseconds.
+
+- `interval`: The interval at which to perform health checks, in milliseconds.
+
+---
+
+### `stopScheduledHealthChecks()`
+
+Stops scheduled health checks if they are currently running.

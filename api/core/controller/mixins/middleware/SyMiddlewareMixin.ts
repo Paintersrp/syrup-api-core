@@ -49,7 +49,7 @@ export class SyMiddlewareMixin extends SyMixin {
    */
   public async cacheEndpoint(ctx: Router.RouterContext, next: Koa.Next) {
     const skipAndRefreshCache = ctx.query.skip === 'true';
-    const cacheKey = `${ctx.method}-${ctx.url}`;
+    const cacheKey = `${ctx.method}-${ctx.url}` as unknown as number;
     const cachedResponse = cache.get(cacheKey);
 
     if (cachedResponse && !skipAndRefreshCache) {
@@ -59,6 +59,6 @@ export class SyMiddlewareMixin extends SyMixin {
     }
 
     await next();
-    await cache.set(cacheKey, ctx.body, 60);
+    cache.set(cacheKey, ctx.body as unknown as number, 60);
   }
 }

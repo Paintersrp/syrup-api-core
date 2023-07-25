@@ -43,6 +43,11 @@ export class SyModel<
   declare updatedAt: CreationOptional<Date>;
 
   /**
+   * The version field of the model.
+   */
+  declare version: CreationOptional<number>;
+
+  /**
    * The metadata fields for the model.
    */
   static metaFields = {
@@ -53,6 +58,7 @@ export class SyModel<
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
+    // version: DataTypes.INTEGER,
   };
 
   /**

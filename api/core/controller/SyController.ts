@@ -55,6 +55,7 @@ export abstract class SyController extends EventEmitter {
     'validateBody',
     'cacheEndpoint',
     'getMetadata',
+    'options',
   ];
 
   protected declare createMixin: SyCreateMixin;
@@ -234,5 +235,19 @@ export abstract class SyController extends EventEmitter {
   @ETag
   public async getMetadata(ctx: Router.RouterContext): Promise<void> {
     this.metaMixin.getMetadata(ctx);
+  }
+
+  /**
+   * OPTIONS endpoint.
+   * @param {Router.RouterContext} ctx - The Koa router context.
+   * @param {() => Promise<any>} next The next middleware function.
+   */
+  public async options(ctx: Router.RouterContext, next: () => Promise<any>) {
+    ctx.set('Allow', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    ctx.status = 200;
+    ctx.body = {
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    };
+    await next();
   }
 }

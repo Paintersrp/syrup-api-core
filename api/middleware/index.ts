@@ -4,6 +4,7 @@ export { loggingMiddleware } from './loggingMiddleware';
 export { notFoundMiddleware } from './notFoundMiddleware';
 export { rateLimitMiddleware } from './rateLimitMiddleware';
 export { rbacMiddleware } from './rbacMiddleware';
+export { sessionMiddleware } from './sesssionMiddleware';
 
 export { default as bodyParser } from 'koa-bodyparser';
 export { default as compose } from 'koa-compose';

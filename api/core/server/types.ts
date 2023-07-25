@@ -1,5 +1,6 @@
 import Koa, { DefaultContext, ParameterizedContext } from 'koa';
 import compose from 'koa-compose';
+import Router from 'koa-router';
 import { Logger } from 'pino';
 import { RouteConstructor } from '../../types';
 import { SyLFUCache } from '../cache/SyLFUCache';
@@ -19,6 +20,10 @@ export interface ServerResourceThresholds {
   /** Disk space usage threshold (0 to 1). */
   diskSpaceThreshold: number;
 }
+
+export type ComposedMiddlewares = compose.ComposedMiddleware<
+  ParameterizedContext<{}, DefaultContext, any>
+>;
 
 /**
  * Interface defining the options for configuring the SyServer instance.
@@ -43,11 +48,17 @@ export interface SyServerOptions {
   resourceThresholds?: ServerResourceThresholds;
 
   /** Optional middleware to be used by the server. */
-  middleware?: compose.ComposedMiddleware<ParameterizedContext<{}, DefaultContext, any>>;
+  middleware?: ComposedMiddlewares;
 
   /** Optional array of RouteConstructor instances to register routes on the server. */
   routes?: RouteConstructor[];
 
   /** Optional version information for the server. */
   version?: string;
+
+  /** Optional SSR Router, auto generated if SSR is configured. */
+  ssrRouter?: Router;
+
+  /** Optional distribution path for the frontend build for serving through SSR. */
+  distPath?: string;
 }

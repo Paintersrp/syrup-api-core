@@ -1,16 +1,17 @@
 import path from 'path';
 import fs from 'fs-extra';
-import { Sequelize, Options } from 'sequelize';
+import { Sequelize, Options, Optional } from 'sequelize';
 import { Logger } from 'pino';
 
 import { Retry } from '../lib/decorators/general';
 import {
-  DatabaseLogMixin,
+  HealthCheckMixin,
+  QueryLogMixin,
   DatabaseOpsMixin,
   DatabaseRecoveryMixin,
   DatabaseTestMixin,
 } from './mixins';
-import { HealthCheck } from './types';
+import { HealthCheck } from '../mixins/health/types';
 
 /**
  * @todo Postgres/SQL/MySql in config for restore / backup settings
@@ -27,12 +28,12 @@ export class SyDatabase {
   public readonly databasePath?: string;
   public readonly logger: Logger;
   public readonly queriesLogger: Logger;
-  private healthChecks: HealthCheck[] = [];
 
-  declare recoveryMixin: DatabaseRecoveryMixin;
-  declare operationsMixin: DatabaseOpsMixin;
-  declare testMixin: DatabaseTestMixin;
-  declare logMixin: DatabaseLogMixin;
+  protected recoveryMixin!: DatabaseRecoveryMixin;
+  protected operationsMixin!: DatabaseOpsMixin;
+  protected testMixin!: DatabaseTestMixin;
+  protected queryLogMixin!: QueryLogMixin;
+  protected healthCheckMixin!: HealthCheckMixin;
 
   /**
    * @constructor
@@ -62,7 +63,8 @@ export class SyDatabase {
     this.recoveryMixin = new DatabaseRecoveryMixin(this.database, this.logger, this.databasePath);
     this.operationsMixin = new DatabaseOpsMixin(this.database, this.logger);
     this.testMixin = new DatabaseTestMixin(this.database, this.logger);
-    this.logMixin = new DatabaseLogMixin(this.database, this.logger, this.queriesLogger);
+    this.queryLogMixin = new QueryLogMixin(this.database, this.logger, this.queriesLogger);
+    this.healthCheckMixin = new HealthCheckMixin(this.logger);
   }
 
   /**
@@ -109,8 +111,8 @@ export class SyDatabase {
   private async syncAndLogDatabase(databasePath: string, environment: string): Promise<void> {
     try {
       const databaseExists = fs.existsSync(databasePath);
-      this.logMixin.startQueryLogging();
-      this.logMixin.startErrorLogging();
+      this.queryLogMixin.startQueryLogging();
+      this.queryLogMixin.startErrorLogging();
       await this.database.sync({ force: false });
 
       if (databaseExists) {
@@ -172,6 +174,16 @@ export class SyDatabase {
   }
 
   /**
+   * @method compoundQuery
+   * Executes a set of SQL queries within a single database transaction.
+   *
+   * @see DatabaseOpsMixin#compoundQuery
+   */
+  public async compoundQuery(queries: string[]): Promise<any> {
+    return await this.operationsMixin.compoundQuery(queries);
+  }
+
+  /**
    * @method explainQuery
    * Explains a SQL query so it can be analyzed.
    *
@@ -182,44 +194,76 @@ export class SyDatabase {
   }
 
   /**
-   * @method registerHealthCheck
-   * @description Registers a new health check function
-   * @returns {void}
+   * @method upsert
+   * Inserts a new record into the specified model, or updates it if it already exists.
+   *
+   * @see DatabaseOpsMixin#upsert
    */
-  public registerHealthCheck(check: HealthCheck): void {
-    this.healthChecks.push(check);
+  public async upsert(model: string, values: Optional<any, string>): Promise<any> {
+    return await this.operationsMixin.upsert(model, values);
+  }
+
+  /**
+   * Begin Health Check Methods
+   */
+
+  /**
+   * @method registerHealthCheck
+   * @description Registers a new health check function with a given name
+   *
+   * @see HealthCheckMixin#registerHealthCheck
+   */
+  public registerHealthCheck(name: string, check: HealthCheck): void {
+    this.healthCheckMixin.registerHealthCheck(name, check);
+  }
+
+  /**
+   * @method unregisterHealthCheck
+   * @description Unregisters a health check function with a given name
+   *
+   * @see HealthCheckMixin#unregisterHealthCheck
+   */
+  public unregisterHealthCheck(name: string): void {
+    this.healthCheckMixin.unregisterHealthCheck(name);
   }
 
   /**
    * @method performHealthChecks
    * @description Performs all registered health checks
-   * @returns {Promise<boolean>}
+   *
+   * @see HealthCheckMixin#performHealthChecks
    */
   public async performHealthChecks(): Promise<boolean> {
-    for (let check of this.healthChecks) {
-      if (!(await this.performHealthCheck(check))) {
-        return false;
-      }
-    }
-    return true;
+    return this.healthCheckMixin.performHealthChecks();
   }
 
   /**
    * @method performHealthCheck
-   * @description Executes a health check function, logs an error if the check fails
-   * @param {HealthCheck} check - A function that performs a health check and returns a Promise<boolean> indicating the health status
-   * @returns {Promise<boolean>}
+   * @description Executes a health check function by name or direct
+   *
+   * @see HealthCheckMixin#performHealthCheck
    */
-  private async performHealthCheck(check: HealthCheck): Promise<boolean> {
-    try {
-      const result = await check();
-      if (!result) {
-        throw new Error('Health check failed');
-      }
-      return true;
-    } catch (error) {
-      this.logger.error('Health check failed:', error);
-      return false;
-    }
+  public async performHealthCheck(check: string | HealthCheck): Promise<boolean> {
+    return this.healthCheckMixin.performHealthCheck(check);
+  }
+
+  /**
+   * @method scheduleHealthChecks
+   * @description Schedules health checks at a given interval in milliseconds, logs the result
+   *
+   * @see HealthCheckMixin#scheduleHealthChecks
+   */
+  public scheduleHealthChecks(interval: number): void {
+    this.healthCheckMixin.scheduleHealthChecks(interval);
+  }
+
+  /**
+   * @method stopScheduledHealthChecks
+   * @description Stops scheduled health checks if they are currently running
+   *
+   * @see HealthCheckMixin#stopScheduledHealthChecks
+   */
+  public stopScheduledHealthChecks(): void {
+    this.healthCheckMixin.stopScheduledHealthChecks();
   }
 }

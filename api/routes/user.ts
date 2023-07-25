@@ -4,7 +4,7 @@ import { SyRoutes } from '../core/routes/SyRoutes';
 
 export class UserRoutes extends SyRoutes<UserController> {
   constructor(app: Koa) {
-    super(new UserController(app.context.logger), 'users', app);
+    super(new UserController(app.context.logger), 'users', app, 'v0.1');
 
     this.router.post(`/register`, this.controller.validateUserBody, this.controller.register);
     this.router.post(`/login`, this.controller.validateUserBody, this.controller.login);
