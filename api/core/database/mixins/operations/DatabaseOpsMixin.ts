@@ -1,5 +1,5 @@
-import { Logger } from 'pino';
 import { Optional, Sequelize } from 'sequelize';
+import { SyLogger } from '../../../logging/SyLogger';
 
 /**
  * A mixin class that contains methods for performing operations on a database.
@@ -10,7 +10,7 @@ import { Optional, Sequelize } from 'sequelize';
  */
 export class DatabaseOpsMixin {
   database: Sequelize;
-  logger: Logger;
+  logger: SyLogger;
 
   /**
    * @constructor
@@ -19,7 +19,7 @@ export class DatabaseOpsMixin {
    * @param database - An instance of the Sequelize class to be used for database operations.
    * @param logger - An instance of the Pino class to be used for logging.
    */
-  constructor(database: Sequelize, logger: Logger) {
+  constructor(database: Sequelize, logger: SyLogger) {
     this.database = database;
     this.logger = logger;
   }
@@ -88,7 +88,7 @@ export class DatabaseOpsMixin {
    */
   public async explainQuery(sql: string): Promise<any> {
     const [result] = await this.database.query(`EXPLAIN ${sql}`);
-    this.logger.info(result);
+    this.logger.info('Query Explanation', result);
     return result;
   }
 

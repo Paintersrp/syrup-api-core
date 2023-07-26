@@ -4,16 +4,19 @@ import Router from 'koa-router';
 import { SyServer } from '../SyServer';
 import { ServerResourceThresholds } from '../types';
 import { HealthCheckMixin } from '../../database/mixins';
+import { AnomalyDetector } from '../../mixins/anomaly/AnomlyDetector';
 
 export class ServerHealthMixin extends HealthCheckMixin {
   server: SyServer;
   router: Router;
   resourceThresholds: ServerResourceThresholds;
+  anomalyDetector: AnomalyDetector;
 
   constructor(server: SyServer, resourceThresholds?: ServerResourceThresholds) {
     super(server.logger);
     this.server = server;
     this.router = new Router();
+    this.anomalyDetector = new AnomalyDetector();
 
     // Initialize resource thresholds with default values if not provided.
     this.resourceThresholds = {
@@ -28,6 +31,7 @@ export class ServerHealthMixin extends HealthCheckMixin {
     this.router.get(`/health/system`, this.checkResources.bind(this));
     this.router.get(`/health/version`, this.checkVersion.bind(this));
     this.router.get(`/health/uptimes`, this.checkUptimes.bind(this));
+    this.router.get(`/health/anomalies`, this.checkAnomalies.bind(this));
 
     this.server.app.use(this.router.routes());
     this.server.app.use(this.router.allowedMethods());
@@ -55,7 +59,7 @@ export class ServerHealthMixin extends HealthCheckMixin {
         resources: results[2],
         version: results[3],
       };
-    } catch (error) {
+    } catch (error: any) {
       this.server.logger.error('Error occurred during health check:', error);
     }
   }
@@ -96,7 +100,7 @@ export class ServerHealthMixin extends HealthCheckMixin {
       ctx.status = response.status;
       ctx.body = response.data;
       return { status: ctx.status, body: ctx.body };
-    } catch (error) {
+    } catch (error: any) {
       this.server.logger.error('Error occurred during external service health check:', error);
     }
   }
@@ -117,18 +121,22 @@ export class ServerHealthMixin extends HealthCheckMixin {
       const diskSpaceAvailable = freeMemory / totalMemory;
       const cpuUsage = loadAverage / cpuCount;
 
+      const memoryHasAnomaly = this.anomalyDetector.checkAnomaly('memory', memoryUsage);
+      const cpuHasAnomaly = this.anomalyDetector.checkAnomaly('cpu', cpuUsage);
+      const diskHasAnomaly = this.anomalyDetector.checkAnomaly('disk', diskSpaceAvailable);
+
       const notifications: string[] = [];
 
-      if (memoryUsage > this.resourceThresholds.memoryUsageThreshold) {
-        notifications.push('Low Memory Usage');
+      if (memoryHasAnomaly) {
+        notifications.push('Memory usage anomaly detected');
       }
 
-      if (cpuUsage > this.resourceThresholds.cpuUsageThreshold) {
-        notifications.push('High CPU Usage');
+      if (cpuHasAnomaly) {
+        notifications.push('CPU usage anomaly detected');
       }
 
-      if (diskSpaceAvailable < this.resourceThresholds.diskSpaceThreshold) {
-        notifications.push('Low Disk Space');
+      if (diskHasAnomaly) {
+        notifications.push('Disk space anomaly detected');
       }
 
       this.uptimeTracker.updateUptimeRecord('Resources', Date.now(), notifications.length === 0);
@@ -142,7 +150,7 @@ export class ServerHealthMixin extends HealthCheckMixin {
       };
 
       return ctx.body;
-    } catch (error) {
+    } catch (error: any) {
       this.server.logger.error('Error occurred during system resources availability check:', error);
       return {
         status: false,
@@ -159,7 +167,7 @@ export class ServerHealthMixin extends HealthCheckMixin {
     try {
       ctx.body = { version: this.server.version };
       return ctx.body;
-    } catch (error) {
+    } catch (error: any) {
       this.server.logger.error('Error occurred during version check:', error);
       return {
         version: 'unknown',
@@ -178,10 +186,29 @@ export class ServerHealthMixin extends HealthCheckMixin {
     try {
       ctx.body = this.uptimeTracker.getAllUptimes();
       return ctx.body;
-    } catch (error) {
+    } catch (error: any) {
       this.server.logger.error('Error occurred during uptime check:', error);
       return {
         error: 'Error occurred during uptime check',
+      };
+    }
+  }
+
+  /**
+   * Asynchronously checks anomaly log and responds with all log records in a human-readable format.
+   *
+   * If an error occurs during the check, it will respond with an error message.
+   *
+   * @param {Router.RouterContext} ctx - The Koa Router context.
+   */
+  private async checkAnomalies(ctx: Router.RouterContext) {
+    try {
+      ctx.body = this.anomalyDetector.getAllAnomalies();
+      return ctx.body;
+    } catch (error: any) {
+      this.server.logger.error('Error occurred during anomalies check:', error);
+      return {
+        error: 'Error occurred during anomalies check',
       };
     }
   }

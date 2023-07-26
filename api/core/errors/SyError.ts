@@ -1,7 +1,7 @@
+import { Context } from 'koa';
 import { logger } from '../../settings';
 
-import { HttpStatus } from '../lib';
-import { ErrorCodes } from './enums';
+import { ErrorCategory, ErrorCodes } from './enums';
 import { ErrorResponse } from './types';
 
 /**
@@ -9,14 +9,15 @@ import { ErrorResponse } from './types';
  */
 export abstract class SyError extends Error {
   public readonly status: number;
-  public readonly message: string;
-  public readonly details?: any;
-  public readonly errorCode: string;
+  public readonly category: ErrorCategory;
+  public readonly details?: unknown;
+  public readonly errorCode: ErrorCodes;
   public readonly internalErrorCode?: string;
   public readonly timestamp: string;
 
   /**
    * @param status - HTTP status code of the error.
+   * @param category - Error category, automatically determined.
    * @param errorCode - Specific error code representing the type of error.
    * @param message - Human-readable message providing more details about the error.
    * @param details - Detailed information about the error.
@@ -24,16 +25,17 @@ export abstract class SyError extends Error {
    */
   constructor(
     status: number,
+    category: ErrorCategory,
     errorCode: ErrorCodes,
     message: string,
-    details?: any,
+    details?: unknown,
     internalErrorCode?: string
   ) {
     super(message);
 
     this.status = status;
+    this.category = category;
     this.errorCode = errorCode;
-    this.message = message;
     this.details = details;
     this.internalErrorCode = internalErrorCode;
     this.timestamp = new Date().toISOString();
@@ -49,147 +51,99 @@ export abstract class SyError extends Error {
    * Converts the error object into a standard error response format.
    * @returns An error response object.
    */
-  public toResponse(): ErrorResponse {
-    return {
-      status: this.status,
-      errorCode: this.errorCode,
+  public toResponse(ctx: Context): ErrorResponse {
+    const response: ErrorResponse = {
       message: this.message,
+      status: this.status,
+      code: this.errorCode,
       details: this.details,
       internalErrorCode: this.internalErrorCode,
       timestamp: this.timestamp,
+      stack: this.stack,
     };
+
+    if (ctx.state.user) {
+      response.user = ctx.state.user;
+    }
+
+    if (ctx.requestId) {
+      response.requestId = ctx.requestId;
+    }
+
+    if (ctx.request) {
+      response.request = {
+        method: ctx.request.method,
+        url: ctx.request.url,
+        headers: ctx.request.headers,
+        body: ctx.request.body,
+      };
+    }
+
+    return response;
   }
 
   /**
    * Logs the error details for debugging and tracing.
    */
-  public logError(): void {
-    logger.error({
+  public logError(ctx: Context): void {
+    const logData: Record<string, unknown> = {
       status: this.status,
       code: this.errorCode,
-      message: this.message,
       details: this.details,
       internalErrorCode: this.internalErrorCode,
       timestamp: this.timestamp,
       stack: this.stack,
-    });
+    };
+
+    if (ctx.requestId) {
+      logData.requestId = ctx.requestId;
+    }
+
+    if (ctx.state.user) {
+      logData.user = ctx.state.user;
+    }
+
+    if (ctx.request) {
+      logData.request = {
+        method: ctx.request.method,
+        url: ctx.request.url,
+        headers: ctx.request.headers,
+        body: ctx.request.body,
+      };
+    }
+
+    logger.error(this.message, logData);
   }
 
   /**
    * Returns stringified version of the error for outside usage.
    */
-  public toString(): string {
+  public toString(ctx: Context): string {
     return (
       `SyError: ${this.status} ${this.errorCode} ${this.message}` +
       (this.internalErrorCode ? ` (${this.internalErrorCode})` : '') +
       (this.details ? `\nDetails: ${JSON.stringify(this.details)}` : '') +
+      `\nRequest ID: ${ctx.requestId}` +
+      `\nRequest Method: ${ctx.request.method}` +
+      `\nRequest URL: ${ctx.request.url}` +
       (this.timestamp ? `\nTimestamp: ${JSON.stringify(this.timestamp)}` : '') +
       (this.stack ? `\nStack trace:\n${this.stack}` : '')
     );
   }
-}
 
-/**
- * Class representing bad request errors.
- */
-export class BadRequestError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(HttpStatus.BAD_REQUEST, ErrorCodes.BAD_REQUEST, message, details, internalErrorCode);
-  }
-}
-
-/**
- * Class representing forbidden errors.
- */
-export class ForbiddenError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(HttpStatus.FORBIDDEN, ErrorCodes.FORBIDDEN, message, details, internalErrorCode);
-  }
-}
-
-/**
- * Class representing internal server errors.
- */
-export class InternalServerError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      ErrorCodes.INTERNAL_SERVER,
-      message,
-      details,
-      internalErrorCode
-    );
-  }
-}
-
-/**
- * Class representing no content errors.
- */
-export class NoContentError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(HttpStatus.NO_CONTENT, ErrorCodes.NO_CONTENT, message, details, internalErrorCode);
-  }
-}
-
-/**
- * Class representing not found errors.
- */
-export class NotFoundError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(HttpStatus.NOT_FOUND, ErrorCodes.NOT_FOUND, message, details, internalErrorCode);
-  }
-}
-
-/**
- * Class representing request timeout errors.
- */
-export class RequestTimeoutError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(
-      HttpStatus.REQUEST_TIMEOUT,
-      ErrorCodes.REQUEST_TIMEOUT,
-      message,
-      details,
-      internalErrorCode
-    );
-  }
-}
-
-/**
- * Class representing too many requests errors.
- */
-export class TooManyRequestsError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(
-      HttpStatus.TOO_MANY_REQUESTS,
-      ErrorCodes.TOO_MANY_REQUESTS,
-      message,
-      details,
-      internalErrorCode
-    );
-  }
-}
-
-/**
- * Class representing unauthorized errors.
- */
-export class UnauthorizedError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(HttpStatus.UNAUTHORIZED, ErrorCodes.UNAUTHORIZED, message, details, internalErrorCode);
-  }
-}
-
-/**
- * Class representing unsupported media type errors.
- */
-export class UnsupportedMediaError extends SyError {
-  constructor(message: string, details?: any, internalErrorCode?: string) {
-    super(
-      HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-      ErrorCodes.UNSUPPORTED_MEDIA_TYPE,
-      message,
-      details,
-      internalErrorCode
-    );
+  /**
+   * Creates a specific instance of SyError
+   *
+   * @param {number} status - HTTP status code of the error.
+   * @param {ErrorCategory} category - Error category, automatically determined.
+   * @param {ErrorCodes} errorCode - Specific error code representing the type of error.
+   * @returns A constructor function for a subclass of SyError.
+   */
+  public static createErrorType(status: number, category: ErrorCategory, errorCode: ErrorCodes) {
+    return class extends SyError {
+      constructor(message: string, details?: unknown, internalErrorCode?: string) {
+        super(status, category, errorCode, message, details, internalErrorCode);
+      }
+    };
   }
 }

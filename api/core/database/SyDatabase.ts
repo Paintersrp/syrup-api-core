@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { Sequelize, Options, Optional } from 'sequelize';
-import { Logger } from 'pino';
 
 import { Retry } from '../lib/decorators/general';
 import {
@@ -11,7 +10,8 @@ import {
   DatabaseRecoveryMixin,
   DatabaseTestMixin,
 } from './mixins';
-import { HealthCheck } from '../mixins/health/types';
+import { HealthCheck, HealthCheckWithRemediation } from '../mixins/health/types';
+import { SyLogger } from '../logging/SyLogger';
 
 /**
  * @todo Postgres/SQL/MySql in config for restore / backup settings
@@ -26,8 +26,7 @@ import { HealthCheck } from '../mixins/health/types';
 export class SyDatabase {
   public readonly database: Sequelize;
   public readonly databasePath?: string;
-  public readonly logger: Logger;
-  public readonly queriesLogger: Logger;
+  public readonly logger: SyLogger;
 
   protected recoveryMixin!: DatabaseRecoveryMixin;
   protected operationsMixin!: DatabaseOpsMixin;
@@ -41,11 +40,10 @@ export class SyDatabase {
    * @param logger - The logger instance for general logging.
    * @param queriesLogger - The logger instance for query-specific logging.
    */
-  constructor(config: Options, logger: Logger, queriesLogger: Logger) {
+  constructor(config: Options, logger: SyLogger) {
     this.database = new Sequelize(config);
 
     this.logger = logger;
-    this.queriesLogger = queriesLogger;
 
     if (config.dialect === 'sqlite') {
       this.databasePath = config.storage;
@@ -63,7 +61,7 @@ export class SyDatabase {
     this.recoveryMixin = new DatabaseRecoveryMixin(this.database, this.logger, this.databasePath);
     this.operationsMixin = new DatabaseOpsMixin(this.database, this.logger);
     this.testMixin = new DatabaseTestMixin(this.database, this.logger);
-    this.queryLogMixin = new QueryLogMixin(this.database, this.logger, this.queriesLogger);
+    this.queryLogMixin = new QueryLogMixin(this.database, this.logger);
     this.healthCheckMixin = new HealthCheckMixin(this.logger);
   }
 
@@ -94,7 +92,7 @@ export class SyDatabase {
       await this.database.authenticate();
       this.logger.info('Database connection successful');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Database connection failed.', error);
       return false;
     }
@@ -128,7 +126,7 @@ export class SyDatabase {
       if (environment === 'production') {
         // this.implementScalabilityStrategies();
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error connecting to the database:', error);
     }
   }
@@ -243,7 +241,7 @@ export class SyDatabase {
    *
    * @see HealthCheckMixin#performHealthCheck
    */
-  public async performHealthCheck(check: string | HealthCheck): Promise<boolean> {
+  public async performHealthCheck(check: string | HealthCheckWithRemediation): Promise<boolean> {
     return this.healthCheckMixin.performHealthCheck(check);
   }
 

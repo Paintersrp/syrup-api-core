@@ -25,7 +25,7 @@ export function Log(_: any, __: string, descriptor: PropertyDescriptor): Propert
     const headers = JSON.stringify(ctx.headers);
     const payload = JSON.stringify(ctx.request.body);
     const user: User | string = `${ctx.state.user} (${ctx.state.role})` ?? 'Anonymous';
-    server.logger.info({ method, endpoint, payload, headers, user });
+    server.logger.info(method, { method, endpoint, payload, headers, user });
 
     return originalMethod.call(this, ctx, next);
   };

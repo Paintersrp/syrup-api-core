@@ -1,40 +1,25 @@
 import Router from 'koa-router';
-import { DataTypes } from 'sequelize';
 import memoize from 'lodash/memoize';
+import { DataTypes } from 'sequelize';
 
+import { BadRequestError } from '../../../errors/client';
 import { ControllerMixinOptions } from '../../types';
 import { SyMixin } from '../SyMixin';
-import { BadRequestError } from '../../../errors/SyError';
+import { DataTypeOptions } from './enums';
 
 /**
- * Constant of DataTypes to be handled
- */
-const DATA_TYPES: Record<string, string> = {
-  ENUM: 'ENUM',
-  STRING: 'STRING',
-  BIGINT: 'BIGINT',
-  FLOAT: 'FLOAT',
-  DOUBLE: 'DOUBLE',
-  REAL: 'REAL',
-  DECIMAL: 'DECIMAL',
-  INTEGER: 'INTEGER',
-  TEXT: 'TEXT',
-  BOOLEAN: 'BOOLEAN',
-  DATE: 'DATE',
-  ARRAY: 'ARRAY',
-  JSON: 'JSON',
-  BLOB: 'BLOB',
-  UNKNOWN_TYPE: 'UNKNOWN_TYPE',
-};
-
-/**
- * Class providing metadata-related functionality.
- * @extends SyMixin
+ * @class SyMetaMixin
+ * @extends {SyMixin}
+ *
+ * @description
+ * This class is a mixin that provides metadata-related functionality.
+ * It adds methods for getting the model's metadata, including its attributes and associations.
+ * It also provides methods for structuring these details into a more readable format.
  */
 export class SyMetaMixin extends SyMixin {
   /**
-   * Constructs a new instance of the SyMetaMixin class.
-   * @param {MixinOptions} options - Options for initiating the Mixin class.
+   * @constructor
+   * @param {ControllerMixinOptions} options - The options for the mixin
    */
   constructor(options: ControllerMixinOptions) {
     super(options);
@@ -43,42 +28,25 @@ export class SyMetaMixin extends SyMixin {
   /**
    * @method getMetadata
    * @async
-   * @description This method is responsible for obtaining metadata of a Sequelize model. The metadata includes
-   * attributes (columns) of the model and their types, associations (relations) with other models, and their types.
-   * This metadata can be used to dynamically generate UI components, perform validations, or inform other services
-   * about the structure of the model.
+   * @description
+   * Fetches metadata about the model including its attributes and associations.
+   * The result is structured into a more readable format and set on the context body.
    *
-   * @param {Router.RouterContext} ctx - Koa context. The method sets the ctx.body property with the model's metadata.
-   *
-   * @returns {Promise<void>} Nothing is explicitly returned but the model's metadata is set to ctx.body.
-   *
-   * @throws Will throw an error if an issue occurred while trying to fetch the model's attributes or associations.
+   * @param {Router.RouterContext} ctx - The Koa router context
+   * @throws {BadRequestError} - When the model, its attributes, or its associations are not defined
    */
   async getMetadata(ctx: Router.RouterContext): Promise<void> {
     const attributes = this.model.getAttributes();
     const associations = this.model.associations;
 
-    const structuredAttributes = Object.keys(attributes).map((key) => {
-      if (!attributes[key]) {
-        throw new BadRequestError(`Failed to fetch attribute for key: ${key}`);
-      }
-      return {
-        name: key,
-        type: this.stringifyDataType(attributes[key].type),
-        allowNull: attributes[key].allowNull,
-      };
-    });
+    // Ensure that the model, its attributes and associations are defined
+    if (!this.model || !Object.keys(attributes).length || !Object.keys(associations).length) {
+      throw new BadRequestError('The model, its attributes, or associations are not defined');
+    }
 
-    const structuredAssociations = Object.keys(associations).map((key) => {
-      if (!associations[key]) {
-        throw new BadRequestError(`Failed to fetch association for key: ${key}`);
-      }
-      return {
-        name: key,
-        type: associations[key].associationType,
-        relatedModel: associations[key].target.name,
-      };
-    });
+    // Structure the attributes and associations into a more readable format
+    const structuredAttributes = this.getStructuredAttributes(attributes);
+    const structuredAssociations = this.getStructuredAssociations(associations);
 
     const response = {
       modelName: this.model.name,
@@ -90,38 +58,99 @@ export class SyMetaMixin extends SyMixin {
   }
 
   /**
-   * @method stringifyDataType
-   * @description This method receives a Sequelize DataType object and returns a string representation of it.
+   * @method getStructuredAttributes
+   * @private
+   * @description
+   * Structures the model's attributes into a more readable format.
    *
-   * @param {any} dataType - Sequelize DataType object.
-   *
-   * @returns {string} String representation of the Sequelize DataType object.
-   *
-   * @throws Will throw an error if the dataType parameter is null or undefined.
+   * @param {Object} attributes - The model's attributes
+   * @returns {Object[]} The structured attributes
+   * @throws {BadRequestError} When an attribute is not defined for a given key
    */
-  private stringifyDataType = memoize((dataType: any): string => {
-    switch (dataType.key) {
-      case DATA_TYPES.ENUM:
-        return `ENUM(${(dataType as DataTypes.EnumDataType<string>).values.join(', ')})`;
-      case DATA_TYPES.STRING:
-        return dataType.options
-          ? `STRING(${(dataType as DataTypes.StringDataType).options?.length})`
-          : 'STRING';
-      case DATA_TYPES.BIGINT:
-      case DATA_TYPES.FLOAT:
-      case DATA_TYPES.DOUBLE:
-      case DATA_TYPES.REAL:
-      case DATA_TYPES.DECIMAL:
-      case DATA_TYPES.INTEGER:
-      case DATA_TYPES.TEXT:
-      case DATA_TYPES.BOOLEAN:
-      case DATA_TYPES.DATE:
-      case DATA_TYPES.ARRAY:
-      case DATA_TYPES.JSON:
-      case DATA_TYPES.BLOB:
-        return DATA_TYPES[dataType.key];
-      default:
-        return `${DATA_TYPES.UNKNOWN_TYPE}: ${dataType.key}`;
+  private getStructuredAttributes(attributes: any): any[] {
+    return Object.keys(attributes).map((key) => {
+      if (!attributes[key]) {
+        throw new BadRequestError(`Failed to fetch attribute for key: ${key}`);
+      }
+
+      return {
+        name: key,
+        type: this.stringifyDataType(attributes[key].type),
+        allowNull: attributes[key].allowNull,
+      };
+    });
+  }
+
+  /**
+   * @method getStructuredAssociations
+   * @private
+   * @description
+   * Structures the model's associations into a more readable format.
+   *
+   * @param {Object} associations - The model's associations
+   * @returns {Object[]} The structured associations
+   * @throws {BadRequestError} When an association is not defined for a given key
+   */
+  private getStructuredAssociations(associations: any): any[] {
+    return Object.keys(associations).map((key) => {
+      if (!associations[key]) {
+        throw new BadRequestError(`Failed to fetch association for key: ${key}`);
+      }
+
+      return {
+        name: key,
+        type: associations[key].associationType,
+        relatedModel: associations[key].target.name,
+      };
+    });
+  }
+
+  /**
+   * @method stringifyDataType
+   * @private
+   * @description
+   * Converts Sequelize data types into a string format. The result is memoized to improve performance.
+   *
+   * @param {any} dataType - The Sequelize data type to convert
+   * @returns {string} The string format of the data type
+   */
+  private stringifyDataType = memoize(
+    (dataType: any): string => {
+      const typeMappings: Record<string, (dataType: any) => string> = {
+        [DataTypeOptions.BIGINT]: () => DataTypeOptions.BIGINT,
+        [DataTypeOptions.FLOAT]: () => DataTypeOptions.FLOAT,
+        [DataTypeOptions.DOUBLE]: () => DataTypeOptions.DOUBLE,
+        [DataTypeOptions.REAL]: () => DataTypeOptions.REAL,
+        [DataTypeOptions.DECIMAL]: () => DataTypeOptions.DECIMAL,
+        [DataTypeOptions.INTEGER]: () => DataTypeOptions.INTEGER,
+        [DataTypeOptions.TEXT]: () => DataTypeOptions.TEXT,
+        [DataTypeOptions.BOOLEAN]: () => DataTypeOptions.BOOLEAN,
+        [DataTypeOptions.DATE]: () => DataTypeOptions.DATE,
+        [DataTypeOptions.ARRAY]: () => DataTypeOptions.ARRAY,
+        [DataTypeOptions.JSON]: () => DataTypeOptions.JSON,
+        [DataTypeOptions.BLOB]: () => DataTypeOptions.BLOB,
+        [DataTypeOptions.ENUM]: (dataType) =>
+          `ENUM(${(dataType as DataTypes.EnumDataType<string>).values.join(', ')})`,
+        [DataTypeOptions.STRING]: (dataType) =>
+          dataType.options
+            ? `STRING(${(dataType as DataTypes.StringDataType).options?.length})`
+            : 'STRING',
+      };
+
+      const typeMapping = typeMappings[dataType.key];
+
+      if (typeMapping) {
+        return typeMapping(dataType);
+      }
+
+      return `${DataTypeOptions.UNKNOWN_TYPE}: ${dataType.key}`;
+    },
+    // Cache key resolver function for memoization
+    () => {
+      // Adding a bit of jitter to ensure cache keys are not reused too frequently
+      const now = Date.now();
+      const jitter = Math.random() * 1000 * 60 * 5;
+      return Math.floor((now + jitter) / (1000 * 60 * 60));
     }
-  });
+  );
 }

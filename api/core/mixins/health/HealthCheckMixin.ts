@@ -6,6 +6,7 @@ import {
   RemediationFunction,
 } from './types';
 import { UptimeTracker } from '../uptime/UptimeTracker';
+import { SyLogger } from '../../logging/SyLogger';
 
 /**
  * Use better errors @todo
@@ -17,18 +18,20 @@ import { UptimeTracker } from '../uptime/UptimeTracker';
  * @class HealthCheckMixin
  */
 export class HealthCheckMixin {
-  public readonly logger: Logger;
+  public readonly logger: SyLogger;
+
   private healthChecks: HealthChecks = new Map();
   private healthCheckIntervalId?: NodeJS.Timeout;
+
   protected uptimeTracker: UptimeTracker = new UptimeTracker();
 
   /**
    * Creates a HealthCheckMixin instance.
    *
    * @constructor
-   * @param {Logger} logger - The logger to use.
+   * @param {SyLogger} logger - The logger to use.
    */
-  constructor(logger: Logger) {
+  constructor(logger: SyLogger) {
     this.logger = logger;
   }
 
@@ -173,7 +176,7 @@ export class HealthCheckMixin {
     try {
       await check.remediate();
       this.logger.info('Remediation attempted for health check failure');
-    } catch (remediationError) {
+    } catch (remediationError: any) {
       this.logger.error('Remediation failed:', remediationError);
     }
   }

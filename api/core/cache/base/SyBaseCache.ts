@@ -2,18 +2,19 @@ import { Logger } from 'pino';
 import { Sequelize } from 'sequelize';
 import { CacheInterface, CacheStats } from '../types';
 import { SyPersistMixin } from '../mixins/SyPersistMixin';
+import { SyLogger } from '../../logging/SyLogger';
 
 export class SyBaseCache<T> {
   public cacheMap: Map<string, CacheInterface<T>>;
   public database: Sequelize;
-  public readonly logger: Logger;
+  public readonly logger: SyLogger;
   public cacheStats: CacheStats;
   public isInitialised: boolean;
 
   public evictionIntervalId?: NodeJS.Timeout;
   public declare persistMixin: SyPersistMixin<T>;
 
-  constructor(database: Sequelize, logger: Logger) {
+  constructor(database: Sequelize, logger: SyLogger) {
     this.logger = logger;
     this.database = database;
     this.cacheMap = new Map();
@@ -57,7 +58,7 @@ export class SyBaseCache<T> {
 
         await this.persistMixin.loadCacheFromDatabase();
         this.isInitialised = true;
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Error during cache start:', error);
         throw error;
       }
@@ -73,7 +74,7 @@ export class SyBaseCache<T> {
       this.stopEvictingExpiredItems();
       await this.persistMixin.saveCacheToDatabase();
       this.isInitialised = false;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error during cache close:', error);
     }
   }

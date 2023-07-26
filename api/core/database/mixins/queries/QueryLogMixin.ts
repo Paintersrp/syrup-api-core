@@ -1,5 +1,5 @@
-import { Logger } from 'pino';
 import { QueryOptions, Sequelize } from 'sequelize';
+import { SyLogger } from '../../../logging/SyLogger';
 
 import { FixedAbstractQuery, QueryLogObject } from './types';
 
@@ -16,8 +16,7 @@ import { FixedAbstractQuery, QueryLogObject } from './types';
  */
 export class QueryLogMixin {
   database: Sequelize;
-  logger: Logger;
-  queriesLogger: Logger;
+  logger: SyLogger;
   private queryStartTime: Map<string, number>;
 
   /**
@@ -28,10 +27,9 @@ export class QueryLogMixin {
    * @param logger - An instance of the Pino class to be used for general logging.
    * @param queriesLogger - An instance of the Pino class to be used for logging SQL queries.
    */
-  constructor(database: Sequelize, logger: Logger, queriesLogger: Logger) {
+  constructor(database: Sequelize, logger: SyLogger) {
     this.database = database;
     this.logger = logger;
-    this.queriesLogger = queriesLogger;
     this.queryStartTime = new Map();
   }
   /**
@@ -40,8 +38,8 @@ export class QueryLogMixin {
    * @returns {void}
    */
   public startErrorLogging(): void {
-    process.on('unhandledRejection', (error) => {
-      this.logger.error(error, 'Unhandled Promise Rejection');
+    process.on('unhandledRejection', (error: any) => {
+      this.logger.error('Unhandled Promise Rejection', error);
     });
 
     process.on('SIGINT', async () => {
@@ -100,7 +98,7 @@ export class QueryLogMixin {
     duration: number
   ): Promise<void> {
     const logObject = this.generateLogObject(options, meta, duration);
-    this.queriesLogger.info(logObject);
+    this.logger.logQuery('Query: ', logObject);
 
     // const logString = this.generateLogString(logObject);
     // this.logger.info(logString);
@@ -108,7 +106,7 @@ export class QueryLogMixin {
     if (duration > 2000) {
       this.logger.warn(`Slow query detected. Query: ${logObject.sql}, Duration: ${duration}`);
       const explanation = await this.database.query(`EXPLAIN ${logObject.sql}`);
-      this.queriesLogger.info({ explanation }, 'Query explanation');
+      this.logger.logQuery('Query explanation', { explanation });
     }
   }
 

@@ -19,7 +19,9 @@ export const MIDDLEWARES = [
   // Add Middlewares Here
   // Middleware.cors(),
   Middleware.helmet(),
-  Middleware.bodyParser(),
+  Middleware.bodyParser({
+    jsonLimit: '2mb',
+  }),
   Middleware.compress(),
   Middleware.responseTime(),
   Middleware.rateLimitMiddleware,

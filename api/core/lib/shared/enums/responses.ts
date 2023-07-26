@@ -4,6 +4,8 @@
  * @enum {string}
  */
 export enum Responses {
+  ARCHIVE_OK = 'Item archived successfully',
+  ARCHIVE_FAIL = 'Item was not archived',
   ARRAY_FAIL = 'Request body must be an array',
   DEL_OK = 'Item deleted successfully',
   DELS_OK = 'Items deleted successfully',
@@ -18,4 +20,5 @@ export enum Responses {
   SOFT_DEL_FAIL = 'Unable to soft delete the item',
   SOFT_DEL_OK = 'Item soft deleted successfully',
   SOFT_DELS_OK = `Items soft deleted successfully`,
+  FORBIDDEN = "You do not have the necessary permissions to perform this action",
 }

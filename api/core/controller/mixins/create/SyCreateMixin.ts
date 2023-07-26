@@ -17,7 +17,7 @@ export class SyCreateMixin extends SyMixin {
   /**
    * Creates an instance of SyCreateMixin.
    *
-   * @param {MixinOptions} options - The options to initiate the Mixin class.
+   * @param {ControllerMixinOptions} options - The options to initiate the Mixin class.
    * @constructor
    */
   constructor(options: ControllerMixinOptions) {
@@ -42,9 +42,17 @@ export class SyCreateMixin extends SyMixin {
    * @param {Router.RouterContext} ctx - The context object from Koa.
    * @param {Transaction} transaction - The Sequelize transaction.
    */
-  public async bulkCreate(ctx: Router.RouterContext, transaction: Transaction) {
+  public async bulkCreate(ctx: Router.RouterContext, transaction: Transaction, includes: any[]) {
     const payload = this.processPayload(ctx, true) as Optional<any, string>[];
-    const createdItems = await this.model.bulkCreate(payload, { transaction });
+    const batchSize = 200; // magic number...
+    const batches = Math.ceil(payload.length / batchSize);
+    let createdItems: any[] = [];
+
+    for (let i = 0; i < batches; i++) {
+      const batch = payload.slice(i * batchSize, (i + 1) * batchSize);
+      const batchItems = await this.model.bulkCreate(batch, { transaction, include: includes });
+      createdItems = [...createdItems, ...batchItems];
+    }
 
     this.createResponse(ctx, HttpStatus.CREATED, createdItems);
   }

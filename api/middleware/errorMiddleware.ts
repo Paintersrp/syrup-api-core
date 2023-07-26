@@ -1,8 +1,10 @@
 import Koa from 'koa';
+
 import { ValidationError } from 'sequelize';
 import { HttpStatus } from '../core/lib';
 import { SyError } from '../core/errors/SyError';
 import { ErrorResponse } from '../core/errors/types';
+import { randomUUID } from 'crypto';
 
 /**
  * Koa middleware to handle errors. Catches any errors that occur during
@@ -12,6 +14,8 @@ import { ErrorResponse } from '../core/errors/types';
  * @param next - Next middleware function.
  */
 export const errorMiddleware: Koa.Middleware = async (ctx, next) => {
+  ctx.requestId = randomUUID();
+
   try {
     await next();
   } catch (error) {
@@ -20,11 +24,11 @@ export const errorMiddleware: Koa.Middleware = async (ctx, next) => {
     let details = {};
 
     if (error instanceof SyError) {
-      const errorResponse: ErrorResponse = error.toResponse();
+      const errorResponse: ErrorResponse = error.toResponse(ctx);
       status = errorResponse.status;
       message = errorResponse.message;
       details = errorResponse.details;
-      ctx.logger.error(`${message} ${JSON.stringify(details)}`);
+      error.logError(ctx);
     } else if (error instanceof ValidationError) {
       status = HttpStatus.UNPROCESSABLE_ENTITY;
       message = error.message;

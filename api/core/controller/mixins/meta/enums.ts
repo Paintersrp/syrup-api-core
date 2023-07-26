@@ -1,0 +1,17 @@
+export enum DataTypeOptions {
+  ENUM = 'ENUM',
+  STRING = 'STRING',
+  BIGINT = 'BIGINT',
+  FLOAT = 'FLOAT',
+  DOUBLE = 'DOUBLE',
+  REAL = 'REAL',
+  DECIMAL = 'DECIMAL',
+  INTEGER = 'INTEGER',
+  TEXT = 'TEXT',
+  BOOLEAN = 'BOOLEAN',
+  DATE = 'DATE',
+  ARRAY = 'ARRAY',
+  JSON = 'JSON',
+  BLOB = 'BLOB',
+  UNKNOWN_TYPE = 'UNKNOWN_TYPE',
+}

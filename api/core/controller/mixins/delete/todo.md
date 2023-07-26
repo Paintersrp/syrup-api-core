@@ -1,41 +1,128 @@
-# TODO LIST:
+Sure! Let's get more granular with our to-do list and include some advanced improvements and optimizations.
 
-## SyDeleteMixin Class:
+# **SyDeleteMixin Class Structure and Implementation**
 
-- [ ] **Refactor:** Extract common logic to remove code duplication in `softDelete` and `delete` methods.
-- [ ] **Functionality:** Implement a method for cascading deletes if relevant relationships are in place.
-- [ ] **Functionality:** Implement a restore functionality for soft-deleted items.
-- [ ] **Performance:** Analyze and optimize `delete` and `softDelete` methods for handling large datasets.
-- [ ] **Performance:** Implement a queue or worker-based system for handling large bulk delete operations to prevent server overloading.
-- [ ] **Validation:** Enhance input validation for `delete` and `softDelete` methods to prevent invalid ID's or data types.
-- [ ] **Strategy:** Review and improve transaction handling in delete operations for better consistency.
-- [ ] **Maintenance:** Review the `SyDeleteMixin` class for Single Responsibility Principle adherence. Break up the class if needed.
-- [ ] **Security:** Implement role-based access control to restrict delete operations to authorized users.
-- [ ] **Functionality:** Implement an undelete functionality for hard deleted items (if viable depending on storage system and deletion strategy).
+#### Complete
 
-## Error Handling and Logging:
+- [x] Inheritance from SyMixin class.
+- [x] Proper constructor with options parameter.
+- [x] Implementation of delete, softDelete, bulkDelete, and bulkSoftDelete methods.
+- [x] Support for deleting related entities in a transaction.
+- [x] Cascade delete method.
+- [x] Implement the ability to handle different data types for the delete parameter.
+- [x] Allow for setting of deletion method (soft/hard) during runtime.
 
-- [ ] **Error-Handling:** Improve error handling in delete operations. Consider custom error classes for different types of delete errors.
-- [ ] **Logging:** Implement detailed and configurable logging for delete operations. Allow turning on verbose logging when needed.
-- [ ] **UX:** Improve clarity and detail of response messages after delete operations. Make sure errors clearly state what went wrong and how to correct it.
+#### Incomplete
 
-## Bulk Operations:
+- [ ]
 
-- [ ] **Performance:** Optimize bulk delete operations, test with larger datasets.
-- [ ] **Validation:** Implement validation for bulk delete operations to ensure all IDs in the batch are valid before starting the operation.
-- [ ] **Strategy:** Review and improve transaction handling in bulk delete operations.
+#### Backlog
 
-## Test Coverage:
+- [->] Develop advanced filtering for bulk delete methods.
+- [->] Implement functionality to recover soft deleted items.
 
-- [ ] **Testing:** Implement comprehensive unit tests for each public and private method in the `SyDeleteMixin` class.
-- [ ] **Testing:** Add more edge case tests for delete operations.
-- [ ] **Testing:** Create integration tests for delete operations interacting with real or mocked databases.
-- [ ] **Testing:** Test the class behavior under high load and high concurrency conditions.
+#
 
-## Documentation and Code Quality:
+## **Model Interaction and Transaction Handling**
 
-- [ ] **Documentation:** Improve inline comments for all methods, making sure every method and parameter is properly explained.
-- [ ] **Documentation:** Add JSDoc comments for the `SyDeleteMixin` class, its methods and interfaces.
-- [ ] **Documentation:** Create a detailed README.md with usage examples, best practices, and API documentation.
-- [ ] **Code Quality:** Perform a full code review for the `SyDeleteMixin` class, refactoring for readability and maintainability.
-- [ ] **Code Quality:** Check for and eliminate any potential memory leaks.
+#### Complete
+
+- [x] Correct use of Sequelize transactions in delete methods.
+- [x] `findByPk` and `destroy` methods for individual deletions.
+- [x] Develop mechanism for automatic transaction retries on failure due to database errors.
+- [x] Extend `processIdParam` and `processIdsParam` to handle different ID formats.
+- [x] Implement caching mechanism for large bulk deletions to improve performance.
+- [x] Add options for custom deletion methods per model.
+- [x] Use bulk create/update/delete methods in Sequelize for improved performance.
+- [x] Optimize transaction handling for high load scenarios.
+- [x] Investigate performance improvements for transaction rollback scenarios.
+
+#### Incomplete
+
+- [ ]
+
+#### Backlog
+
+- [ ]
+
+#
+
+## **Error Handling and Logging**
+
+#### Complete
+
+- [x] BadRequestError and NotFoundError for unsuccessful operations.
+- [x] Use of logging for key actions and errors.
+- [x] Create custom error classes for specific deletion-related issues.
+- [x] Log additional details such as the stack trace and user details during errors.
+- [x] Develop middleware for global error handling and logging.
+- [x] Implement more detailed error messages for troubleshooting.
+- [x] Add mechanism to throttle or stop requests from repeated error sources.
+- [x] Implement user-facing error codes for easier troubleshooting.
+
+#### Incomplete
+
+#### Backlog
+
+- [->] Integrate with a centralized logging service for production use.
+- [->] Develop notification system for critical errors (email, SMS, etc.).
+
+#
+
+## **Request Data Validation and Processing**
+
+#### Complete
+
+- [x] Validation of 'id' and 'ids' parameters.
+- [x] BadRequestError thrown when request data is invalid or missing.
+- [x] Implement strict checks for request data, such as data type checks, pattern checks.
+- [x] Develop a middleware for input validation across all endpoints.
+- [x] Use a validation library to reduce boilerplate validation code.
+- [x] Create common validation methods for reuse across different modules.
+- [x] Implement advanced security measures like SQL injection prevention.
+
+#### Incomplete
+
+- [ ]
+
+#### Backlog
+
+- [ ]
+
+#
+
+## **Test Coverage**
+
+#### Complete
+
+- [x] Basic unit tests for class methods.
+
+#### Incomplete
+
+- [ ] Complete unit tests covering all edge cases.
+- [ ] Develop integration tests for testing with actual database.
+- [ ] Implement performance tests for bulk deletions.
+- [ ] Develop tests for transaction failures and rollbacks.
+
+#### Backlog
+
+- [ ] Generate test coverage reports.
+- [ ] Mock database for efficient and independent testing.
+
+#
+
+## **Documentation**
+
+#### Complete
+
+- [x] Inline comments explaining code functionality.
+- [x] Comprehensive README.md file with examples for each method.
+- [x] Create a separate document for error codes and their meanings.
+
+#### Incomplete
+
+- [ ]
+
+#### Backlog
+
+- [ ]

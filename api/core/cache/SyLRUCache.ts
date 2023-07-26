@@ -1,7 +1,7 @@
-import { Logger } from 'pino';
 import { Sequelize } from 'sequelize';
 import { CacheInterface, SyCacheOptions } from './types';
 import { SyBaseCache } from './base/SyBaseCache';
+import { SyLogger } from '../logging/SyLogger';
 
 /**
  * SyLRUCache class extends the SyBaseCache class.
@@ -17,10 +17,10 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
 
   /**
    * @param {Sequelize} database - The Sequelize instance for the database.
-   * @param {Logger} logger - The Logger instance for logging actions.
+   * @param {SyLogger} logger - The Logger instance for logging actions.
    * @param {SyCacheOptions} options - The options for the cache configuration.
    */
-  constructor(database: Sequelize, logger: Logger, options: SyCacheOptions = {}) {
+  constructor(database: Sequelize, logger: SyLogger, options: SyCacheOptions = {}) {
     super(database, logger);
 
     this.defaultTTL = options.defaultTTL || null;

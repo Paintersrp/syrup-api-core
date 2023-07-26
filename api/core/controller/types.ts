@@ -19,4 +19,7 @@ export interface ControllerQueryOptions {
   sortOrder?: 'ASC' | 'DESC';
   filter?: string;
   column?: string;
+  price_greater_than?: number;
+
+  fields?: string; // set attribute fields to return by query
 }

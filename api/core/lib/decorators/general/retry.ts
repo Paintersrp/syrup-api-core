@@ -49,7 +49,7 @@ export function Retry(options?: RetryOptions) {
           else {
             return await originalMethod.apply(this, args);
           }
-        } catch (error) {
+        } catch (error: any) {
           // Log error and increase retry count
           logger.error('Error occurred:', error);
           currentRetry++;

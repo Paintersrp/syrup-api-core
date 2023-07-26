@@ -1,11 +1,12 @@
 import Koa, { DefaultContext, ParameterizedContext } from 'koa';
 import compose from 'koa-compose';
 import Router from 'koa-router';
-import { Logger } from 'pino';
+
 import { RouteConstructor } from '../../types';
 import { SyLFUCache } from '../cache/SyLFUCache';
 import { SyLRUCache } from '../cache/SyLRUCache';
 import { SyDatabase } from '../database/SyDatabase';
+import { SyLogger } from '../logging/SyLogger';
 
 /**
  * Interface defining resource thresholds for server health monitoring.
@@ -36,7 +37,7 @@ export interface SyServerOptions {
   port: number;
 
   /** The logger instance used for logging server-related information. */
-  logger: Logger;
+  logger: SyLogger;
 
   /** The cache implementation used for server caching. */
   cache: SyLFUCache<any> | SyLRUCache<any>;

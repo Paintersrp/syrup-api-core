@@ -7,10 +7,9 @@
 - [x] Implement Singleton design pattern for the centralized logger.
 - [x] Configure different loggers with varying configurations.
 - [x] Custom log levels are defined and used in the logger.
+- [x] Create utility methods for common logging tasks, like success and notice events.
 
 #### Incomplete
-
-- [ ] Create utility methods for common logging tasks, like success and notice events.
 
 ## **Advanced Features**
 
@@ -18,14 +17,15 @@
 
 - [x] Implement custom log levels.
 - [x] Include more methods for usability and advanced of the class.
+- [x] Include a method to temporarily silence all logs.
+- [x] Implement a feature to archive old logs.
+- [x] Create a system for tagging logs.
+- [x] Include methods to write logs in batch.
+- [x] Build a mechanism to rotate logs based on size or time.
 
 #### Incomplete
 
-- [ ] Include a method to temporarily silence all logs.
-- [ ] Implement a feature to archive old logs.
-- [ ] Create a system for tagging logs.
-- [ ] Include methods to write logs in batch.
-- [ ] Build a mechanism to rotate logs based on size or time.
+- [ ]
 
 ## **Configuration and Flexibility**
 
@@ -33,12 +33,12 @@
 
 - [x] Provide a system for each logger to maintain the default stream and file specifications.
 - [x] Include a system for overriding default configurations.
+- [x] Create a fallback system when the logging destination is not available.
 
 #### Incomplete
 
-- [ ] Include a system for changing configurations at runtime.
-- [ ] Implement a feature for loading configuration from external files or environment variables.
-- [ ] Create a fallback system when the logging destination is not available.
+- [->] Include a system for changing configurations at runtime.
+- [WIP] Implement a feature for loading configuration from external files or environment variables.
 
 ## **Test Coverage**
 
@@ -79,8 +79,6 @@
 
 #### Incomplete
 
-- [ ] Ensure compatibility with popular application frameworks (Express, Koa, Hapi, etc.).
-- [ ] Build integration for reporting logs to external monitoring services.
-- [ ] Create a system for exporting logs in different formats (JSON, CSV, etc.).
-
-This updated list should be even more exhaustive and give you a clearer roadmap for the development of your advanced logger class.
+- [->] Ensure compatibility with popular application frameworks (Express, Koa, Hapi, etc.).
+- [->] Build integration for reporting logs to external monitoring services.
+- [->] Create a system for exporting logs in different formats (JSON, CSV, etc.).

@@ -5,7 +5,7 @@ import { Transaction } from 'sequelize';
 import { SyMixin } from '../SyMixin';
 import { ControllerMixinOptions } from '../../types';
 import { HttpStatus, Responses } from '../../../lib';
-import { BadRequestError, NotFoundError } from '../../../errors/SyError';
+import { BadRequestError, NotFoundError } from '../../../errors/client';
 
 /**
  * SyDeleteMixin is an advanced and comprehensive class which extends SyMixin.
@@ -103,5 +103,23 @@ export class SyDeleteMixin extends SyMixin {
     });
 
     this.createResponse(ctx, HttpStatus.NO_CONTENT, Responses.DELS_OK);
+  }
+
+  /**
+   * Archives a specific instance of the model by its ID. Archive only marks the item as archived but doesn't remove it from the database.
+   *
+   * @param {Router.RouterContext} ctx - The context object from Koa.
+   * @param {Transaction} transaction - The Sequelize transaction.
+   */
+  public async archive(ctx: Router.RouterContext, transaction: Transaction) {
+    const id = this.processIdParam(ctx);
+    const item = await this.findItemById(id, transaction);
+    const updatedItem = await item.update({ archived: true }, { transaction });
+
+    if (updatedItem.get('archived') === true) {
+      this.createResponse(ctx, HttpStatus.OK, Responses.ARCHIVE_OK);
+    } else {
+      throw new BadRequestError(Responses.ARCHIVE_FAIL, updatedItem);
+    }
   }
 }

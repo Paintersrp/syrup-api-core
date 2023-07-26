@@ -2,8 +2,8 @@ import fs from 'fs-extra';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
-import { Logger } from 'pino';
 import { Sequelize } from 'sequelize';
+import { SyLogger } from '../../../logging/SyLogger';
 
 /**
  * A mixin class that contains methods for performing backup and restore operations on a database.
@@ -14,7 +14,7 @@ import { Sequelize } from 'sequelize';
  */
 export class DatabaseRecoveryMixin {
   database: Sequelize;
-  logger: Logger;
+  logger: SyLogger;
   databasePath?: string;
 
   /**
@@ -25,7 +25,7 @@ export class DatabaseRecoveryMixin {
    * @param logger - An instance of the Pino class to be used for logging.
    * @param databasePath - Path to the database file, used for SQLite databases.
    */
-  constructor(database: Sequelize, logger: Logger, databasePath?: string) {
+  constructor(database: Sequelize, logger: SyLogger, databasePath?: string) {
     this.database = database;
     this.logger = logger;
     this.databasePath = databasePath;

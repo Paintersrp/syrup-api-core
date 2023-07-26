@@ -4,6 +4,7 @@ import { SyCacheOptions } from './types';
 import { SyBaseCache } from './base/SyBaseCache';
 import { ListItem } from './helpers/ListItem';
 import { DoublyLinkedList } from './helpers/DoublyLinkedList';
+import { SyLogger } from '../logging/SyLogger';
 
 /**
  * @todo get cache size, etc
@@ -33,10 +34,10 @@ export class SyLFUCache<T> extends SyBaseCache<T> {
   /**
    * Creates a new instance of SyLFUCache
    * @param {Sequelize} database - Sequelize instance representing the database.
-   * @param {Logger} logger - Pino logger instance.
+   * @param {SyLogger} logger - Pino logger instance.
    * @param {SyCacheOptions} options - Optional cache configurations.
    */
-  constructor(database: Sequelize, logger: Logger, options: SyCacheOptions = {}) {
+  constructor(database: Sequelize, logger: SyLogger, options: SyCacheOptions = {}) {
     super(database, logger);
 
     this.defaultTTL = options.defaultTTL || null;

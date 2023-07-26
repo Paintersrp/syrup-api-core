@@ -15,13 +15,7 @@ import { SyModel } from '../core/model/SyModel';
 
 import { Profile } from './profile';
 import { faker } from '@faker-js/faker';
-
-export type UserSession = {
-  id: number;
-  username: string;
-  role?: UserRoleEnum;
-  theme?: string;
-};
+import { UserSession } from '../types';
 
 /**
  * @todo Soft Deletion
@@ -41,6 +35,8 @@ export enum UserRoleEnum {
   ADMIN = 'admin',
   USER = 'user',
 }
+
+export const ADMIN_ROLES = ['super', 'admin'];
 
 /**
  * Enumeration of theme options for users.
@@ -110,7 +106,7 @@ export class User extends SyModel<
     try {
       const user = await User.findOne({ where: { refreshToken: token } });
       return user;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to find user by token:', error);
       throw error;
     }
@@ -156,7 +152,7 @@ export class User extends SyModel<
 
     try {
       await this.createProfile(emptyProfile);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       logger.error('Failed to create blank profile:', error);
     }
@@ -176,7 +172,7 @@ export class User extends SyModel<
         password: hashedPassword,
         salt,
       };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to hash password:', error);
       throw error;
     }
@@ -222,7 +218,7 @@ export class User extends SyModel<
       await User.bulkCreate(userData);
 
       logger.info('User seeding completed successfully.');
-    } catch (error) {
+    } catch (error: any) {
       logger.error('User seeding failed:', error);
     }
   }

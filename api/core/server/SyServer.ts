@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { Server } from 'http';
-import { Logger } from 'pino';
 import { randomUUID } from 'crypto';
 
 import Koa from 'koa';
@@ -16,6 +15,7 @@ import { SyLFUCache } from '../cache/SyLFUCache';
 import { SyLRUCache } from '../cache/SyLRUCache';
 import { SyDatabase } from '../database/SyDatabase';
 import { RouteConstructor } from '../../types';
+import { SyLogger } from '../logging/SyLogger';
 
 /**
  * @class
@@ -29,8 +29,8 @@ export class SyServer {
   /** @type {number} The port on which the server is listening for incoming connections. */
   port: number;
 
-  /** @type {Logger} The logger instance used for logging server-related information. */
-  logger: Logger;
+  /** @type {SyLogger} The logger instance used for logging server-related information. */
+  logger: SyLogger;
 
   /** @type {SyLFUCache | SyLRUCache} The cache implementation used for server caching. */
   cache: SyLFUCache<any> | SyLRUCache<any>;
@@ -203,7 +203,7 @@ export class SyServer {
         this.server = this.app.listen(this.port, () => {
           this.logger.info(`Server running on http://localhost:${this.port}`);
         });
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Error starting server:', error);
         process.exit(1);
       }
@@ -222,12 +222,16 @@ export class SyServer {
   protected initEventHandlers() {
     process.on('unhandledRejection', (reason, promise) => {
       const errorId = randomUUID();
-      this.logger.error({ message: 'Unhandled Rejection', promise, reason, errorId });
+      this.logger.error('Unhandled Rejection', {
+        promise,
+        reason,
+        errorId,
+      });
     });
 
     process.on('uncaughtException', (error) => {
       const errorId = randomUUID();
-      this.logger.error({ message: 'Uncaught Exception', error, errorId });
+      this.logger.error('Uncaught Exception', { error, errorId });
       process.exit(1);
     });
 

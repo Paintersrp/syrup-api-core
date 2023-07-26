@@ -7,7 +7,7 @@ import { ORM } from '../../settings';
 import { ETag, Log, Monitor } from '../lib/decorators/controllers';
 import { Retry } from '../lib/decorators/general';
 import { Responses } from '../lib';
-import { InternalServerError } from '../errors/SyError';
+import { InternalServerError } from '../errors/server';
 import {
   SyCreateMixin,
   SyDeleteMixin,
@@ -151,7 +151,7 @@ export abstract class SyController extends EventEmitter {
 
       this.logger.error(error, 'Transaction failed');
       this.emit('error', error);
-      throw new InternalServerError(Responses.INTERNAL_SERVER, transaction, ctx.url);
+      throw new InternalServerError(Responses.INTERNAL_SERVER, transaction as any, ctx.url);
     }
   }
 

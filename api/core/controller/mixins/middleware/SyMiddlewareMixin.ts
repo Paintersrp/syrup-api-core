@@ -3,7 +3,7 @@ import Router from 'koa-router';
 import * as Yup from 'yup';
 
 import { cache } from '../../../../settings';
-import { BadRequestError } from '../../../errors/SyError';
+import { BadRequestError } from '../../../errors/client';
 import { ControllerMixinMiddlewareOptions } from '../../types';
 import { SyMixin } from '../SyMixin';
 
@@ -33,11 +33,13 @@ export class SyMiddlewareMixin extends SyMixin {
   public async validateBody(ctx: Router.RouterContext, next: Koa.Next) {
     const payload = this.processPayload(ctx);
 
-    const { error } = await this.schema.validate(payload, { abortEarly: false });
-
-    if (error) {
+    try {
+      await this.schema.validate(payload, { abortEarly: false });
+    } catch (error: any) {
       const errorDetails = `Payload: ${payload}`;
-      throw new BadRequestError(error.details[0].message, errorDetails);
+      // Join all error messages into a single string.
+      const errorMessage = error.inner.map((e: any) => e.message).join(', ');
+      throw new BadRequestError(errorMessage, errorDetails);
     }
 
     await next();

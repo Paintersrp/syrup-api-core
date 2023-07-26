@@ -1,6 +1,7 @@
 import { Logger } from 'pino';
 import { Sequelize, Transaction } from 'sequelize';
 import { Cache } from '../../../models';
+import { SyLogger } from '../../logging/SyLogger';
 import { CacheInterface } from '../types';
 
 /**
@@ -10,9 +11,9 @@ import { CacheInterface } from '../types';
 export class SyPersistMixin<T> {
   private cacheMap: Map<string, CacheInterface<T>>;
   private database: Sequelize;
-  private logger: Logger;
+  private logger: SyLogger;
 
-  constructor(cacheMap: Map<string, CacheInterface<T>>, database: Sequelize, logger: Logger) {
+  constructor(cacheMap: Map<string, CacheInterface<T>>, database: Sequelize, logger: SyLogger) {
     this.cacheMap = cacheMap;
     this.database = database;
     this.logger = logger;
@@ -36,7 +37,7 @@ export class SyPersistMixin<T> {
     try {
       await action(transaction);
       await transaction.commit();
-    } catch (error) {
+    } catch (error: any) {
       await transaction.rollback();
       this.logger.error('Error executing database transaction:', error);
       throw error;
@@ -59,7 +60,7 @@ export class SyPersistMixin<T> {
           this.cacheMap = new Map(Object.entries(cacheData.contents));
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error loading cache to database:', error);
       throw error;
     }
@@ -84,7 +85,7 @@ export class SyPersistMixin<T> {
           { transaction }
         );
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error saving cache to database:', error);
       throw error;
     }
@@ -98,7 +99,7 @@ export class SyPersistMixin<T> {
     try {
       await Cache.destroy({ truncate: true });
       this.logger.info('Cache database cleared.');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error clearing cache database:', error);
     }
   }

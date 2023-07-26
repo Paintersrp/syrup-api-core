@@ -3,6 +3,7 @@ import { Sequelize } from 'sequelize';
 import { faker } from '@faker-js/faker';
 
 import { Timer } from '../../../lib/decorators/general';
+import { SyLogger } from '../../../logging/SyLogger';
 
 /**
  * A mixin class that contains methods for testing various aspects of a database.
@@ -13,7 +14,7 @@ import { Timer } from '../../../lib/decorators/general';
  */
 export class DatabaseTestMixin {
   database: Sequelize;
-  logger: Logger;
+  logger: SyLogger;
 
   /**
    * @constructor
@@ -22,7 +23,7 @@ export class DatabaseTestMixin {
    * @param database - An instance of the Sequelize class to be used for database operations.
    * @param logger - An instance of the Pino class to be used for logging.
    */
-  constructor(database: Sequelize, logger: Logger) {
+  constructor(database: Sequelize, logger: SyLogger) {
     this.database = database;
     this.logger = logger;
   }
@@ -55,7 +56,7 @@ export class DatabaseTestMixin {
     try {
       await Profile.bulkCreate(profiles);
       this.logger.info(`High load simulation succeeded`);
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error('High load simulation failed:', err);
     }
   }
@@ -80,8 +81,7 @@ export class DatabaseTestMixin {
         throw new Error('CRUD operation failed');
       }
       this.logger.info('CRUD operation succeeded');
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
       this.logger.error('Test failed:', err);
     }
   }
@@ -113,7 +113,7 @@ export class DatabaseTestMixin {
       }
 
       this.logger.info('Transaction succeeded');
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error('Test failed:', err);
     }
   }

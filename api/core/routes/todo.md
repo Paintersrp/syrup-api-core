@@ -15,6 +15,7 @@
 
 #### Incomplete
 
+- [!!!] ARTILERY TESTING - [WIP] Develop performance benchmarks and conduct performance testing to ensure the application meets necessary performance criteria
 - [ ] Add support for multipart/form-data parsing for file uploads
 - [ ] Implement rate limiting specific to each endpoint or route
 - [ ] Introduce a mechanism to handle endpoint deprecation

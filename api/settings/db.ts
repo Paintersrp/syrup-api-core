@@ -25,4 +25,4 @@ export const DB_CONFIG = {
   },
 };
 
-export const ORM = new SyDatabase(DB_CONFIG, logger, queriesLogger);
+export const ORM = new SyDatabase(DB_CONFIG, logger);
