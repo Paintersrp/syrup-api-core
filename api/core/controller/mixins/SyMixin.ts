@@ -1,11 +1,13 @@
 import { RouterContext } from 'koa-router';
 import { Logger } from 'pino';
-import { ModelStatic, FindOptions, Transaction } from 'sequelize';
+import { ModelStatic, FindOptions, Transaction, Model } from 'sequelize';
 
-import { HttpStatus, Responses } from '../../lib';
+import { HttpStatus } from '../../lib';
 import { NotFoundError } from '../../errors/client';
 import { ControllerMixinOptions } from '../types';
 import { RequestProcessor } from './request/RequestProcessor';
+import { ValidationResponses } from '../../lib/responses';
+import { FieldDTO } from './types';
 
 /**
  * SyMixin is an abstract class designed to be extended by other mixin classes.
@@ -35,17 +37,37 @@ export abstract class SyMixin {
    *
    * @param {RouterContext} ctx - Koa Router context.
    * @param {HttpStatus} status - HTTP status code.
-   * @param {any} body - Response body.
+   * @param {unknown} body - Response body.
+   * @param {string} message - Response message.
+   * @param {string} error - Response error code.
    */
   protected createResponse(
     ctx: RouterContext,
     status: HttpStatus,
-    body: any,
+    body: unknown,
     message?: string,
     error?: string
   ) {
     ctx.status = status;
-    ctx.body = {
+    ctx.body = this.formatResponseBody(status, body, message, error);
+  }
+
+  /**
+   * Formats the body of the HTTP response for the Koa router.
+   *
+   * @param {HttpStatus} status - HTTP status code.
+   * @param {unknown} body - Response body.
+   * @param {string} message - Response message.
+   * @param {string} error - Response error code.
+   * @returns {Object} The formatted response body.
+   */
+  private formatResponseBody(
+    status: HttpStatus,
+    body: unknown,
+    message?: string,
+    error?: string
+  ): Object {
+    return {
       status: status >= 200 && status < 300 ? 'success' : 'error',
       message,
       data: body,
@@ -59,11 +81,11 @@ export abstract class SyMixin {
    *
    * @param {string} id - The id of the item to be found.
    * @param {Transaction} transaction - The Sequelize transaction.
-   * @returns {Promise<any>} A promise that resolves to the found item.
+   * @returns {Promise<Model>} A promise that resolves to the found item.
    */
-  protected async findItemById(id: string, transaction?: Transaction): Promise<any> {
+  protected async findItemById(id: string, transaction?: Transaction): Promise<Model> {
     const item = await this.model.findByPk(id, { transaction });
-    this.assertItemExists(item, Responses.ID_FAIL);
+    this.assertItemExists(item, ValidationResponses.ID_FAIL);
     return item;
   }
 
@@ -72,10 +94,51 @@ export abstract class SyMixin {
    *
    * @throws {NotFoundError} If the item is not found.
    */
-  private assertItemExists(item: any, failMsg: Responses = Responses.ITEM_FAIL): void {
+  private assertItemExists(item: Model, failMsg: string = ValidationResponses.ITEM_FAIL): void {
     if (!item) {
       throw new NotFoundError(failMsg, item);
     }
+  }
+
+  /**
+   * Finds an item based on a field and field value.
+   *
+   * @param {string} field - The field to search.
+   * @param {string | number} value - The value in the field to search for.
+   * @param {Transaction} transaction - The Sequelize transaction.
+   * @returns {Promise<Model>} A promise that resolves to the found item.
+   */
+  protected async findItem(
+    field: string,
+    value: string | number,
+    transaction?: Transaction
+  ): Promise<Model> {
+    const item = await this.model.findOne({ where: { [field]: value }, transaction });
+    this.assertItemExists(item, ValidationResponses.ID_FAIL);
+    return item;
+  }
+
+  /**
+   * Returns the model name based on an object returned from an ORM action
+   *
+   * @param {Model} item - The id of the item to be found.
+   * @returns {string} A promise that resolves to the found item.
+   */
+  protected getModelName(item: Model): string {
+    const modelName = item.constructor.name.replace('SequelizeModel', '');
+    return modelName;
+  }
+
+  /**
+   * Assigns a new array of fields to a model instance
+   *
+   * @param {Model} model - The model instance to be updated.
+   * @param {FieldDTO} fields - The model instance to be updated.
+   * @returns {Model} Returns updated model
+   */
+  protected updateModelFields(model: Model, fields: FieldDTO): Model {
+    Object.assign(model, fields);
+    return model;
   }
 
   /**
@@ -92,7 +155,7 @@ export abstract class SyMixin {
    *
    * @see RequestProcessor#processPayload
    */
-  protected processPayload(ctx: RouterContext, arrayCheck: boolean = false): any {
+  protected processPayload(ctx: RouterContext, arrayCheck: boolean = false): unknown {
     return this.requestProcessor.processPayload(ctx, arrayCheck);
   }
 

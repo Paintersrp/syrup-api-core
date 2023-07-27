@@ -1,6 +1,7 @@
 import Router from 'koa-router';
-import { Transaction } from 'sequelize';
+import { Model, Transaction } from 'sequelize';
 import { HttpStatus } from '../../../lib';
+import { ControllerResponses } from '../../../lib/responses';
 import { ControllerMixinOptions } from '../../types';
 import { SyMixin } from '../SyMixin';
 import { FieldDTO } from '../types';
@@ -58,11 +59,12 @@ export class SyUpdateMixin extends SyMixin {
     const id = this.processIdParam(ctx);
     const fields = this.processPayload(ctx) as FieldDTO | undefined;
 
-    const item = await this.findItemById(id, transaction);
+    const item = (await this.findItemById(id, transaction)) as Model;
     Object.assign(item, fields);
     await item.save({ transaction });
 
-    this.createResponse(ctx, HttpStatus.OK, item);
+    const modelName = this.getModelName(item);
+    this.createResponse(ctx, HttpStatus.OK, item, ControllerResponses.UPDATE_SUCCESS(modelName));
   }
 
   /**
@@ -83,17 +85,51 @@ export class SyUpdateMixin extends SyMixin {
    * ```
    */
   public async bulkUpdate(ctx: Router.RouterContext, transaction: Transaction) {
-    const fields = this.processPayload(ctx, true) as FieldDTO[];
+    const updatesList = this.processPayload(ctx, true) as FieldDTO[];
+    const updatedItems = await this.processBulkUpdates(updatesList, transaction);
+    const modelName = this.getModelName(updatedItems[0]);
 
-    const updatedItems = await Promise.all(
-      fields.map(async (item: any) => {
-        const currentItem = await this.findItemById(item.id, transaction);
-        Object.assign(currentItem, item);
+    this.createResponse(
+      ctx,
+      HttpStatus.OK,
+      updatedItems,
+      ControllerResponses.UPDATE_SUCCESS(modelName)
+    );
+  }
+
+  /**
+   * Processes a list of update operations in bulk.
+   *
+   * This method iterates over the `updates` array, each element of which represents an update operation.
+   *
+   * @param {FieldDTO[]} updates - An array of update operations. Each operation is an object containing the ID of the target model instance, and the new field values.
+   * @param {Transaction} transaction - The Sequelize transaction that all operations should be part of.
+   *
+   * @returns {Promise<Model[]>} - A promise that resolves to an array of updated model instances.
+   *
+   * @example
+   * ```typescript
+   * const updates = [
+   *   { id: 1, name: 'New Name' },
+   *   { id: 2, status: 'Active' },
+   *   // more updates...
+   * ];
+   * const updatedItems = await this.processBulkUpdates(updates, transaction);
+   * ```
+   */
+  private async processBulkUpdates(
+    updates: FieldDTO[],
+    transaction: Transaction
+  ): Promise<Model[]> {
+    return Promise.all(
+      updates.map(async (updateData: FieldDTO) => {
+        const currentItem = await this.findItemById(updateData.id, transaction);
+
+        this.updateModelFields(currentItem, updateData);
         await currentItem.save({ transaction });
+
         return currentItem;
       })
     );
-    ctx.status = HttpStatus.OK;
-    ctx.body = updatedItems;
   }
 }

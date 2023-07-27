@@ -3,6 +3,6 @@ export interface BulkIDsBody {
 }
 
 export interface FieldDTO {
-  id?: string;
+  id: string;
   [key: string]: any;
 }

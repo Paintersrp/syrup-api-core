@@ -350,4 +350,12 @@ export class RequestProcessor {
   private isValidSortOption(sort: string): boolean {
     return validator.isAlphanumeric(sort) && this.validSortOptions.includes(sort.toLowerCase());
   }
+
+  // private checkForForbiddenKeys(fields: any) {
+  //   for (const key in fields) {
+  //     if (SyUpdateMixin.FORBIDDEN_UPDATE_KEYS.includes(key)) {
+  //       throw new Error(`Update on forbidden key ${key} is not allowed`);
+  //     }
+  //   }
+  // }
 }

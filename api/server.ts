@@ -30,6 +30,7 @@ import Koa from 'koa';
 
 import * as settings from './settings';
 import { SyServer } from './core/server/SyServer';
+import { UserResponses } from './core/lib/responses/user';
 
 export const server = new SyServer({
   app: new Koa(),
@@ -41,3 +42,5 @@ export const server = new SyServer({
   routes: settings.ROUTES,
   version: '0.05',
 });
+
+console.log(UserResponses.ALREADY_EXISTS('Test'));

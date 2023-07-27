@@ -1,129 +1,99 @@
-# Koa-Sequelize API Utilities
+# README.md
 
-## Introduction
+## SyMixin: Koa/Sequelize API Utility Mixin Class
 
-This project provides a robust set of utility classes and methods to facilitate building secure, scalable RESTful APIs using Koa.js and Sequelize.
+The `SyMixin` is a utility mixin class designed to simplify the development of Koa/Sequelize based APIs. It provides a range of utility methods to streamline the handling of HTTP responses, data fetching from the database, error handling, and more.
 
 ## Usage
 
-This package offers several utility classes including `SyReadMixin`, `SyMixin` and `RequestProcessor`. Here's a basic example:
+This mixin class is abstract and should be extended by other classes in your application. When initializing a new instance of a class extending `SyMixin`, you will need to provide a set of options:
 
-```javascript
+```ts
+class MyController extends SyMixin {
+  constructor(options: ControllerMixinOptions) {
+    super(options);
+  }
+  // ...
+}
 
+const controller = new MyController({ model, logger });
 ```
 
-# API References
+The `ControllerMixinOptions` should include:
 
-## **`SyReadMixin`**
+- `model`: A Sequelize model, representing a table in your database.
+- `logger`: A Pino logger instance.
 
-The `SyReadMixin` class provides two basic CRUD operations: read one record and read all records.
+## API
 
-#
+### `findItemById(id: string, transaction?: Transaction): Promise<Model>`
 
-#### **`all(ctx)`**
+This method fetches an item from the database based on its primary key. If no item is found, a `NotFoundError` is thrown.
 
-Fetches all records from the associated model. Records can be filtered, sorted, and paged based on query parameters.
+### `findItem(field: string, value: string | number, transaction?: Transaction): Promise<Model>`
 
-- `ctx` - Koa context.
+This method fetches an item from the database based on a field and value. If no item is found, a `NotFoundError` is thrown.
 
-#
+### `getModelName(item: Model): string`
 
-#### **`read(ctx)`**
+This method returns the name of the model based on an object returned from a Sequelize action.
 
-Fetches a single record identified by id.
+### `updateModelFields(model: Model, fields: FieldDTO): Model`
 
-- `ctx` - Koa context.
+This method assigns a new array of fields to a model instance.
 
----
+### `checkPermission(ctx: RouterContext): Promise<void>`
 
-## **`SyMixin`**
+This method checks if the current user has the necessary permissions to perform an action.
 
-The `SyMixin` class provides a set of utility methods for request handling and response creation.
+### `processPayload(ctx: RouterContext, arrayCheck: boolean = false): unknown`
 
-#
+This method processes the payload from the request body.
 
-#### `createResponse(ctx, status, body)`
+### `processIdParam(ctx: RouterContext): string`
 
-Sets the response body and status code.
+This method processes the 'id' parameter from the Koa Router context.
 
-- `ctx` - Koa context.
-- `status` - HTTP status code.
-- `body` - Response body.
+### `processIdsParam(ctx: RouterContext): string[]`
 
-#
+This method processes the 'ids' parameter from the request body.
 
-#### `findItemById(id, transaction)`
+### `processQueryParams(ctx: RouterContext): Promise<FindOptions>`
 
-Finds a record identified by id.
+This method processes request query parameters.
 
-- `id` - Id of the record.
-- `transaction` (optional) - Sequelize transaction.
+## Example
 
----
+Suppose you have a controller for handling user-related endpoints. This controller could extend `SyMixin` to take advantage of the utility methods:
 
-## **`RequestProcessor`**
+```ts
+import { RouterContext } from 'koa-router';
+import { User } from '../../models';
+import { SyMixin, ControllerMixinOptions } from './SyMixin';
+import { HttpStatus } from '../../lib';
 
-The `RequestProcessor` class provides methods to process and validate request data for CRUD operations.
+class UserController extends SyMixin {
+  constructor(options: ControllerMixinOptions) {
+    super(options);
+  }
 
-#
+  async getUser(ctx: RouterContext) {
+    const userId = this.processIdParam(ctx);
+    const user = await this.findItemById(userId);
+    this.createResponse(ctx, HttpStatus.OK, user);
+  }
 
-#### `processPayload(ctx, arrayCheck)`
+  async updateUser(ctx: RouterContext) {
+    const userId = this.processIdParam(ctx);
+    const updatedFields = this.processPayload(ctx) as Partial<User>;
+    const user = await this.findItemById(userId);
+    this.updateModelFields(user, updatedFields);
+    await user.save();
+    this.createResponse(ctx, HttpStatus.OK, user);
+  }
+}
 
-Processes the request payload.
+const userController = new UserController({ model: User, logger: console });
+```
 
-- `ctx` - Koa context.
-- `arrayCheck` - Boolean flag to check if payload is an array.
-
-#
-
-#### `processIdParam(ctx)`
-
-Processes the 'id' request param.
-
-- `ctx` - Koa context.
-
-#
-
-#### `processQueryParams(ctx)`
-
-Processes the query parameters for pagination, sorting, and filtering.
-
-- `ctx` - Koa context.
-
----
-
-### Interfaces
-
-This package also provides several TypeScript interfaces to enforce type safety:
-
-#
-
-#### `ControllerMixinOptions`
-
-The options object for the mixin classes' constructors.
-
-#
-
-#### `QueryParams`
-
-Query parameters for list endpoints, including pagination, sorting, and filtering.
-
-#
-
-#### `AdvancedFilterOptions`
-
-Advanced filtering options for list endpoints.
-
-#
-
-#### `ControllerQueryOptions`
-
-An interface combining `QueryParams` and `AdvancedFilterOptions`.
-
----
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for more details.
-
----
+In the above example, `UserController` extends `SyMixin` and uses its methods to simplify HTTP response creation, user fetching, and payload processing.
