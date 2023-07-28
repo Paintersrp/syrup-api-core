@@ -34,7 +34,7 @@ export class SyDeleteMixin extends SyMixin {
    * @param {Transaction} transaction - The Sequelize transaction.
    */
   public async softDelete(ctx: Router.RouterContext, transaction: Transaction) {
-    const id = this.processIdParam(ctx);
+    const id = this.processParam(ctx, 'id');
     const item = await this.findItemById(id, transaction);
     const updatedItem = await item.update({ deleted: true }, { transaction });
 
@@ -52,7 +52,7 @@ export class SyDeleteMixin extends SyMixin {
    * @param {Transaction} transaction - The Sequelize transaction.
    */
   async delete(ctx: Router.RouterContext, transaction: Transaction) {
-    const id = this.processIdParam(ctx);
+    const id = this.processParam(ctx, 'id');
     const item = await this.findItemById(id, transaction);
     await item.destroy({ transaction });
 
@@ -66,7 +66,7 @@ export class SyDeleteMixin extends SyMixin {
    * @param {Transaction} transaction - The Sequelize transaction.
    */
   public async bulkSoftDelete(ctx: Router.RouterContext, transaction: Transaction) {
-    const ids = this.processIdsParam(ctx);
+    const ids = this.processBodyParam(ctx, 'ids');
 
     const deletedItems = await this.model.update(
       { deleted: true },
@@ -95,7 +95,7 @@ export class SyDeleteMixin extends SyMixin {
    * @param {Transaction} transaction - The Sequelize transaction.
    */
   public async bulkDelete(ctx: Router.RouterContext, transaction: Transaction) {
-    const ids = this.processIdsParam(ctx);
+    const ids = this.processBodyParam(ctx, 'ids');
 
     await this.model.destroy({
       where: { id: ids },
@@ -112,7 +112,7 @@ export class SyDeleteMixin extends SyMixin {
    * @param {Transaction} transaction - The Sequelize transaction.
    */
   public async archive(ctx: Router.RouterContext, transaction: Transaction) {
-    const id = this.processIdParam(ctx);
+    const id = this.processParam(ctx, 'id');
     const item = await this.findItemById(id, transaction);
     const updatedItem = await item.update({ archived: true }, { transaction });
 

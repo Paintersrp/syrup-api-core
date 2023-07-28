@@ -33,7 +33,7 @@ export class SyReadMixin extends SyMixin {
    * Retrieves a specific instance of the model by its ID.
    */
   public async read(ctx: Router.RouterContext) {
-    const id = this.processIdParam(ctx);
+    const id = this.processParam(ctx, 'id');
     const item = await this.findItemById(id);
 
     this.createResponse(ctx, HttpStatus.OK, item);

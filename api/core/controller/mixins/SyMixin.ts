@@ -6,6 +6,7 @@ import { HttpStatus } from '../../lib';
 import { NotFoundError } from '../../errors/client';
 import { ControllerMixinOptions } from '../types';
 import { RequestProcessor } from './request/RequestProcessor';
+import { QueryProcessor } from './queries/QueryProcessor';
 import { ValidationResponses } from '../../lib/responses';
 import { FieldDTO } from './types';
 
@@ -20,6 +21,7 @@ export abstract class SyMixin {
   protected model: ModelStatic<any>;
   protected logger: Logger;
   protected requestProcessor: RequestProcessor;
+  protected queryProcessor: QueryProcessor;
 
   /**
    * Creates an instance of SyMixin.
@@ -29,7 +31,9 @@ export abstract class SyMixin {
   constructor(options: ControllerMixinOptions) {
     this.model = options.model;
     this.logger = options.logger;
-    this.requestProcessor = new RequestProcessor(this.model);
+
+    this.requestProcessor = new RequestProcessor();
+    this.queryProcessor = new QueryProcessor(this.model);
   }
 
   /**
@@ -160,29 +164,38 @@ export abstract class SyMixin {
   }
 
   /**
-   * Processes the 'id' parameter from the Koa Router context.
+   * Processes a parameter from the route parameters.
    *
-   * @see RequestProcessor#processIdParam
+   * @see RequestProcessor#processParam
    */
-  protected processIdParam(ctx: RouterContext): string {
-    return this.requestProcessor.processIdParam(ctx);
+  protected processParam(ctx: RouterContext, paramName: string): string {
+    return this.requestProcessor.processParam(ctx, paramName);
   }
 
   /**
-   * Processes the 'ids' parameter from the request body.
+   * Processes a parameter from the request body.
    *
-   * @see RequestProcessor#processIdsParam
+   * @see RequestProcessor#processBodyParam
    */
-  protected processIdsParam(ctx: RouterContext): string[] {
-    return this.requestProcessor.processIdsParam(ctx);
+  protected processBodyParam(ctx: RouterContext, paramName: string): string {
+    return this.requestProcessor.processBodyParam(ctx, paramName);
+  }
+
+  /**
+   * Processes a request header.
+   *
+   * @see RequestProcessor#processHeader
+   */
+  protected processHeader(ctx: RouterContext, headerName: string): string | string[] | undefined {
+    return this.requestProcessor.processHeader(ctx, headerName);
   }
 
   /**
    * Processes request query parameters
    *
-   * @see RequestProcessor#processQueryParams
+   * @see QueryProcessor#processQueryParams
    */
   protected async processQueryParams(ctx: RouterContext): Promise<FindOptions> {
-    return this.requestProcessor.processQueryParams(ctx);
+    return this.queryProcessor.processQueryParams(ctx);
   }
 }

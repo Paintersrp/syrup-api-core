@@ -56,7 +56,7 @@ export class SyUpdateMixin extends SyMixin {
    * ```
    */
   public async update(ctx: Router.RouterContext, transaction: Transaction) {
-    const id = this.processIdParam(ctx);
+    const id = this.processParam(ctx, 'id');
     const fields = this.processPayload(ctx) as FieldDTO | undefined;
 
     const item = (await this.findItemById(id, transaction)) as Model;
