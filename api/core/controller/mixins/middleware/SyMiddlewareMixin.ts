@@ -63,4 +63,18 @@ export class SyMiddlewareMixin extends SyMixin {
     await next();
     cache.set(cacheKey, ctx.body as unknown as number, 60);
   }
+
+  /**
+   * OPTIONS endpoint middleware.
+   * @param {Router.RouterContext} ctx - The Koa router context.
+   * @param {() => Promise<any>} next The next middleware function.
+   */
+  public async options(ctx: Router.RouterContext, next: () => Promise<any>) {
+    ctx.set('Allow', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    ctx.status = 200;
+    ctx.body = {
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    };
+    await next();
+  }
 }

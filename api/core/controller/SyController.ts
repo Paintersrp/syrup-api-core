@@ -1,13 +1,10 @@
 import Koa, { EventEmitter, Middleware } from 'koa';
 import Router from 'koa-router';
 import { Logger } from 'pino';
-import { ModelStatic, Optional, Transaction } from 'sequelize';
+import { Model, ModelStatic, Optional } from 'sequelize';
+import * as Yup from 'yup';
 
-import { ORM } from '../../settings';
-import { ETag, Log, Monitor } from '../lib/decorators/controllers';
-import { Retry } from '../lib/decorators/general';
-import { Responses } from '../lib';
-import { InternalServerError } from '../errors/server';
+import { ETag, Monitor } from '../lib/decorators/controllers';
 import {
   SyCreateMixin,
   SyDeleteMixin,
@@ -16,14 +13,35 @@ import {
   SyMiddlewareMixin,
   SyUpdateMixin,
 } from './mixins';
-import { SyControllerOptions } from './types';
+import { ControllerMixins, SyControllerOptions } from './types';
+import { TransactionManager } from '../mixins/transactions';
+import { InternalMethodsToBind } from './enums';
 
 /**
  * @class SyController
- * @classdesc SyController is a class responsible for handling HTTP requests and responses.
- * It includes advanced features such as input validation, transaction management, logging, rate limiting, and more.
  *
- * It's highly flexible and can be easily extended or customized for your specific needs.
+ * @classdesc SyController is a highly flexible and feature-rich class responsible for handling
+ * HTTP requests and responses. Its responsibilities include:
+ *
+ * 1. Database Interaction: It uses a Sequelize model to interact with the database. The specifics
+ * of this interaction will depend on the model passed in during instantiation.
+ *
+ * 2. Request Validation: It validates request data using a Yup schema that's also passed in during
+ * instantiation.
+ *
+ * 3. Transaction Management: It manages database transactions using a TransactionManager. This ensures
+ * that database operations are atomic.
+ *
+ * 4. Logging: It logs information about its operations. The specifics of what it logs and how would
+ * depend on the Logger instance passed in during instantiation.
+ *
+ * 5. Middleware Application: It allows for the application of custom middleware for advanced
+ * request/response handling.
+ *
+ * 6. Route Handling: It provides methods for handling various HTTP methods like GET, POST, PUT,
+ * DELETE, and OPTIONS. It can also provide metadata about the Sequelize model.
+ *
+ * The class can be extended to customize its functionality for specific needs.
  *
  * @example
  * class UserController extends SyController {
@@ -42,28 +60,12 @@ import { SyControllerOptions } from './types';
  * userRouter.get('/users/:id', userController.read);
  */
 export abstract class SyController extends EventEmitter {
-  protected model: ModelStatic<any>;
-  protected schema: any;
+  protected model: ModelStatic<Model>;
+  protected schema: Yup.AnyObjectSchema;
   protected logger: Logger;
+  protected transactionManager: TransactionManager;
   protected customMiddlewares: Middleware[];
-  protected internalMethodsToBind = [
-    'create',
-    'read',
-    'update',
-    'delete',
-    'all',
-    'validateBody',
-    'cacheEndpoint',
-    'getMetadata',
-    'options',
-  ];
-
-  protected declare createMixin: SyCreateMixin;
-  protected declare readMixin: SyReadMixin;
-  protected declare updateMixin: SyUpdateMixin;
-  protected declare deleteMixin: SyDeleteMixin;
-  protected declare middlewareMixin: SyMiddlewareMixin;
-  protected declare metaMixin: SyMetaMixin;
+  protected mixins!: ControllerMixins;
 
   /**
    * @desc Constructs a new instance of the SyController class and initializes the Mixins which
@@ -81,10 +83,11 @@ export abstract class SyController extends EventEmitter {
     this.model = model;
     this.schema = schema;
     this.logger = logger;
+    this.transactionManager = new TransactionManager(this.logger);
     this.customMiddlewares = middlewares;
 
     this.setupMixins();
-    this.bindMethods(this.internalMethodsToBind);
+    this.bindMethods(Object.values(InternalMethodsToBind));
   }
 
   /**
@@ -95,12 +98,14 @@ export abstract class SyController extends EventEmitter {
   private setupMixins(): void {
     const mixinOptions = { model: this.model, logger: this.logger };
 
-    this.createMixin = new SyCreateMixin(mixinOptions);
-    this.readMixin = new SyReadMixin(mixinOptions);
-    this.updateMixin = new SyUpdateMixin(mixinOptions);
-    this.deleteMixin = new SyDeleteMixin(mixinOptions);
-    this.metaMixin = new SyMetaMixin(mixinOptions);
-    this.middlewareMixin = new SyMiddlewareMixin({ ...mixinOptions, schema: this.schema });
+    this.mixins = {
+      create: new SyCreateMixin(mixinOptions),
+      read: new SyReadMixin(mixinOptions),
+      update: new SyUpdateMixin(mixinOptions),
+      delete: new SyDeleteMixin(mixinOptions),
+      meta: new SyMetaMixin(mixinOptions),
+      middleware: new SyMiddlewareMixin({ ...mixinOptions, schema: this.schema }),
+    };
   }
 
   /**
@@ -125,37 +130,6 @@ export abstract class SyController extends EventEmitter {
   }
 
   /**
-   * Wraps a callback function within a database transaction.
-   * If any operation within the transaction fails, all operations are rolled back.
-   * The error is also emitted as an event and can be listened to.
-   * @param {RouterContext} ctx - Koa RouterContext.
-   * @param {Function} callback - Callback function to be executed within the transaction.
-   * @return {Promise<U>} The result of the callback function execution.
-   * @emits SyController#error
-   */
-  private async withTransaction<U>(
-    ctx: Router.RouterContext,
-    callback: (transaction: Transaction) => Promise<U>
-  ): Promise<U> {
-    let transaction: Transaction | null = null;
-
-    try {
-      transaction = await ORM.database.transaction();
-      const result = await callback(transaction);
-      await transaction.commit();
-      return result;
-    } catch (error) {
-      if (transaction) {
-        await transaction.rollback();
-      }
-
-      this.logger.error(error, 'Transaction failed');
-      this.emit('error', error);
-      throw new InternalServerError(Responses.INTERNAL_SERVER, transaction as any, ctx.url);
-    }
-  }
-
-  /**
    * Validates field objects using instance schema
    * @param fields An object of input data as fields from a request.
    */
@@ -164,38 +138,44 @@ export abstract class SyController extends EventEmitter {
   }
 
   /**
-   * Middleware to validate the request body against the defined schema.
-   * @see SyMiddlewareMixin#validateBody
-   */
-  public async validateBody(ctx: Router.RouterContext, next: Koa.Next) {
-    return await this.middlewareMixin.validateBody(ctx, next);
-  }
-
-  /**
    * Middleware to cache the response of an endpoint and serve the cached response if available.
    * @see SyMiddlewareMixin#cacheEndpoint
    */
   public async cacheEndpoint(ctx: Router.RouterContext, next: Koa.Next) {
-    return await this.middlewareMixin.cacheEndpoint(ctx, next);
+    return await this.mixins.middleware.cacheEndpoint(ctx, next);
+  }
+
+  /**
+   * OPTIONS endpoint.
+   * @see SyMiddlewareMixin#options
+   */
+  public async options(ctx: Router.RouterContext, next: () => Promise<any>) {
+    return await this.mixins.middleware.options(ctx, next);
+  }
+
+  /**
+   * Middleware to validate the request body against the defined schema.
+   * @see SyMiddlewareMixin#validateBody
+   */
+  public async validateBody(ctx: Router.RouterContext, next: Koa.Next) {
+    return await this.mixins.middleware.validateBody(ctx, next);
   }
 
   /**
    * Returns all instances of the model.
-   * @see SyListMixin#all
+   * @see SyReadMixin#all
    */
   @Monitor
   public async all(ctx: Router.RouterContext) {
-    return this.readMixin.all(ctx);
+    return this.mixins.read.all(ctx);
   }
 
   /**
    * Returns an instance of the model.
-   * @see SyListMixin#read
+   * @see SyReadMixin#read
    */
-  @Log
-  @Retry()
   public async read(ctx: Router.RouterContext) {
-    return this.readMixin.read(ctx);
+    return this.mixins.read.read(ctx);
   }
 
   /**
@@ -203,9 +183,7 @@ export abstract class SyController extends EventEmitter {
    * @see SyCreateMixin#create
    */
   public async create(ctx: Router.RouterContext): Promise<void> {
-    return this.withTransaction(ctx, async (transaction) => {
-      return this.createMixin.create(ctx, transaction);
-    });
+    return this.transactionManager.performTransaction(ctx, 'create', this.mixins.create);
   }
 
   /**
@@ -213,9 +191,7 @@ export abstract class SyController extends EventEmitter {
    * @see SyUpdateMixin#update
    */
   public async update(ctx: Router.RouterContext): Promise<void> {
-    return this.withTransaction(ctx, async (transaction) => {
-      return this.updateMixin.update(ctx, transaction);
-    });
+    return this.transactionManager.performTransaction(ctx, 'update', this.mixins.update);
   }
 
   /**
@@ -223,9 +199,7 @@ export abstract class SyController extends EventEmitter {
    * @see SyDeleteMixin#delete
    */
   public async delete(ctx: Router.RouterContext): Promise<void> {
-    return this.withTransaction(ctx, async (transaction) => {
-      return this.deleteMixin.delete(ctx, transaction);
-    });
+    return this.transactionManager.performTransaction(ctx, 'delete', this.mixins.delete);
   }
 
   /**
@@ -234,20 +208,6 @@ export abstract class SyController extends EventEmitter {
    */
   @ETag
   public async getMetadata(ctx: Router.RouterContext): Promise<void> {
-    this.metaMixin.getMetadata(ctx);
-  }
-
-  /**
-   * OPTIONS endpoint.
-   * @param {Router.RouterContext} ctx - The Koa router context.
-   * @param {() => Promise<any>} next The next middleware function.
-   */
-  public async options(ctx: Router.RouterContext, next: () => Promise<any>) {
-    ctx.set('Allow', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    ctx.status = 200;
-    ctx.body = {
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    };
-    await next();
+    this.mixins.meta.getMetadata(ctx);
   }
 }

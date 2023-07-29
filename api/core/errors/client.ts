@@ -93,6 +93,16 @@ export const TooManyRequestsError = SyError.createErrorType(
 );
 
 /**
+ * Represents an HTTP 400 Unauthorized client error.
+ * The request has not been applied because it lacks valid authentication credentials for the target resource.
+ */
+export const ValidationError = SyError.createErrorType(
+  HttpStatus.BAD_REQUEST,
+  ErrorCategory.CLIENT,
+  ErrorCodes.VALIDATION
+);
+
+/**
  * Represents an HTTP 401 Unauthorized client error.
  * The request has not been applied because it lacks valid authentication credentials for the target resource.
  */

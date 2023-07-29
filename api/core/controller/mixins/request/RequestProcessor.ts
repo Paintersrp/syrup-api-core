@@ -5,20 +5,23 @@ import { Responses } from '../../../lib';
 import { ADMIN_ROLES } from '../../../../models/user';
 import { UserSession } from '../../../../types';
 import { ValidationResponses } from '../../../lib/responses';
-import { SyValidator } from '../validator/SyValidator';
+import { SyValidator } from '../../../mixins/validator/SyValidator';
+import { Logger } from 'pino';
 
 /**
  * @class
  * @classdesc A utility class to handle request processing, validation and user permissions check for CRUD operations.
  */
 export class RequestProcessor {
-  private validator: SyValidator;
+  protected logger: Logger;
+  protected validator: SyValidator;
 
   /**
    * @constructor
    */
-  constructor() {
-    this.validator = new SyValidator();
+  constructor(logger: Logger, validator: SyValidator) {
+    this.logger = logger;
+    this.validator = validator;
   }
 
   /**
@@ -54,7 +57,11 @@ export class RequestProcessor {
    */
   public processHeader(ctx: RouterContext, headerName: string): string | string[] | undefined {
     const headerValue = ctx.request.headers[headerName];
-    this.validator.assertExists(headerValue, ValidationResponses.HEADER_FAIL(headerName), ctx.url);
+    this.validator.assertExists({
+      param: headerValue,
+      context: ctx.url,
+      errorMessage: ValidationResponses.HEADER_FAIL(headerName),
+    });
     return headerValue;
   }
 
@@ -68,10 +75,14 @@ export class RequestProcessor {
    */
   public processPayload(ctx: RouterContext, arrayCheck: boolean = false): any {
     const payload = ctx.request.body;
-    this.validator.assertExists(payload, Responses.PAYLOAD_FAIL, ctx.url);
+    this.validator.assertExists({
+      param: payload,
+      context: ctx.url,
+      errorMessage: Responses.PAYLOAD_FAIL,
+    });
 
     if (arrayCheck) {
-      this.validator.assertArray(payload, ctx.url);
+      this.validator.assertArray({ param: payload, context: ctx.url });
     }
 
     return payload;
@@ -87,7 +98,13 @@ export class RequestProcessor {
    */
   public processParam(ctx: RouterContext, paramName: string): string {
     const paramValue = ctx.params[paramName];
-    this.validator.assertExists(paramValue, ValidationResponses.PARAM_FAIL(paramName), ctx.url);
+
+    this.validator.assertExists({
+      param: paramValue,
+      context: ctx.url,
+      errorMessage: ValidationResponses.PARAM_FAIL(paramName),
+    });
+
     return paramValue;
   }
 
@@ -102,7 +119,12 @@ export class RequestProcessor {
   public processBodyParam(ctx: RouterContext, paramName: string): any {
     const body = ctx.request.body as Record<string, any>;
     const paramValue = body[paramName];
-    this.validator.assertExists(paramValue, ValidationResponses.PARAM_FAIL(paramName), ctx.url);
+
+    this.validator.assertExists({
+      param: paramValue,
+      context: ctx.url,
+      errorMessage: ValidationResponses.PARAM_FAIL(paramName),
+    });
 
     return paramValue;
   }

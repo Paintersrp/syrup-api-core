@@ -1,6 +1,14 @@
 import { Middleware } from 'koa';
 import { Logger } from 'pino';
 import { Model, ModelStatic } from 'sequelize';
+import {
+  SyCreateMixin,
+  SyDeleteMixin,
+  SyMetaMixin,
+  SyMiddlewareMixin,
+  SyReadMixin,
+  SyUpdateMixin,
+} from './mixins';
 
 export interface SyControllerOptions {
   model: ModelStatic<any>;
@@ -22,4 +30,13 @@ export interface ControllerQueryOptions {
   price_greater_than?: number;
 
   fields?: string; // set attribute fields to return by query
+}
+
+export interface ControllerMixins {
+  create: SyCreateMixin;
+  read: SyReadMixin;
+  update: SyUpdateMixin;
+  delete: SyDeleteMixin;
+  meta: SyMetaMixin;
+  middleware: SyMiddlewareMixin;
 }

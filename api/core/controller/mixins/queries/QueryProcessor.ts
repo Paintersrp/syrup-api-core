@@ -5,7 +5,7 @@ import { BadRequestError } from '../../../errors/client';
 
 import { ORM } from '../../../../settings';
 import { CustomWhere, FilterOptions, OperatorMapping, QueryType } from './types';
-import { SyValidator } from '../validator/SyValidator';
+import { SyValidator } from '../../../mixins/validator/SyValidator';
 
 /**
  * Class for processing query parameters
@@ -49,9 +49,9 @@ export class QueryProcessor {
    * Constructs a new instance of the QueryProcessor class
    * @param {ModelStatic<Model>} model - The model to be used for query processing
    */
-  constructor(model: ModelStatic<Model>) {
+  constructor(model: ModelStatic<Model>, validator: SyValidator) {
     this.model = model;
-    this.validator = new SyValidator();
+    this.validator = validator;
     this.modelAttributes = new Set(Object.keys(this.model.getAttributes()));
   }
 
@@ -219,7 +219,12 @@ export class QueryProcessor {
    * @returns {boolean} True if valid, false otherwise
    */
   private isValidFilterColumn(column: string, pathContext: string): boolean {
-    return this.validator.assertAlphanumeric(column, pathContext) && this.modelHasColumn(column);
+    return (
+      this.validator.assertAlphanumeric({
+        param: column,
+        context: pathContext,
+      }) && this.modelHasColumn(column)
+    );
   }
 
   /**
@@ -240,7 +245,7 @@ export class QueryProcessor {
   private isValidSortOption(sort: string, pathContext: string): boolean {
     console.log(sort);
     return (
-      this.validator.assertAlphanumeric(sort, pathContext) &&
+      this.validator.assertAlphanumeric({ param: sort, context: pathContext }) &&
       this.validSortOptions.includes(sort.toLowerCase())
     );
   }

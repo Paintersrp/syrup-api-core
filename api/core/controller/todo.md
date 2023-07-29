@@ -135,6 +135,15 @@
 
 ---
 
+Sure, here's a comprehensive markdown to-do list for improvements to the SyController class:
+
+### 1. Enhance Documentation
+
+- [x] Document all decorators used in class and methods
+- [x] Provide a comprehensive overview of class responsibilities
+
+---
+
 Read Config for each model... Like Serializers
 
 ```bash
