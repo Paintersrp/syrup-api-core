@@ -11,6 +11,7 @@ from .mixins.evaluator.ModelEvaluator import ModelEvaluator
 from .mixins.preprocessor.Preprocessor import Preprocessor
 from .mixins.selector.FeatureSelector import FeatureSelector
 from .mixins.engineer.FeatureEngineer import FeatureEngineer
+from .utils.validator.Validator import Validator
 
 
 class BaseModel:
@@ -73,6 +74,7 @@ class BaseModel:
         self.preprocessor = Preprocessor(numerical_features, categorical_features)
         self.feature_selector = FeatureSelector(k=k_best_features)
         self.feature_engineer = FeatureEngineer()
+        self.validator = Validator()
         self.scaler = MinMaxScaler()
         self.model = self._build_model()
 

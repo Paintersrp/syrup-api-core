@@ -47,6 +47,23 @@ class AnomalyDetector(BaseModel):
             The number of top features to select based on "f_classif", by default 10.
         """
 
+        config = {
+            timesteps: int,
+            n_features: int,
+            quantile: float,
+            layers: list,
+            patience: int,
+            save_dir: str,
+            test_size: float,
+            numerical_features: list,
+            categorical_features: list,
+            k_best_features: int,
+        }
+
+        self.validator.check_config(config, "AnomalyDetector configuration")
+        self.validator.check_value_range(quantile, 0, 1, "Quantile")
+        self.validator.check_value_range(test_size, 0, 1, "Test size")
+
         super().__init__(
             timesteps,
             n_features,
@@ -102,15 +119,12 @@ class AnomalyDetector(BaseModel):
             The mean squared error of each instance in the data.
         """
 
-        # Transforming, scaling and reshaping data
-        # Implementations of these methods are not shown in this snippet
         data = self.preprocessor.transform(data)
         data = self.feature_engineer.transform(data)
         data = self.feature_selector.transform(data)
         data = self.scaler.transform(data)
         data = data.reshape((len(data), self.timesteps, self.n_features))
 
-        # Calculate MSE between the data and its reconstruction
         reconstructed = self.model.predict(data)
         mse = np.mean(np.power(data - reconstructed, 2), axis=1)
         return mse
@@ -153,6 +167,65 @@ class AnomalyDetector(BaseModel):
         error = self.calculate_error(data)
         return error > self.error_threshold
 
+    def validate_train_inputs(
+        self,
+        data: np.array,
+        y: np.array,
+        epochs: int,
+        batch_size: int,
+        verbose: int,
+    ) -> None:
+        # Define the expected types for each input variable
+        input_types = {
+            "data": np.ndarray,
+            "target variable": np.ndarray,
+            "Number of epochs": int,
+            "Batch size": int,
+            "Verbose mode": int,
+        }
+
+        # Validate each input variable's type
+        for var_name, expected_type in input_types.items():
+            variable = eval(var_name)
+            self.validator.check_type(variable, expected_type, var_name)
+
+        # Check that 'verbose' is one of the allowed values
+        self.validator.check_value(verbose, [0, 1, 2], "Verbose mode")
+
+    # def validate_train_inputs(
+    #     self,
+    #     data: np.array,
+    #     y: np.array,
+    #     epochs: int = 10,
+    #     batch_size: int = 32,
+    #     verbose: int = 1,
+    # ) -> None:
+    #     """
+    #     Validate inputs for the train method.
+
+    #     Parameters
+    #     ----------
+    #     data : np.array
+    #         The training data.
+    #     y : np.array
+    #         The target values.
+    #     epochs : int, optional
+    #         The number of epochs to train the model, by default 10.
+    #     batch_size : int, optional
+    #         The batch size for training, by default 32.
+    #     verbose : int, optional
+    #         Verbosity mode, 0 = silent, 1 = progress bar, 2 = one line per epoch. By default 1.
+    #     """
+    #     self.validator.check_type(data, np.ndarray, "Data")
+    #     self.validator.check_type(y, np.ndarray, "Target variable")
+    #     self.validator.check_shape(
+    #         data, (None, self.timesteps, self.n_features), "Data"
+    #     )
+    #     self.validator.check_type(epochs, int, "Number of epochs")
+    #     self.validator.check_type(batch_size, int, "Batch size")
+    #     self.validator.check_type(verbose, int, "Verbose mode")
+    #     self.validator.check_value(verbose, [0, 1, 2], "Verbose mode")
+
     def train(
         self,
         data: np.array,
@@ -178,6 +251,7 @@ class AnomalyDetector(BaseModel):
             Verbosity mode, 0 = silent, 1 = progress bar, 2 = one line per epoch. By default 1.
         """
 
+        self.validate_train_inputs(data, y, epochs, batch_size, verbose)
         super().train(data, y, epochs, batch_size, verbose)
         val_data = data[int((1 - self.test_size) * len(data)) :]
         self.error_threshold = self.calculate_threshold(val_data)
