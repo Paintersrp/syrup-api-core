@@ -1,6 +1,7 @@
 import os from 'os';
 import Router from 'koa-router';
 
+import * as settings from '../../../settings';
 import { SyServer } from '../SyServer';
 import { ServerResourceThresholds } from '../types';
 import { HealthCheckMixin } from '../../database/mixins';
@@ -20,9 +21,12 @@ export class ServerHealthMixin extends HealthCheckMixin {
 
     // Initialize resource thresholds with default values if not provided.
     this.resourceThresholds = {
-      memoryUsageThreshold: resourceThresholds?.memoryUsageThreshold || 0.1,
-      cpuUsageThreshold: resourceThresholds?.cpuUsageThreshold || 0.8,
-      diskSpaceThreshold: resourceThresholds?.diskSpaceThreshold || 0.8,
+      memoryUsageThreshold:
+        resourceThresholds?.memoryUsageThreshold || settings.RESOURCE_THRESHOLDS.memoryUsage,
+      cpuUsageThreshold:
+        resourceThresholds?.cpuUsageThreshold || settings.RESOURCE_THRESHOLDS.cpuUsage,
+      diskSpaceThreshold:
+        resourceThresholds?.diskSpaceThreshold || settings.RESOURCE_THRESHOLDS.diskUsage,
     };
 
     this.router.get(`/health`, this.checkHealth.bind(this));
@@ -44,21 +48,23 @@ export class ServerHealthMixin extends HealthCheckMixin {
    */
   private async checkHealth(ctx: Router.RouterContext) {
     try {
-      const checks = [
-        this.checkDatabase(ctx),
-        this.checkFrontend(ctx),
-        this.checkResources(ctx),
-        this.checkVersion(ctx),
-      ];
+      const checks = [this.checkVersion(ctx), this.checkDatabase(ctx), this.checkFrontend(ctx)];
+
+      if (!settings.MAINTENANCE_MODE) {
+        checks.push(this.checkResources(ctx));
+      }
 
       const results = await Promise.all(checks);
 
-      ctx.body = {
-        database: results[0],
-        frontend: results[1],
-        resources: results[2],
-        version: results[3],
+      const resultsObject = {
+        version: results[0],
+        database: results[1],
+        frontend: results[2],
+        resources: settings.MAINTENANCE_MODE ? 'Skipped due to maintenance mode' : results[3],
       };
+
+      this.server.logger.logAudit('Health Check Metrics', resultsObject);
+      ctx.body = resultsObject;
     } catch (error: any) {
       this.server.logger.error('Error occurred during health check:', error);
     }
@@ -121,6 +127,7 @@ export class ServerHealthMixin extends HealthCheckMixin {
       const diskSpaceAvailable = freeMemory / totalMemory;
       const cpuUsage = loadAverage / cpuCount;
 
+      // @todo bulk anomaly check, return as notifications for simplicity
       const memoryHasAnomaly = this.anomalyDetector.checkAnomaly('memory', memoryUsage);
       const cpuHasAnomaly = this.anomalyDetector.checkAnomaly('cpu', cpuUsage);
       const diskHasAnomaly = this.anomalyDetector.checkAnomaly('disk', diskSpaceAvailable);

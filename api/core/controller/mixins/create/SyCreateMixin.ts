@@ -4,6 +4,7 @@ import { HttpStatus } from '../../../lib';
 
 import { SyMixin } from '../SyMixin';
 import { ControllerMixinOptions } from '../../types';
+import * as settings from '../../../../settings';
 
 /**
  * SyCreateMixin is a mixin class which extends the abstract SyMixin.
@@ -44,7 +45,7 @@ export class SyCreateMixin extends SyMixin {
    */
   public async bulkCreate(ctx: Router.RouterContext, transaction: Transaction, includes: any[]) {
     const payload = this.processPayload(ctx, true) as Optional<any, string>[];
-    const batchSize = 200; // magic number...
+    const batchSize = settings.CONTROLLERS.MAX_BULK_BATCH_SIZE;
     const batches = Math.ceil(payload.length / batchSize);
     let createdItems: any[] = [];
 

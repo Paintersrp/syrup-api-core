@@ -1,3 +1,5 @@
+import cluster from 'cluster';
+import os from 'os';
 import path from 'path';
 import fs from 'fs-extra';
 import { Server } from 'http';
@@ -11,8 +13,8 @@ import serve from 'koa-static';
 import { ComposedMiddlewares, SyServerOptions } from './types';
 import { ServerHealthMixin } from './mixins/ServerHealthMixin';
 
-import { SyLFUCache } from '../cache/SyLFUCache';
-import { SyLRUCache } from '../cache/SyLRUCache';
+import { SyLFUCache } from '../cache/clients/lfu/SyLFUCache';
+import { SyLRUCache } from '../cache/clients/lru/SyLRUCache';
 import { SyDatabase } from '../database/SyDatabase';
 import { RouteConstructor } from '../../types';
 import { SyLogger } from '../logging/SyLogger';
@@ -74,6 +76,7 @@ export class SyServer {
     routes,
     version,
     distPath,
+    clustering = false,
   }: SyServerOptions) {
     this.port = port;
     this.logger = logger;
@@ -96,7 +99,11 @@ export class SyServer {
     this.app = app;
     this.health = new ServerHealthMixin(this, resourceThresholds);
 
-    this.start();
+    if (clustering) {
+      this.startServerWithClustering();
+    } else {
+      this.start();
+    }
   }
 
   /**
@@ -154,7 +161,7 @@ export class SyServer {
    * @param {Koa} app - The Koa application instance.
    */
   private initializeSessions(app: Koa) {
-    app.keys = ['some secret hurr'];
+    app.keys = ['some secret hurr']; // env
     app.use(session({ key: 'syrup:sess' }, app));
   }
 
@@ -174,7 +181,6 @@ export class SyServer {
    */
   private checkAdminRole() {
     return async function (ctx: Koa.Context, next: Koa.Next) {
-      console.log(ctx.session);
       if (
         ctx.session &&
         ctx.session.user &&
@@ -212,6 +218,32 @@ export class SyServer {
       this.isInitialized = true;
     } else {
       this.logger.info('Server is already initialized');
+    }
+  }
+
+  /**
+   * The entry point of your application when using clustering.
+   * This will either create workers if this is the master process,
+   * or initialize the server if it's a worker process.
+   */
+  public async startServerWithClustering(): Promise<void> {
+    if (cluster.isPrimary) {
+      const cpuCount = os.cpus().length;
+      console.log(cpuCount);
+
+      // Create as many workers as there are CPUs
+      for (let i = 0; i < cpuCount; i++) {
+        cluster.fork();
+      }
+
+      cluster.on('exit', (worker) => {
+        this.logger.warn(`Worker ${worker.id} has exited.`);
+        // Ensuring a new worker starts if an existing worker stops
+        cluster.fork();
+      });
+    } else {
+      // If current process is worker, start the server
+      await this.start();
     }
   }
 

@@ -1,5 +1,5 @@
 import { Interval } from '../core/lib';
-import { logger } from './loggers';
+import { APP_LOGGER } from './internal/logger';
 
 /**
  * Schedules a task to be executed at a specified interval.
@@ -16,8 +16,8 @@ export function schedule(
   const executeTask = async (): Promise<void> => {
     try {
       await task();
-    } catch (error) {
-      logger.error('Error occurred while executing the scheduled task:', error);
+    } catch (error: any) {
+      APP_LOGGER.error('Error occurred while executing the scheduled task:', error);
     }
   };
 

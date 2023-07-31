@@ -8,6 +8,10 @@ import { SyMixin } from '../SyMixin';
 import { DataTypeOptions } from './enums';
 
 /**
+ * @todo Responses
+ */
+
+/**
  * @class SyMetaMixin
  * @extends {SyMixin}
  *

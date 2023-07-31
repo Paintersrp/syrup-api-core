@@ -31,8 +31,6 @@ export interface LogObject {
  */
 export function generateLogObject(ctx: Koa.Context, startTime: bigint, err?: Error): LogObject {
   const duration = (process.hrtime.bigint() - startTime) / BigInt(1e6);
-
-  // Get the username and role from the user object in the Koa context state, or use defaults if not available.
   const user: User | string = ctx.state.user?.username || 'Anonymous';
   const role: string = ctx.state.user?.role || 'Unknown';
 
@@ -76,6 +74,16 @@ export function sanitizeObject(requestBody: unknown): object {
 }
 
 /**
+ * Checks if a variable is an instance of the Error class.
+ *
+ * @param err - The variable to check.
+ * @returns True if the variable is an error, false otherwise.
+ */
+function isError(err: any): err is Error {
+  return err instanceof Error;
+}
+
+/**
  * Koa middleware to handle logging requests. Logs the method, path, and user (role).
  * If an error occurs while processing the request, it logs the error and rethrows it.
  *
@@ -96,13 +104,3 @@ export const loggingMiddleware: Koa.Middleware = async (ctx, next) => {
     ctx.logger.info(generateLogObject(ctx, startTime));
   }
 };
-
-/**
- * Checks if a variable is an instance of the Error class.
- *
- * @param err - The variable to check.
- * @returns True if the variable is an error, false otherwise.
- */
-function isError(err: any): err is Error {
-  return err instanceof Error;
-}

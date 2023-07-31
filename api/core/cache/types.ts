@@ -14,7 +14,6 @@ export interface SyCacheOptions {
   defaultTTL?: number; // The default TTL for cached items.
   maxCacheSize?: number; // The maximum number of items that can be stored in the cache.
   evictInterval?: number; // The interval between cache eviction runs.
-  evictionPolicy?: string; // The type of eviction policy to implement
 }
 
 //doc

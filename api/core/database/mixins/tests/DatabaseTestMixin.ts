@@ -1,4 +1,3 @@
-import { Logger } from 'pino';
 import { Sequelize } from 'sequelize';
 import { faker } from '@faker-js/faker';
 

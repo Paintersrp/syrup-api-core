@@ -45,7 +45,20 @@ export const sessionMiddleware: Middleware = async (ctx: Context, next: Next): P
       return;
     }
 
+    // Check if user session expired.
+    // if (user.sessionExpired()) {
+    //   ctx.cookies.set('refreshToken', null);
+    //   await next();
+    //   return;
+    // }
+
     const userObject = await user.generateSessionObject();
+
+    // // If user's last activity was a long time ago but session has not expired, refresh the token.
+    // if (user.shouldRefreshToken()) {
+    //   const newToken = await user.refreshToken();
+    //   ctx.cookies.set('refreshToken', newToken, { httpOnly: true });
+    // }
 
     if (ctx.session) {
       ctx.session.user = userObject;

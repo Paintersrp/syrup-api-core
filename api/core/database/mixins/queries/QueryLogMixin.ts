@@ -1,6 +1,7 @@
 import { QueryOptions, Sequelize } from 'sequelize';
-import { SyLogger } from '../../../logging/SyLogger';
 
+import * as settings from '../../../../settings';
+import { SyLogger } from '../../../logging/SyLogger';
 import { FixedAbstractQuery, QueryLogObject } from './types';
 
 /**
@@ -103,7 +104,7 @@ export class QueryLogMixin {
     // const logString = this.generateLogString(logObject);
     // this.logger.info(logString);
 
-    if (duration > 2000) {
+    if (duration > settings.DATABASE.SLOW_QUERY_THRESHOLD) {
       this.logger.warn(`Slow query detected. Query: ${logObject.sql}, Duration: ${duration}`);
       const explanation = await this.database.query(`EXPLAIN ${logObject.sql}`);
       this.logger.logQuery('Query explanation', { explanation });

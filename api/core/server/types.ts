@@ -3,8 +3,8 @@ import compose from 'koa-compose';
 import Router from 'koa-router';
 
 import { RouteConstructor } from '../../types';
-import { SyLFUCache } from '../cache/SyLFUCache';
-import { SyLRUCache } from '../cache/SyLRUCache';
+import { SyLFUCache } from '../cache/clients/lfu/SyLFUCache';
+import { SyLRUCache } from '../cache/clients/lru/SyLRUCache';
 import { SyDatabase } from '../database/SyDatabase';
 import { SyLogger } from '../logging/SyLogger';
 
@@ -62,4 +62,7 @@ export interface SyServerOptions {
 
   /** Optional distribution path for the frontend build for serving through SSR. */
   distPath?: string;
+
+  /** Option to enable server clustering. */
+  clustering?: boolean;
 }

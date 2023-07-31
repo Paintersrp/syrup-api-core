@@ -25,10 +25,6 @@
 #### Incomplete
 
 - **[!] Provide an option for automated database migration handling**
-- [->] Implement data sharding strategies for large datasets
-- [->] Add support for read and write replicas
-  - Config Option Implementation
-    ###
 
 #
 
@@ -141,35 +137,15 @@
 - [->] Implement ORM-level caching to improve performance
 - [->] Implement data partitioning strategies for large tables
 - [ ] Migrations
-- [ ] Postgres
-- [ ] MySql
-- [ ] GraphQL (?)
-- [ ] Cloud (?)
-- [ ] Implement SyLFUCache to Sequelize for Queries
-- [ ] Implement Redis Cache for Production
+- [ ] Postgres, MySQL, GraphQL, Cloud, Etc
 
 #
 
-## **Scalability:**
+## **Deployment**
 
-#### Complete
-
-- [ ]
-
-#### Incomplete
+- [->] Implement data sharding strategies for large datasets
+- [->] Add support for read and write replicas
 
 - [->] Implement scalability strategies for production (like sharding, read-write splitting, etc.)
 - [->] Implement mechanism for managing database resources based on load
 - [->] Add support for distributed database systems
-
-#
-
-## **Config:**
-
-#### Complete
-
-- [ ]
-
-#### Incomplete
-
-- [ ] Add support for different types of database authentication.

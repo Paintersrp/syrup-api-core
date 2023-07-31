@@ -1,4 +1,4 @@
-import { logger } from '../../../../settings';
+import { APP_LOGGER } from '../../../../settings';
 
 /**
  * Method decorator to time and log the execution duration of the method.
@@ -31,7 +31,7 @@ export function Timer(
 
     const hrTime = process.hrtime(startHrTime);
     const executionTime = hrTime[0] * 1e3 + hrTime[1] / 1e6;
-    logger.info(`Execution Time of ${propertyKey} (${executionTime}ms)`);
+    APP_LOGGER.info(`Execution Time of ${propertyKey} (${executionTime}ms)`);
 
     return result;
   };

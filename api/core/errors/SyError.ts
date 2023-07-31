@@ -1,5 +1,5 @@
 import { Context } from 'koa';
-import { logger } from '../../settings';
+import { APP_LOGGER } from '../../settings';
 
 import { ErrorCategory, ErrorCodes } from './enums';
 import { ErrorResponse } from './types';
@@ -14,6 +14,7 @@ export abstract class SyError extends Error {
   public readonly errorCode: ErrorCodes;
   public readonly internalErrorCode?: string;
   public readonly timestamp: string;
+  public readonly cleanStack: string[] | undefined;
 
   /**
    * @param status - HTTP status code of the error.
@@ -45,6 +46,7 @@ export abstract class SyError extends Error {
     }
 
     Error.captureStackTrace(this, this.constructor);
+    this.cleanStack = this.cleanStackTrace(this.stack);
   }
 
   /**
@@ -82,6 +84,10 @@ export abstract class SyError extends Error {
     return response;
   }
 
+  protected cleanStackTrace(stack: string | undefined): string[] | undefined {
+    return stack?.split('\n').map((line: string) => line.trim());
+  }
+
   /**
    * Logs the error details for debugging and tracing.
    */
@@ -92,7 +98,7 @@ export abstract class SyError extends Error {
       details: this.details,
       internalErrorCode: this.internalErrorCode,
       timestamp: this.timestamp,
-      stack: this.stack,
+      stack: this.cleanStack,
     };
 
     if (ctx.requestId) {
@@ -112,7 +118,7 @@ export abstract class SyError extends Error {
       };
     }
 
-    logger.error(this.message, logData);
+    APP_LOGGER.error(this.message, logData);
   }
 
   /**

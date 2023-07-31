@@ -83,7 +83,7 @@ export class SyBaseCache<T> {
    * Gets the size of the cache.
    * @returns {Promise<number>} The size of the cache.
    */
-  public async getCacheSize(): Promise<number> {
+  public getCacheSize(): number {
     return this.cacheMap.size;
   }
 
@@ -107,5 +107,13 @@ export class SyBaseCache<T> {
     if (this.cacheStats.evictions > 100) {
       this.logger.error(`Cache evictions exceeded 100: ${this.cacheStats.evictions}`);
     }
+  }
+
+  public incrementCacheMisses(): void {
+    this.cacheStats.misses++;
+  }
+
+  public incrementCacheHits(): void {
+    this.cacheStats.hits++;
   }
 }

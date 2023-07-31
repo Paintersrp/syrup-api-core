@@ -5,7 +5,7 @@ export class ListItem {
   public key: number; // Represents the key of the list item
   public value: number; // Represents the value of the list item
   public frequency: number; // Represents how often the list item is accessed or used
-  public expires: number | null; // Timestamp representing when the list item expires
+  public expires: number; // Timestamp representing when the list item expires
   public prev: ListItem | null; // Reference to the previous list item
   public next: ListItem | null; // Reference to the next list item
 
@@ -27,7 +27,16 @@ export class ListItem {
     if (ttl) {
       this.expires = Date.now() + ttl; // If TTL is provided, calculate the expiration time
     } else {
-      this.expires = null; // If no TTL is provided, the item doesn't expire
+      this.expires = Date.now(); // If no TTL is provided, the item doesn't expire
     }
+  }
+
+  /**
+   * Checks if the list item has expired.
+   *
+   * @returns {boolean} - Returns true if the list item has expired; otherwise, false.
+   */
+  public isExpired(now: number): boolean {
+    return now >= this.expires;
   }
 }

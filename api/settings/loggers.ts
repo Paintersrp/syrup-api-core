@@ -1,35 +1,37 @@
-import pino from 'pino';
-import { SyLogger } from '../core/logging/SyLogger';
-
-const logConfig = {
-  level: 'trace',
-  timestamp: pino.stdTimeFunctions.isoTime,
-  serializers: pino.stdSerializers,
+/**
+ * @todo Implement into LoggerDefaults
+ * @todo Generate Loggers based on this config?
+ */
+export const LOGGERS = {
+  APP: {
+    ENABLED: true,
+    LOGLEVEL: 'trace',
+    VERBOSE: true,
+    LOG_FILE_DESTINATION: './logs/app.log',
+  },
+  QUERY: {
+    ENABLED: true,
+    LOGLEVEL: 'trace',
+    VERBOSE: false,
+    LOG_FILE_DESTINATION: './logs/queries.log',
+  },
+  ERROR: {
+    ENABLED: true,
+    LOGLEVEL: 'trace',
+    VERBOSE: false,
+    LOG_FILE_DESTINATION: './logs/errors.log',
+  },
+  AUDIT: {
+    ENABLED: true,
+    LOGLEVEL: 'trace',
+    VERBOSE: true,
+    LOG_FILE_DESTINATION: './logs/audits.log',
+  },
+  ACCESS: {
+    ENABLED: true,
+    LOGLEVEL: 'trace',
+    VERBOSE: true,
+    LOG_FILE_DESTINATION: './logs/access.log',
+  },
+  MAX_LOG_FILE_SIZE: 5,
 };
-
-// const fileTransport = pino.transport({
-//   target: 'pino/file',
-//   options: { destination: `./logs/app.log` },
-// });
-
-// const consoleTransport = pino.transport({
-//   target: 'pino-pretty',
-// });
-
-const queriesFileTransport = pino.transport({
-  target: 'pino/file',
-  options: { destination: `./logs/queries.log` },
-});
-
-const monitoringFileTransport = pino.transport({
-  target: 'pino/file',
-  options: { destination: `./logs/queries.log` },
-});
-
-// const logStream = [fileTransport, consoleTransport];
-
-// export const logger = pino(logConfig, pino.multistream(logStream));
-export const queriesLogger = pino(logConfig, queriesFileTransport);
-export const monitoringLogger = pino(logConfig, monitoringFileTransport);
-
-export const logger = new SyLogger();

@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs-extra';
 import { Sequelize, Options, Optional } from 'sequelize';
 
-import { Retry } from '../lib/decorators/general';
 import {
   HealthCheckMixin,
   QueryLogMixin,
@@ -86,7 +85,6 @@ export class SyDatabase {
    * @description Checks the database connection status
    * @returns Promise<boolean>
    */
-  @Retry({ retries: 3, retryDelay: 1000, exponentialBackoff: true, backoffMultiplier: 3 })
   public async checkDatabase() {
     try {
       await this.database.authenticate();

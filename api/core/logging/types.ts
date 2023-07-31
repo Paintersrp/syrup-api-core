@@ -1,12 +1,6 @@
 import { Level, TransportSingleOptions } from 'pino';
 import { LoggerNames } from './enums';
 
-// export interface LoggerConfig {
-//   name: LoggerNames;
-//   level?: Level;
-//   prettyPrint?: boolean;
-//   streams?: TransportSingleOptions[];
-// }
 
 export type LoggerControllerConfig = {
   name: LoggerNames;
@@ -15,7 +9,7 @@ export type LoggerControllerConfig = {
   verbose?: boolean;
 };
 
-export interface SyLoggerConfig {
+export interface LoggerConfig {
   [name: string]: LoggerControllerConfig;
 }
 

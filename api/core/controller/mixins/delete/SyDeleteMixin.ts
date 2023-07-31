@@ -89,6 +89,8 @@ export class SyDeleteMixin extends SyMixin {
   }
 
   /**
+   * @todo Batch large operations
+   *
    * Deletes a group of items by their IDs.
    *
    * @param {Router.RouterContext} ctx - The context object from Koa.

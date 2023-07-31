@@ -10,7 +10,7 @@ import {
 import bcrypt from 'bcrypt';
 
 import { Field } from '../core/lib/decorators/models';
-import { logger, ORM } from '../settings';
+import { APP_LOGGER, ORM } from '../settings';
 import { SyModel } from '../core/model/SyModel';
 
 import { Profile } from './profile';
@@ -107,7 +107,7 @@ export class User extends SyModel<
       const user = await User.findOne({ where: { refreshToken: token } });
       return user;
     } catch (error: any) {
-      logger.error('Failed to find user by token:', error);
+      APP_LOGGER.error('Failed to find user by token:', error);
       throw error;
     }
   }
@@ -154,7 +154,7 @@ export class User extends SyModel<
       await this.createProfile(emptyProfile);
     } catch (error: any) {
       console.log(error);
-      logger.error('Failed to create blank profile:', error);
+      APP_LOGGER.error('Failed to create blank profile:', error);
     }
   }
 
@@ -173,7 +173,7 @@ export class User extends SyModel<
         salt,
       };
     } catch (error: any) {
-      logger.error('Failed to hash password:', error);
+      APP_LOGGER.error('Failed to hash password:', error);
       throw error;
     }
   }
@@ -217,9 +217,9 @@ export class User extends SyModel<
 
       await User.bulkCreate(userData);
 
-      logger.info('User seeding completed successfully.');
+      APP_LOGGER.info('User seeding completed successfully.');
     } catch (error: any) {
-      logger.error('User seeding failed:', error);
+      APP_LOGGER.error('User seeding failed:', error);
     }
   }
 }

@@ -128,6 +128,8 @@ export class UserController extends SyController {
    * Logs in a user and generates access and refresh tokens.
    */
   async login(ctx: Router.RouterContext) {
+    console.log(ctx);
+    console.log('Test2');
     const { username, password } = ctx.request.body as {
       [key: string]: string;
     };

@@ -41,6 +41,8 @@ export class SyUpdateMixin extends SyMixin {
   }
 
   /**
+   * @todo Batch large operations
+   * 
    * Updates a specific instance of the model by its ID.
    * Validated with validateBody class middleware
    *

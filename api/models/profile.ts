@@ -8,7 +8,7 @@ import {
 import { faker } from '@faker-js/faker';
 
 import { Field } from '../core/lib/decorators/models';
-import { logger, ORM } from '../settings';
+import { APP_LOGGER, ORM } from '../settings';
 import { SyModel } from '../core/model/SyModel';
 
 import { User } from './user';
@@ -156,9 +156,9 @@ export class Profile extends SyModel<InferAttributes<Profile>, InferCreationAttr
 
       await Profile.bulkCreate(profileData);
 
-      logger.info('Profile seeding completed successfully.');
-    } catch (error) {
-      logger.error('Profile seeding failed:', error);
+      APP_LOGGER.info('Profile seeding completed successfully.');
+    } catch (error: any) {
+      APP_LOGGER.error('Profile seeding failed:', error);
     }
   }
 }

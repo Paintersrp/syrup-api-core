@@ -61,7 +61,7 @@ export class SyMiddlewareMixin extends SyMixin {
     }
 
     await next();
-    cache.set(cacheKey, ctx.body as unknown as number, 60);
+    cache.set(cacheKey, ctx.body as unknown as number, 60000);
   }
 
   /**

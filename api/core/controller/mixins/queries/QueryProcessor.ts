@@ -3,9 +3,10 @@ import { Context } from 'koa';
 
 import { BadRequestError } from '../../../errors/client';
 
-import { ORM } from '../../../../settings';
 import { CustomWhere, FilterOptions, OperatorMapping, QueryType } from './types';
 import { SyValidator } from '../../../mixins/validator/SyValidator';
+import * as settings from '../../../../settings';
+import { server } from '../../../../server';
 
 /**
  * Class for processing query parameters
@@ -14,9 +15,9 @@ export class QueryProcessor {
   private model: ModelStatic<Model>;
   private validator: SyValidator;
   private modelAttributes: Set<string>;
-  private DEFAULT_PAGE_SIZE = 10;
-  private MAX_PAGE_SIZE = 100; // config
-  private validSortOptions = ['asc', 'desc']; // config
+  private DEFAULT_PAGE_SIZE = settings.CONTROLLERS.DEFAULT_PAGE_SIZE;
+  private MAX_PAGE_SIZE = settings.CONTROLLERS.MAX_PAGE_SIZE;
+  private validSortOptions = settings.CONTROLLERS.VALID_SORT_OPTIONS;
 
   /**
    * Mapping of filter operators to Sequelize operator symbols.
@@ -188,7 +189,7 @@ export class QueryProcessor {
   private addIncludes(findOptions: FindOptions, includes?: string[]): void {
     if (includes) {
       findOptions.include = includes.map((modelName) => {
-        const model = ORM.database.models[modelName];
+        const model = server.ORM.database.models[modelName];
         if (!model) {
           throw new BadRequestError(`Invalid model name: ${modelName}`);
         }

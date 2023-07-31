@@ -7,7 +7,7 @@ export class UserRoutes extends SyRoutes<UserController> {
     super(new UserController(app.context.logger), 'users', app, 'v0.1');
 
     this.router.post(`/register`, this.controller.validateUserBody, this.controller.register);
-    this.router.post(`/login`, this.controller.validateUserBody, this.controller.login);
+    this.router.post(`/login`, this.controller.login);
     this.router.get(`/logout`, this.controller.logout);
     this.router.post(`/refresh-token`, this.controller.refresh_token);
 

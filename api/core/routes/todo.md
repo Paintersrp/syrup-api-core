@@ -15,13 +15,6 @@
 
 #### Incomplete
 
-- [!!!] ARTILERY TESTING - [WIP] Develop performance benchmarks and conduct performance testing to ensure the application meets necessary performance criteria
-- [ ] Add support for multipart/form-data parsing for file uploads
-- [ ] Implement rate limiting specific to each endpoint or route
-- [ ] Introduce a mechanism to handle endpoint deprecation
-- [ ] Support configurable endpoint naming conventions (camelCase, snake_case, kebab-case, etc.)
-- [ ] Add a way to handle streaming requests (useful for large file uploads)
-
 ## **Router Configuration and Interface**
 
 #### Complete
@@ -36,16 +29,10 @@
 
 #### Incomplete
 
-- [ ] Implement an IP whitelist/blacklist mechanism at the router level
-- [ ] Introduce a mechanism to deal with trailing slashes in route URLs
-- [ ] Add support for route aliases
-- [ ] Include nested routes or route grouping functionality
-- [ ] Implement a system to track request metrics and performance data
-- [ ] Add functionality for API Gateway integration (if applicable)
-- [ ] Add HATEOAS (Hypermedia as the Engine of Application State) support
-- [ ] Implement conditional requests (If-Modified-Since, If-None-Match, etc.)
-- [ ] Add redirection support (301, 302, etc.)
-- [ ] Implement Host-based routing
+- [x] Introduce a mechanism to deal with trailing slashes in route URLs
+- [x] Add support for route aliases
+- [x] Include nested routes or route grouping functionality
+- [x] Implement a system to track request metrics and performance data
 
 ## **Controller Configuration and Integration**
 
@@ -60,11 +47,6 @@
 
 #### Incomplete
 
-- [ ] Add a feature to handle controller-level hooks (before, after, onError, etc.)
-- [ ] Enable/disable individual controller actions dynamically
-- [ ] Integrate with Content Delivery Networks (CDNs)
-- [ ] Include support for headless browsers or web scraping tools
-
 ## **Tasks**
 
 #### Complete
@@ -72,15 +54,9 @@
 - [x] ~~YAML Api Documentation for all routes~~
 - [x] ~~Add automated API health checks and status monitoring~~
 - [x] ~~Set up an alerting system for errors or unusual API activity~~
+- [x] ~~Add circuit breaker pattern for failure isolation~~
 
 #### Incomplete
-
-- [ ] Setup environment-specific configurations (development, staging, production)
-- [ ] Implement a feature flag system for rolling out new features
-- [ ] Setup automatic API performance benchmarking
-- [ ] Implement API usage analytics and reporting
-- [ ] Setup proper error logging and tracking
-- [ ] Add circuit breaker pattern for failure isolation
 
 ## **Documentation and Code Quality**
 
@@ -114,6 +90,24 @@
 - [ ] Test behavior under different network conditions (latency, packet loss, etc.)
 - [ ] Add negative test cases (i.e., test cases that intentionally fail)
 
+## **Security**
+
+#### Complete
+
+- [ ]
+
+#### Incomplete
+
+- [x] ~~Enforce HSTS (HTTP Strict Transport Security)~~
+- [x] ~~Add Clickjacking Protection~~
+- [x] ~~Introduce Security HTTP Headers (X-Content-Type-Options, X-Frame-Options, etc.)~~
+
+## **Performance Optimization**
+
+#### Complete
+
+#### Incomplete
+
 ## **Future Dev**
 
 #### Complete
@@ -123,41 +117,18 @@
 
 #### Incomplete
 
-- [ ] Implement support for OAuth for secure route access
+- [!!!] ARTILERY TESTING
 - [ ] Consider integration with web sockets for real-time data handling
-- [ ] Implement continuous integration/continuous deployment (CI/CD)
-- [ ] Add contribution guidelines for other developers
-- [ ] Introduce support for GraphQL
-- [ ] Add support for API key based authentication
 - [ ] Implement an auto-scaling mechanism to handle load spikes
-- [ ] Consider support for horizontal scaling using clustering or microservice architecture
-- [ ] Investigate potential for serverless deployment (AWS Lambda, Google Cloud Functions, etc.)
 - [ ] Add gRPC support for inter-service communication
 - [ ] Enable server-side events or HTTP streaming
 - [ ] Integrate with a service mesh for distributed tracing (if applicable)
 - [ ] Add support for third-party login (OAuth with Google, Facebook, etc.)
-
-## **Security**
-
-#### Complete
-
-- [ ]
-
-#### Incomplete
-
-- [ ] Implement Content Security Policy (CSP)
-- [ ] Add XSS (Cross-site Scripting) Protection
+- [ ] Implement support for OAuth for secure route access
+- [ ] Add HATEOAS (Hypermedia as the Engine of Application State) support
 - [ ] Implement CSRF (Cross-site Request Forgery) Protection
-- [ ] Enforce HSTS (HTTP Strict Transport Security)
-- [ ] Add Clickjacking Protection
-- [ ] Introduce Security HTTP Headers (X-Content-Type-Options, X-Frame-Options, etc.)
-- [ ] Implement a Data Loss Prevention (DLP) policy
-
-## **Performance Optimization**
-
-#### Complete
-
-#### Incomplete
-
-- [ ] Optimize database queries
+- [ ] Add support for multipart/form-data parsing for file uploads
+  - [ ] SyController Middleware
 - [ ] Leverage HTTP/2 multiplexing
+
+- [GLOBAL] Implement an IP whitelist/blacklist mechanism at the router level

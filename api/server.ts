@@ -30,17 +30,14 @@ import Koa from 'koa';
 
 import * as settings from './settings';
 import { SyServer } from './core/server/SyServer';
-import { UserResponses } from './core/lib/responses/user';
 
 export const server = new SyServer({
   app: new Koa(),
-  port: 4000,
-  logger: settings.logger,
+  port: 4000, // env
+  logger: settings.APP_LOGGER,
   cache: settings.cache,
   ORM: settings.ORM,
-  middleware: settings.APP_MIDDLEWARES,
+  middleware: settings.MIDDLEWARES,
   routes: settings.ROUTES,
-  version: '0.05',
+  version: settings.CURRENT_VERSION,
 });
-
-console.log(UserResponses.ALREADY_EXISTS('Test'));

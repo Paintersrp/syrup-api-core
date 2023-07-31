@@ -1,8 +1,8 @@
 import { RouterContext } from 'koa-router';
 
+import * as settings from '../../../../settings';
 import { ForbiddenError } from '../../../errors/client';
 import { Responses } from '../../../lib';
-import { ADMIN_ROLES } from '../../../../models/user';
 import { UserSession } from '../../../../types';
 import { ValidationResponses } from '../../../lib/responses';
 import { SyValidator } from '../../../mixins/validator/SyValidator';
@@ -44,7 +44,7 @@ export class RequestProcessor {
    * @returns {boolean} Returns true if the user has an admin role, false otherwise.
    */
   private hasPermission(user: UserSession): boolean {
-    return ADMIN_ROLES.includes(user.role!);
+    return settings.ADMIN_ROLES.includes(user.role!);
   }
 
   /**

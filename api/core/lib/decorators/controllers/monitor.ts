@@ -1,8 +1,6 @@
 import os from 'os';
 import { Context, Next } from 'koa';
 
-import { monitoringLogger } from '../../../../settings';
-
 /**
  * @todo Document file
  * @todo Worker process queue for scaling
@@ -30,7 +28,7 @@ export function Monitor(_: any, key: string, descriptor: PropertyDescriptor): Pr
     try {
       await originalMethod.call(this, ctx, next);
     } catch (error: any) {
-      monitoringLogger.error({
+      ctx.logger.error({
         key,
         error: {
           message: error.message,
@@ -52,7 +50,7 @@ export function Monitor(_: any, key: string, descriptor: PropertyDescriptor): Pr
 }
 
 function reportMetrics(key: string, executionTime: number, ctx: Context, memUsageDiff: string) {
-  monitoringLogger.info({
+  ctx.logger.logAccess({
     key,
     executionTime,
     method: ctx.method,

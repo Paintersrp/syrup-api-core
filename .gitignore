@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+syrup_ml
 *.local
 
 # Editor directories and files

@@ -56,12 +56,12 @@ export class DatabaseRecoveryMixin {
       }
       case 'mysql':
       case 'mariadb': {
-        backupPath = '/path/to/backup/directory/backup.sql';
+        backupPath = `${this.databasePath}.sql`;
         command = `mysqldump -h host -u username -p password database > ${backupPath}`;
         break;
       }
       case 'postgres': {
-        backupPath = '/path/to/backup/directory/backup.sql';
+        backupPath = `${this.databasePath}.sql`;
         command = `pg_dump -h host -U username -f ${backupPath} database`;
         break;
       }

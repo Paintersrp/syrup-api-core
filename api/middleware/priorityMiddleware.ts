@@ -21,9 +21,6 @@ export async function priorityMiddleware(ctx: Context, next: Next) {
   }
 
   ctx.state.priority = determinePriority(ctx);
-  // Next, you would use ctx.state.priority to control the order of request handling.
-  // This is a simplistic example, in a real-life scenario, you might want to use a
-  // priority queue, load balancer, or other more sophisticated methods.
 
   await next();
 }

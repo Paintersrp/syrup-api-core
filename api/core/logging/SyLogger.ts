@@ -1,13 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { promisify } from 'util';
-
+import * as settings from '../../settings';
 import { Logger, Level } from 'pino';
 
 import { LoggerController } from './LoggerController';
 import { LoggerDefaults } from './defaults';
 import { LoggerNames } from './enums';
-import { LogInterface, SyLoggerConfig } from './types';
+import { LogInterface, LoggerConfig } from './types';
 import { Interval } from '../lib';
 import { DataSize } from '../lib/shared/enums/data-sizes';
 
@@ -22,9 +21,9 @@ export class SyLogger {
 
   /**
    * Creates a new SyLogger instance.
-   * @param {SyLoggerConfig} [config=LoggerDefaults] - The system logger configuration.
+   * @param {LoggerConfig} [config=LoggerDefaults] - The system logger configuration.
    */
-  constructor(private config: SyLoggerConfig = LoggerDefaults) {
+  constructor(private config: LoggerConfig = LoggerDefaults) {
     this.initLoggers();
     this.startHousekeeping();
   }
@@ -224,11 +223,22 @@ export class SyLogger {
     return this.instance;
   }
 
+  /**
+   * Initiates the housekeeping process at regular intervals.
+   * Housekeeping involves checking log files and archiving any that exceed the maximum file size defined in the system settings.
+   *
+   * @public
+   */
   public startHousekeeping(): void {
-    console.log('Starting');
     this.housekeepingId = setInterval(() => this.archiveHousekeeping(), Interval.Daily);
   }
 
+  /**
+   * Stops the housekeeping process.
+   * This is achieved by clearing the interval timer that was initially set by the `startHousekeeping` method.
+   *
+   * @public
+   */
   public stopEvictingExpiredItems(): void {
     if (this.housekeepingId) {
       clearInterval(this.housekeepingId);
@@ -236,6 +246,16 @@ export class SyLogger {
     }
   }
 
+  /**
+   * Handles the archiving operation for the housekeeping process.
+   * This method is called at regular intervals, as defined in the `startHousekeeping` method.
+   * When invoked, it checks each log file in the `./logs` directory and moves any that exceed the maximum size to an archive directory.
+   * The archived file is renamed to include a timestamp.
+   *
+   * @private
+   * @async
+   * @throws Will throw an error if the archiving operation fails.
+   */
   private async archiveHousekeeping(): Promise<void> {
     try {
       const files = await fs.readdir('./logs');
@@ -244,7 +264,7 @@ export class SyLogger {
         const filePath = path.join('./logs', file);
         const stats = await fs.stat(filePath);
 
-        if (stats.size > 5 * DataSize.Megabytes) {
+        if (stats.size > settings.LOGGERS.MAX_LOG_FILE_SIZE * DataSize.Megabytes) {
           // change this value as per your need
           // create archive directory if not exist
           if (!fs.existsSync('./logs/archive')) {
