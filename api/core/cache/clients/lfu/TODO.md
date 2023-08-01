@@ -2,7 +2,6 @@
 
 ## SyLFUCache<T> Class:
 
-- [ ] MRU.
 - [x] Implement a dynamic memory limit which can adjust based on system memory availability.
 - [x] Design and implement a "peek" function to inspect cache item without affecting its frequency count.
 - [x] Establish a fail-safe mechanism during set() operation when cache size limit is reached.
@@ -25,7 +24,6 @@
 - [x] Enhance inline comments for all methods, providing more context and clarity.
 - [x] Adopt a standardized format for jsdoc comments for all classes, methods, and interfaces.
 - [x] Carry out code refactoring for better readability, maintainability, and performance.
-- [ ] Create a comprehensive README.md with usage examples, API documentation, and contribution guidelines.
 
 #
 
@@ -41,6 +39,8 @@
 #
 
 ## Deployment
+
+- [->] Create a comprehensive README.md with usage examples, API documentation, and contribution guidelines.
 
 - [->] Develop a cache warming strategy for pre-populating the cache based on usage patterns.
 - [->] Implement support for distributed caching for scalability in microservice architectures.

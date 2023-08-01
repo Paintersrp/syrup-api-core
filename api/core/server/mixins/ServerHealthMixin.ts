@@ -1,13 +1,16 @@
 import os from 'os';
 import Router from 'koa-router';
+import checkDiskSpace from 'check-disk-space';
+import si from 'systeminformation';
 
 import * as settings from '../../../settings';
 import { SyServer } from '../SyServer';
 import { ServerResourceThresholds } from '../types';
-import { HealthCheckMixin } from '../../database/mixins';
-import { AnomalyDetector } from '../../mixins/anomaly/AnomlyDetector';
 
-export class ServerHealthMixin extends HealthCheckMixin {
+import { AnomalyDetector } from '../../mixins/anomaly/AnomlyDetector';
+import { HealthCheckService } from '../../mixins/health';
+
+export class ServerHealthMixin extends HealthCheckService {
   server: SyServer;
   router: Router;
   resourceThresholds: ServerResourceThresholds;
@@ -17,7 +20,7 @@ export class ServerHealthMixin extends HealthCheckMixin {
     super(server.logger);
     this.server = server;
     this.router = new Router();
-    this.anomalyDetector = new AnomalyDetector();
+    this.anomalyDetector = new AnomalyDetector(server.logger);
 
     // Initialize resource thresholds with default values if not provided.
     this.resourceThresholds = {
@@ -120,17 +123,19 @@ export class ServerHealthMixin extends HealthCheckMixin {
     try {
       const totalMemory = os.totalmem();
       const freeMemory = os.freemem();
-      const cpuCount = os.cpus().length;
-      const loadAverage = os.loadavg()[0];
-
       const memoryUsage = 1 - freeMemory / totalMemory;
-      const diskSpaceAvailable = freeMemory / totalMemory;
-      const cpuUsage = loadAverage / cpuCount;
 
-      // @todo bulk anomaly check, return as notifications for simplicity
-      const memoryHasAnomaly = this.anomalyDetector.checkAnomaly('memory', memoryUsage);
-      const cpuHasAnomaly = this.anomalyDetector.checkAnomaly('cpu', cpuUsage);
-      const diskHasAnomaly = this.anomalyDetector.checkAnomaly('disk', diskSpaceAvailable);
+      const cpuUsage = await si.currentLoad().then((data) => data.currentLoad);
+
+      const path = os.platform() === 'win32' ? 'd:' : '/';
+      const diskInfo = await checkDiskSpace(path);
+      const diskSpaceAvailable = diskInfo.free / diskInfo.size;
+
+      const [memoryHasAnomaly, cpuHasAnomaly, diskHasAnomaly] = await Promise.all([
+        this.anomalyDetector.checkAnomaly('memory', memoryUsage),
+        this.anomalyDetector.checkAnomaly('cpu', cpuUsage),
+        this.anomalyDetector.checkAnomaly('disk', diskSpaceAvailable),
+      ]);
 
       const notifications: string[] = [];
 

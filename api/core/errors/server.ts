@@ -41,3 +41,23 @@ export const ServiceUnavailableError = SyError.createErrorType(
   ErrorCategory.SERVER,
   ErrorCodes.SERVICE_UNAVAILABLE
 );
+
+/**
+ * Represents an HTTP 504 Gateway Timeout server error.
+ * The server, while acting as a gateway or proxy, did not get a response in time from the upstream server that it needed in order to complete the request.
+ */
+export const CacheInputError = SyError.createErrorType(
+  HttpStatus.CACHE_INPUT_FAIL,
+  ErrorCategory.CACHE,
+  ErrorCodes.CACHE_INPUT_FAIL
+);
+
+/**
+ * Represents an HTTP 504 Gateway Timeout server error.
+ * The server, while acting as a gateway or proxy, did not get a response in time from the upstream server that it needed in order to complete the request.
+ */
+export const CacheOperationsError = SyError.createErrorType(
+  HttpStatus.CACHE_OPERATIONS_FAIL,
+  ErrorCategory.CACHE,
+  ErrorCodes.CACHE_OPERATIONS_FAIL
+);

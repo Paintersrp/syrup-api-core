@@ -27,7 +27,7 @@ function getBreakerForPath(path: string): CircuitBreaker {
         try {
           await next();
         } catch (err: any) {
-          APP_LOGGER.error(`[Circuit Breaker] ${path} error: ${err.message}`);
+          APP_LOGGER.trace(`[Circuit Breaker] ${path} error: ${err.message}`);
           throw err;
         }
         return ctx;
@@ -47,36 +47,36 @@ export const circuitBreakerMiddleware: Middleware = async (ctx, next) => {
   });
 
   breaker.on('open', () =>
-    APP_LOGGER.info(
+    APP_LOGGER.trace(
       `[Circuit Breaker] ${ctx.path} is in OPEN state. The breaker will short-circuit all requests to fallback.`
     )
   );
   breaker.on('halfOpen', () =>
-    APP_LOGGER.info(
+    APP_LOGGER.trace(
       `[Circuit Breaker] ${ctx.path} is in HALF-OPEN state. The breaker will allow a request to test the health of the main action.`
     )
   );
   breaker.on('close', () =>
-    APP_LOGGER.info(
+    APP_LOGGER.trace(
       `[Circuit Breaker] ${ctx.path} is in CLOSED state. The breaker is allowing requests to execute through.`
     )
   );
 
   // Log when action is executed, rejected, timed out or fails.
   breaker.on('fire', () =>
-    APP_LOGGER.warn(`[Circuit Breaker] ${ctx.path} Action execution attempt.`)
+    APP_LOGGER.trace(`[Circuit Breaker] ${ctx.path} Action execution attempt.`)
   );
   breaker.on('reject', () =>
-    APP_LOGGER.error(`[Circuit Breaker] ${ctx.path} Request rejected due to open circuit breaker.`)
+    APP_LOGGER.trace(`[Circuit Breaker] ${ctx.path} Request rejected due to open circuit breaker.`)
   );
   breaker.on('timeout', () =>
-    APP_LOGGER.warn(`[Circuit Breaker] ${ctx.path} Action execution timed out.`)
+    APP_LOGGER.trace(`[Circuit Breaker] ${ctx.path} Action execution timed out.`)
   );
   breaker.on('failure', (error) =>
-    APP_LOGGER.error(`[Circuit Breaker] ${ctx.path} Action execution failed: ${error.message}`)
+    APP_LOGGER.trace(`[Circuit Breaker] ${ctx.path} Action execution failed: ${error.message}`)
   );
   breaker.on('success', () =>
-    APP_LOGGER.warn(`[Circuit Breaker] ${ctx.path} Action execution succeeded.`)
+    APP_LOGGER.trace(`[Circuit Breaker] ${ctx.path} Action execution succeeded.`)
   );
 
   const result = (await breaker.fire(ctx, next)) as Context;

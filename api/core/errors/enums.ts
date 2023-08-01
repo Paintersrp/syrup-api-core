@@ -6,6 +6,8 @@
 export enum ErrorCodes {
   BAD_GATEWAY = 'BAD_GATEWAY',
   BAD_REQUEST = 'BAD_REQUEST',
+  CACHE_INPUT_FAIL = 'CACHE_INPUT FAIL',
+  CACHE_OPERATIONS_FAIL = 'CACHE_INPUT FAIL',
   CONFLICT = 'CONFLICT',
   EXPECTATION_FAILED = 'EXPECTATION_FAILED',
   FORBIDDEN = 'FORBIDDEN',
@@ -29,6 +31,7 @@ export enum ErrorCodes {
  * @enum {string}
  */
 export enum ErrorCategory {
+  CACHE = 'CacheError',
   CLIENT = 'ClientError',
   SERVER = 'ServerError',
   NETWORK = 'NetworkError',

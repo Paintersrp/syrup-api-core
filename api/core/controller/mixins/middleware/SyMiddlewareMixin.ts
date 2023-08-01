@@ -2,7 +2,7 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import * as Yup from 'yup';
 
-import { cache } from '../../../../settings';
+import { cache, CACHE } from '../../../../settings';
 import { BadRequestError } from '../../../errors/client';
 import { ControllerMixinMiddlewareOptions } from '../../types';
 import { SyMixin } from '../SyMixin';
@@ -61,7 +61,7 @@ export class SyMiddlewareMixin extends SyMixin {
     }
 
     await next();
-    cache.set(cacheKey, ctx.body as unknown as number, 60000);
+    cache.set(cacheKey, ctx.body as unknown as number, CACHE.OPTIONS.defaultTTL);
   }
 
   /**

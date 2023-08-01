@@ -12,6 +12,8 @@ export const BadRequestError = SyError.createErrorType(
   ErrorCodes.BAD_REQUEST
 );
 
+
+
 /**
  * Represents an HTTP 409 Conflict client error.
  * This response is sent when a request conflicts with the current state of the server.

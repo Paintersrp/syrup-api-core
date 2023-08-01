@@ -30,6 +30,7 @@ import Koa from 'koa';
 
 import * as settings from './settings';
 import { SyServer } from './core/server/SyServer';
+import { RequestLogAnalyzer } from './core/mixins/analyzer/requests/RequestLogAnalyzer';
 
 export const server = new SyServer({
   app: new Koa(),
@@ -41,3 +42,15 @@ export const server = new SyServer({
   routes: settings.ROUTES,
   version: settings.CURRENT_VERSION,
 });
+
+const analyzer = new RequestLogAnalyzer();
+
+analyzer
+  .loadLog('./logs/app.log')
+  .then(() => {
+    const report = analyzer.analyzeLogs();
+    // console.log(report);
+  })
+  .catch((err) => {
+    console.error(`An error occurred: ${err.message}`);
+  });

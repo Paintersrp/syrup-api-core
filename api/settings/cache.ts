@@ -6,9 +6,11 @@ import { APP_LOGGER } from './internal/logger';
 export const CACHE = {
   TYPE: 'in-memory',
   OPTIONS: {
-    defaultTTL: 60,
-    maxCacheSize: 5000,
+    defaultTTL: 30000,
+    maxCacheSize: 200,
     evictInterval: 30000,
+    earlyExpirationProbablity: 0.5,
+    earlyExpirationWindow: 0.2,
   },
   ALERTS: {
     minHitRatio: 0.8,

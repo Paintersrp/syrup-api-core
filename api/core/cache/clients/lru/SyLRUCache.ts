@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import { CacheInterface, SyCacheOptions } from '../../types';
+import { CacheContents, SyCacheOptions } from '../../types';
 import { SyBaseCache } from '../../base/SyBaseCache';
 import { SyLogger } from '../../../logging/SyLogger';
 
@@ -13,6 +13,7 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
   public defaultTTL: number | null;
   public maxCacheSize: number;
   public evictInterval: number;
+
   public evictionIntervalId?: NodeJS.Timeout;
 
   /**
@@ -22,6 +23,8 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
    */
   constructor(database: Sequelize, logger: SyLogger, options: SyCacheOptions = {}) {
     super(database, logger);
+
+    this.cache = new Map();
 
     this.defaultTTL = options.defaultTTL || null;
     this.maxCacheSize = options.maxCacheSize || 5000;
@@ -43,10 +46,10 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
    */
   public autoEvictExpiredItems(): void {
     const now = new Date();
-    for (const [key, cacheItem] of this.cacheMap.entries()) {
+    for (const [key, cacheItem] of this.cache.entries()) {
       if (cacheItem.expires && cacheItem.expires < now) {
         this.logger.info(`Cleared ${key}`);
-        this.cacheMap.delete(key);
+        this.cache.delete(key);
         this.cacheStats.evictions++;
       }
     }
@@ -59,7 +62,7 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
     let lruKey = null;
     let lruLastAccess = new Date();
 
-    this.cacheMap.forEach((value, key) => {
+    this.cache.forEach((value, key) => {
       if (!value.lastAccessed || value.lastAccessed < lruLastAccess) {
         lruKey = key;
         lruLastAccess = value.lastAccessed!;
@@ -67,7 +70,7 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
     });
 
     if (lruKey) {
-      this.cacheMap.delete(lruKey);
+      this.cache.delete(lruKey);
       this.cacheStats.evictions++;
       this.logger.debug(`Evicted item: ${lruKey} from the cache.`);
     }
@@ -77,9 +80,9 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
    * Method to refresh the expiration of a cache item.
    *
    * @param {string} key - The key of the cache item.
-   * @param {CacheInterface<T>} cacheItem - The cache item.
+   * @param {CacheContents<T>} cacheItem - The cache item.
    */
-  private refreshItemExpiration(key: string, cacheItem: CacheInterface<T>): void {
+  private refreshItemExpiration(key: string, cacheItem: CacheContents<T>): void {
     const refreshThreshold = 0.2;
     if (
       cacheItem.expires &&
@@ -94,7 +97,7 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
    * Clears the cache.
    */
   public clear(): void {
-    this.cacheMap.clear();
+    this.cache.clear();
     this.logger.info('Cache cleared.');
   }
 
@@ -103,7 +106,7 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
    * @param key - The key of the item.
    */
   public del(key: string): void {
-    if (this.cacheMap.delete(key)) {
+    if (this.cache.delete(key)) {
       this.logger.debug(`Deleted item: ${key} from the cache.`);
     } else {
       this.logger.warn(`Failed to delete item: ${key} from the cache.`);
@@ -127,7 +130,7 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
    * @returns {T | null} The value of the item, or null if not found.
    */
   public get(key: string): T | null {
-    const cacheItem = this.cacheMap.get(key);
+    const cacheItem = this.cache.get(key);
     if (cacheItem) {
       cacheItem.lastAccessed = new Date();
       this.cacheStats.hits++;
@@ -158,17 +161,17 @@ export class SyLRUCache<T> extends SyBaseCache<T> {
    * @returns {void}
    */
   public set(key: string, value: T, ttl: number | null = this.defaultTTL): void {
-    if (this.cacheMap.size >= this.maxCacheSize) {
+    if (this.cache.size >= this.maxCacheSize) {
       this.evictLRUItem();
     }
 
-    const cacheItem: CacheInterface<T> = {
+    const cacheItem: CacheContents<T> = {
       value,
       lastAccessed: new Date(),
       expires: ttl ? new Date(Date.now() + ttl) : null,
     };
 
-    this.cacheMap.set(key, cacheItem);
+    this.cache.set(key, cacheItem);
     this.logger.debug(`Set item: ${key} in the cache.`);
   }
 

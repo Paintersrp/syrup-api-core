@@ -1,7 +1,7 @@
 import { LoggerNames } from './enums';
-import { SyLoggerConfig } from './types';
+import { LoggerConfig } from './types';
 
-export const LoggerDefaults: SyLoggerConfig = {
+export const LoggerDefaults: LoggerConfig = {
   [LoggerNames.APP]: {
     name: LoggerNames.APP,
     level: 'trace',

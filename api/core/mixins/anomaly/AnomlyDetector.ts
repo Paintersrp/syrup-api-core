@@ -1,207 +1,218 @@
-import * as fs from 'fs';
-import { Anomaly, AnomalyDetectorParams, AnomalyMap, AnomalyRecords } from './types';
+import { InitialParams } from './const';
+import {
+  AnomalyManager,
+  CalculatorService,
+  HistoryManager,
+  ParameterService,
+  PersistenceService,
+} from './service';
+import { Anomaly, AnomalyMap, AnomalyRecords, AnomalyStatisticsModified } from './types';
+
+import { SyLogger } from '../../logging/SyLogger';
 
 /**
- * @todo Persistence Mixin?
+ * @todo Independent zScore thresholds, passed with checkAnomaly
+ * @todo Modified zScore vs Standard zScore Decision / Testing
  */
 
 /**
- * This class represents an advanced anomaly detector.
+ * @class
+ *
+ * This class provides functionalities for detecting anomalies in the data. It maintains a history of
+ * data and uses statistical techniques to detect anomalies.
+ *
+ * A specific value is considered an anomaly if it deviates significantly from the expected value, based on historical data.
+ * The expectation is calculated using a forecasting model and parameters are adjusted based on the observed errors in the forecast.
+ *
+ * Anomalies are detected based on the modified z-score of the observed value. The modified z-score provides a measure
+ * that indicates how many standard deviations an element is from the mean, and it is particularly useful for identifying
+ * outliers in datasets that may be skewed or have heavy-tailed distributions.
+ *
+ * @see {AnomalyManager} - Manages anomalies.
+ * @see {HistoryManager} - Manages the historical data.
+ * @see {PersistenceService} - Service for persisting and retrieving historical data.
+ * @see {ParameterService} - Service for managing parameters of the forecasting model.
+ * @see {CalculatorService} - Service for performing calculations, including the modified z-score.
  */
 export class AnomalyDetector {
-  /** Historical data stored by keys. */
-  private history: AnomalyMap = new Map();
-
-  /** Anomaly logs stored by keys. */
-  private anomalyLog: AnomalyMap = new Map();
-
-  /** Parameters used for forecasting, stored by keys. */
-  private parameters: AnomalyDetectorParams = new Map();
-
-  /** The length of the seasonality to consider. */
-  private seasonLength: number;
-
-  /** The rate at which to age past observations. */
-  private agingRate: number;
+  private anomalyManager: AnomalyManager;
+  private historyManager: HistoryManager;
+  private persistenceService: PersistenceService;
+  private parameterService: ParameterService;
+  private calculatorService: CalculatorService;
 
   /**
-   * @constructor
-   * @param {number} seasonLength The length of the seasonality to consider. Default value is 24.
-   * @param {number} agingRate The rate at which to age past observations. Default value is 0.1.
+   * Constructs a new instance of AnomalyDetector
+   * @param {number} seasonLength - length of season
+   * @param {number} learningRate - learning rate
+   * @param {number} zScoreThreshold - threshold for Z-Score
    */
-  constructor(seasonLength: number = 2, agingRate: number = 0.1) {
-    this.seasonLength = seasonLength;
-    this.agingRate = agingRate;
+  constructor(
+    logger: SyLogger,
+    seasonLength: number = InitialParams.SEASON_LENGTH,
+    learningRate: number = InitialParams.LEARNING_RATE,
+    zScoreThreshold: number = InitialParams.ZSCORE_THRESHOLD
+  ) {
+    this.anomalyManager = new AnomalyManager(logger);
+    this.historyManager = new HistoryManager(seasonLength);
+    this.persistenceService = new PersistenceService();
+    this.parameterService = new ParameterService(seasonLength, learningRate);
+    this.calculatorService = new CalculatorService(seasonLength, zScoreThreshold);
   }
 
   /**
-   * A static method that calculates the forecasted value based on historical data, season length, and alpha, beta, gamma parameters.
-   * @param history The historical data to use for forecasting.
-   * @param seasonLength The length of the seasonality to consider.
-   * @param params The alpha, beta, and gamma parameters to use for forecasting.
-   * @returns The forecasted value.
+   * Check whether a value for a given key is an anomaly.
+   * @param {string} key - the key to check
+   * @param {number} value - the value to check
+   * @returns {boolean} - true if the value is an anomaly, false otherwise
    */
-  private calculateForecast(
-    history: { time: number; value: number }[],
-    seasonLength: number,
-    params: { alpha: number; beta: number; gamma: number }
-  ): number {
-    let { alpha, beta, gamma } = params;
+  public async checkAnomaly(key: string, value: number): Promise<boolean> {
+    this.initialize(key);
+    const history = this.historyManager.getHistory(key);
 
-    // Initialize base, trend and seasonality
-    let base = history[0].value;
-    let trend = 0;
-    let seasonality: number[] = new Array(seasonLength).fill(1);
-
-    for (let i = 0; i < history.length; i++) {
-      const { value } = history[i];
-      const lastBase = base;
-      const lastSeason = seasonality[i % seasonLength];
-
-      // Calculate base, trend and seasonality using triple exponential smoothing
-      base = alpha * (value / lastSeason) + (1 - alpha) * (lastBase + trend);
-      trend = beta * (base - lastBase) + (1 - beta) * trend;
-      seasonality[i % seasonLength] = gamma * (value / base) + (1 - gamma) * lastSeason;
-    }
-
-    // Calculate forecast for the next period
-    return (base + trend) * seasonality[history.length % seasonLength];
-  }
-
-  /**
-   * Set default parameters for a given key if they do not exist.
-   * @param key The key to set default parameters for.
-   */
-  private setDefaultParameters(key: string): void {
-    if (!this.history.has(key)) {
-      this.history.set(key, []);
-      this.anomalyLog.set(key, []);
-      this.parameters.set(key, { alpha: 0.5, beta: 0.5, gamma: 0.5, threshold: 50 });
-    }
-  }
-
-  /**
-   * Adjust a parameter value within the range [0, 1] based on the adjustment rate and direction.
-   * @param parameter The parameter to adjust.
-   * @param adjustmentRate The rate at which to adjust the parameter.
-   * @param adjustmentDirection The direction of the adjustment. Should be 1 or -1.
-   * @returns The adjusted parameter.
-   */
-  private adjustParameter(
-    parameter: number,
-    adjustmentRate: number,
-    adjustmentDirection: number
-  ): number {
-    return Math.min(Math.max(parameter + adjustmentRate * adjustmentDirection, 0), 1);
-  }
-
-  /**
-   * Adjust the alpha, beta, gamma, and threshold parameters for a given key based on the error, forecast, and actual value.
-   * @param key The key to adjust parameters for.
-   * @param error The error of the last forecast.
-   * @param forecast The last forecasted value.
-   * @param value The actual value.
-   */
-  private adjustParameters(key: string, error: number, forecast: number, value: number) {
-    const adjustmentRate = 0.01;
-    let params = this.parameters.get(key);
-    const adjustmentDirection = value > forecast ? 1 : -1;
-
-    if (error > params!.threshold) {
-      params!.threshold = error;
-    }
-
-    params!.alpha = this.adjustParameter(params!.alpha, adjustmentRate, adjustmentDirection);
-    params!.beta = this.adjustParameter(params!.beta, adjustmentRate, adjustmentDirection);
-    params!.gamma = this.adjustParameter(params!.gamma, adjustmentRate, adjustmentDirection);
-  }
-
-  /**
-   * Check if a new observation is an anomaly based on historical data and forecasting.
-   * @param key The key to check for anomalies.
-   * @param value The new observation.
-   * @returns True if the value is an anomaly, false otherwise.
-   */
-  checkAnomaly(key: string, value: number): boolean {
-    this.setDefaultParameters(key);
-
-    let historyForKey = this.history.get(key) || [];
-    historyForKey.push({ time: Date.now(), value: value });
-    this.history.set(key, historyForKey);
-
-    console.log(historyForKey);
-
-    // If the history is not long enough for seasonality, return false
-    if (historyForKey.length <= this.seasonLength) {
+    if (!history) {
       return false;
     }
 
-    // Age past observations
-    historyForKey = historyForKey.map((record, index) => {
-      if (index < historyForKey.length - 1) {
-        record.value *= 1 - this.agingRate;
+    this.historyManager.updateHistory(history, value);
+    const forecast = this.getForecast(key);
+    const error = this.calculatorService.calculateError(value, forecast);
+    this.parameterService.adjustParameters(key, error, forecast, value);
+
+    const stats = this.calculateStatsModified(history, value);
+    this.anomalyManager.logAnomalies(key, stats);
+    this.anomalyManager.handleAnomalies(key, value, stats.isAnomaly);
+
+    return stats.isAnomaly;
+  }
+
+  /**
+   * Initializes the instance variables for a given key.
+   * @private
+   * @param {string} key - the key to initialize
+   */
+  private initialize(key: string) {
+    this.historyManager.initializeHistoryIfNeeded(key);
+    this.anomalyManager.initializeAnomalyLogIfNeeded(key);
+    this.parameterService.initializeParamtersIfNeeded(key);
+  }
+
+  /**
+   * Calculate the forecast for a specific key.
+   * @private
+   * @param {string} key - the key for which the forecast is calculated
+   * @returns {number} - the calculated forecast
+   */
+  private getForecast(key: string): number {
+    const history = this.historyManager.getHistory(key)!;
+    const { alpha, beta, gamma } = this.parameterService.getParameters(key)!;
+    const seasonality = this.parameterService.getSeasonality(key)!;
+
+    return this.calculatorService.calculateForecast(history, alpha, beta, gamma, seasonality);
+  }
+
+  /**
+   * Calculate statistics based on the history and the provided value using modified zScore formula for easing sensitivity to data spikes and outliers
+   * @private
+   * @param {Anomaly[]} history - the history data
+   * @param {number} value - the value to calculate statistics from
+   * @returns {AnomalyStatistics} - the calculated statistics
+   */
+  private calculateStatsModified(history: Anomaly[], value: number): AnomalyStatisticsModified {
+    const values = history.map((item) => item.value);
+    const median = this.calculatorService.calculateMedian(values);
+    const mad = this.calculatorService.calculateMAD(values, median);
+    const zScore = this.calculatorService.calculateModifiedZScore(value, median, mad);
+    const isAnomaly = this.calculatorService.calculateAnomaly(zScore);
+
+    return { median, mad, zScore, isAnomaly };
+  }
+
+  /**
+   * Get anomalies for a given key.
+   *
+   * @see {AnomalyManager#getAnomalies}
+   */
+  public getAnomalies(key: string): Anomaly[] | undefined {
+    return this.anomalyManager.getAnomalies(key);
+  }
+
+  /**
+   * Get all anomalies across all keys.
+   *
+   * @see {AnomalyManager#getAllAnomalies}
+   */
+  public getAllAnomalies(): AnomalyRecords {
+    return this.anomalyManager.getAllAnomalies();
+  }
+
+  /**
+   * Retrieves the history for a specific key.
+   *
+   * @see {HistoryManager#getHistory}
+   */
+  public getHistory(key: string): Anomaly[] | null {
+    return this.historyManager.getHistory(key);
+  }
+
+  /**
+   * Retrieves the entire history map.
+   *
+   * @see {HistoryManager#getHistoryMap}
+   */
+  public getHistoryMap(): AnomalyMap {
+    return this.historyManager.getHistoryMap();
+  }
+
+  /**
+   * Save history to a file.
+   *
+   * @see {PersistenceService#saveHistory}
+   */
+  public async saveHistory(fileName: string) {
+    await this.persistenceService.saveHistory(fileName, this.getHistoryMap());
+  }
+
+  /**
+   * Load history from a file.
+   *
+   * @see {PersistenceService#loadHistory}
+   */
+  public async loadHistory(fileName: string) {
+    this.historyManager.setHistoryMap(await this.persistenceService.loadHistory(fileName));
+  }
+
+  /**
+   * Retrieves the anomaly data for a specific key.
+   * @param {string} key - the key to retrieve data for
+   * @returns {AnomalyStatisticsModified[]} - a list of anomaly data
+   */
+  public getAnomalyData(key: string): AnomalyStatisticsModified[] {
+    const history = this.historyManager.getHistory(key);
+    const data: AnomalyStatisticsModified[] = [];
+
+    if (history) {
+      for (let i = 0; i < history.length; i++) {
+        data.push(this.calculateStatsModified(history.slice(0, i + 1), history[i].value));
       }
-      return record;
-    });
-
-    const params = this.parameters.get(key)!;
-    const forecast = this.calculateForecast(historyForKey, this.seasonLength, params);
-
-    // Calculate the absolute error and adjust paramaters
-    const error = Math.abs(value - forecast);
-    this.adjustParameters(key, error, forecast, value);
-
-    // If error is above the threshold, mark as an anomaly and add to the log
-    const isAnomaly = error > params.threshold;
-
-    if (isAnomaly) {
-      let anomaliesForKey = this.anomalyLog.get(key) || [];
-      anomaliesForKey.push({ time: Date.now(), value: value });
-      this.anomalyLog.set(key, anomaliesForKey);
     }
 
-    return isAnomaly;
-  }
-
-  /**
-   * Save the historical data to a file.
-   * @param fileName The name of the file to save the history to.
-   */
-  saveHistory(fileName: string) {
-    fs.writeFileSync(fileName, JSON.stringify(Array.from(this.history.entries())));
-  }
-
-  /**
-   * Load the historical data from a file.
-   * @param fileName The name of the file to load the history from.
-   */
-  loadHistory(fileName: string) {
-    if (fs.existsSync(fileName)) {
-      const loadedHistory = new Map(JSON.parse(fs.readFileSync(fileName, 'utf-8'))) as AnomalyMap;
-      this.history = loadedHistory;
-    }
-  }
-
-  /**
-   * Get the anomaly logs for a given key.
-   * @param key The key to get anomalies for.
-   * @returns An array of the anomalies for the given key.
-   */
-  getAnomalies(key: string): Anomaly[] {
-    return this.anomalyLog.get(key) || [];
-  }
-
-  /**
-   * Get all anomaly logs.
-   * @returns An object containing all the anomaly logs for all keys.
-   */
-  getAllAnomalies(): AnomalyRecords {
-    let anomalyObject: AnomalyRecords = {};
-
-    for (let [key, value] of this.anomalyLog.entries()) {
-      anomalyObject[key] = value;
-    }
-
-    return anomalyObject;
+    return data;
   }
 }
+
+// /**
+//  * Calculate statistics based on the history and the provided value.
+//  * @private
+//  * @param {Anomaly[]} history - the history data
+//  * @param {number} value - the value to calculate statistics from
+//  * @returns {AnomalyStatistics} - the calculated statistics
+//  */
+// private calculateStats(history: Anomaly[], value: number): AnomalyStatistics {
+//   const mean = this.calculatorService.calculateMean(history);
+//   const standardDeviation = this.calculatorService.calculateStandardDeviation(history, mean);
+//   const zScore = this.calculatorService.calculateZScore(value, mean, standardDeviation);
+//   const isAnomaly = this.calculatorService.calculateAnomaly(zScore);
+
+//   return { mean, stdDev: standardDeviation, zScore, isAnomaly };
+// }

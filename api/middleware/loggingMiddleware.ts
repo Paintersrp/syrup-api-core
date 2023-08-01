@@ -7,6 +7,7 @@ import _ from 'lodash';
  * the user making the request, and any error that occurred.
  */
 export interface LogObject {
+  timestamp: number;
   event: string;
   method: string;
   path: string;
@@ -14,7 +15,11 @@ export interface LogObject {
   user: string | User; // The user making the request, or 'Anonymous' if not available.
   role: string; // The role of the user making the request, or 'Unknown' if not available.
   status: number; // The HTTP status code of the response.
+  responseSize: number; // The size of the response in bytes
+  userAgent: string; // The User Agent of the client making the request
+  ipAddress: string; // The IP address of the client making the request
   requestBody: unknown; // The body of the request, with sensitive fields omitted.
+  requestId: string;
   error?: {
     message: string;
     stack: string | undefined; // The stack trace of the error, if available.
@@ -34,8 +39,11 @@ export function generateLogObject(ctx: Koa.Context, startTime: bigint, err?: Err
   const user: User | string = ctx.state.user?.username || 'Anonymous';
   const role: string = ctx.state.user?.role || 'Unknown';
 
+  const responseSize = Buffer.byteLength(JSON.stringify(ctx.body), 'utf8');
+
   // Create the log object. If an error occurred, include its message and stack trace.
   const logObject: LogObject = {
+    timestamp: Date.now(),
     event: 'request',
     method: ctx.method,
     path: ctx.path,
@@ -43,7 +51,11 @@ export function generateLogObject(ctx: Koa.Context, startTime: bigint, err?: Err
     user,
     role,
     status: err ? 500 : ctx.status,
+    responseSize,
+    userAgent: ctx.request.headers['user-agent'] || '',
+    ipAddress: ctx.ip,
     requestBody: sanitizeObject(ctx.request.body), // Sanitized to remove sensitive fields.
+    requestId: ctx.requestId,
   };
 
   if (err) {

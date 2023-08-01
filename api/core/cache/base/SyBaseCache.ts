@@ -1,11 +1,14 @@
-import { Logger } from 'pino';
 import { Sequelize } from 'sequelize';
-import { CacheInterface, CacheStats } from '../types';
-import { SyPersistMixin } from '../mixins/SyPersistMixin';
+import { CacheContents, CacheStats } from '../types';
+import { SyPersistMixin } from './mixins/SyPersistMixin';
 import { SyLogger } from '../../logging/SyLogger';
 
-export class SyBaseCache<T> {
-  public cacheMap: Map<string, CacheInterface<T>>;
+/**
+ * @todo persist mixin in clients, so the proper cache can be passed?
+ */
+
+export abstract class SyBaseCache<T> {
+  public cache!: Map<any, any>;
   public database: Sequelize;
   public readonly logger: SyLogger;
   public cacheStats: CacheStats;
@@ -17,10 +20,9 @@ export class SyBaseCache<T> {
   constructor(database: Sequelize, logger: SyLogger) {
     this.logger = logger;
     this.database = database;
-    this.cacheMap = new Map();
     this.cacheStats = { hits: 0, misses: 0, evictions: 0 };
 
-    this.persistMixin = new SyPersistMixin(this.cacheMap, this.database, this.logger);
+    this.persistMixin = new SyPersistMixin(this.cache, this.database, this.logger);
     this.registerShutdownHandler();
     this.isInitialised = false;
   }
@@ -55,7 +57,6 @@ export class SyBaseCache<T> {
     if (!this.isInitialised) {
       try {
         this.logger.info('Cache Initiated');
-
         await this.persistMixin.loadCacheFromDatabase();
         this.isInitialised = true;
       } catch (error: any) {
@@ -80,14 +81,6 @@ export class SyBaseCache<T> {
   }
 
   /**
-   * Gets the size of the cache.
-   * @returns {Promise<number>} The size of the cache.
-   */
-  public getCacheSize(): number {
-    return this.cacheMap.size;
-  }
-
-  /**
    * Gets the cache stats.
    * @returns {{ hits: number; misses: number; evictions: number }} The cache stats.
    */
@@ -109,10 +102,12 @@ export class SyBaseCache<T> {
     }
   }
 
+  //
   public incrementCacheMisses(): void {
     this.cacheStats.misses++;
   }
 
+  //
   public incrementCacheHits(): void {
     this.cacheStats.hits++;
   }
