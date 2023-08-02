@@ -1,3 +1,5 @@
+// Organize by Validation Sub?
+
 export const ValidationResponses = {
   // ID validation responses
   ID_FAIL: 'Invalid ID',
@@ -15,6 +17,8 @@ export const ValidationResponses = {
   // Type validation responses
   ARRAY_FAIL: (param: any) => `Expected array, but got ${typeof param}`,
   OBJECT_FAIL: (param: any) => `Expected object, but got ${typeof param}`,
+  NUMBER_FAIL: (param: any) => `Expected number, but got ${typeof param}`,
+  STRING_FAIL: (param: any) => `Expected string, but got ${typeof param}`,
   TYPE_FAIL: (type: string, param: unknown) => `Expected ${type}, but got ${typeof param}`,
 
   // Range validation responses

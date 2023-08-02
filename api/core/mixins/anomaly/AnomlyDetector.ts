@@ -66,7 +66,7 @@ export class AnomalyDetector {
    * @param {number} value - the value to check
    * @returns {boolean} - true if the value is an anomaly, false otherwise
    */
-  public async checkAnomaly(key: string, value: number): Promise<boolean> {
+  public async checkAnomaly(key: string, value: any): Promise<boolean> {
     this.initialize(key);
     const history = this.historyManager.getHistory(key);
 
@@ -151,7 +151,7 @@ export class AnomalyDetector {
    *
    * @see {HistoryManager#getHistory}
    */
-  public getHistory(key: string): Anomaly[] | null {
+  public getHistory(key: string): Anomaly[] | undefined {
     return this.historyManager.getHistory(key);
   }
 

@@ -1,4 +1,3 @@
-import { Logger } from 'pino';
 import {
   HealthCheck,
   HealthChecks,
@@ -7,32 +6,31 @@ import {
 } from './types';
 import { UptimeTracker } from '../uptime/UptimeTracker';
 import { SyLogger } from '../../logging/SyLogger';
-
-/**
- * Use better errors @todo
- */
+import { HealthCheckOperations, HealthCheckScheduler } from './services';
+import { HealthCheckError } from '../../errors/server';
+import { HealthResponses } from '../../lib/responses/health';
 
 /**
  * A class providing functionality to monitor and log the uptime and health status of the application.
  *
- * @class HealthCheckMixin
+ * @class HealthCheckService
  */
 export class HealthCheckService {
   public readonly logger: SyLogger;
-
-  private healthChecks: HealthChecks = new Map();
-  private healthCheckIntervalId?: NodeJS.Timeout;
-
-  protected uptimeTracker: UptimeTracker = new UptimeTracker();
+  protected healthChecks: HealthChecks = new Map();
+  protected uptimeTracker: UptimeTracker;
+  protected operations: HealthCheckOperations;
+  protected scheduler: HealthCheckScheduler;
 
   /**
-   * Creates a HealthCheckMixin instance.
-   *
    * @constructor
-   * @param {SyLogger} logger - The logger to use.
+   * @param {SyLogger} logger
    */
   constructor(logger: SyLogger) {
     this.logger = logger;
+    this.uptimeTracker = new UptimeTracker();
+    this.operations = new HealthCheckOperations(this.logger, this.healthChecks, this.uptimeTracker);
+    this.scheduler = new HealthCheckScheduler(this.logger, this.operations);
   }
 
   /**
@@ -45,10 +43,8 @@ export class HealthCheckService {
    * @throws {Error} If a health check with the given name already exists.
    */
   public registerHealthCheck(name: string, check: HealthCheck, remediate?: RemediationFunction) {
-    if (this.healthChecks.has(name)) {
-      throw new Error(`Health check ${name} already exists.`);
-    }
-    this.healthChecks.set(name, { check, remediate });
+    this.checkIfHealthCheckExists(name);
+    this.healthChecks = new Map([...this.healthChecks, [name, { check, remediate }]]);
   }
 
   /**
@@ -59,150 +55,70 @@ export class HealthCheckService {
    * @throws {Error} If a health check with the given name does not exist.
    */
   public unregisterHealthCheck(name: string): void {
-    if (!this.healthChecks.has(name)) {
-      throw new Error(`Health check ${name} does not exist.`);
-    }
+    this.checkIfHealthCheckExists(name);
     this.healthChecks.delete(name);
   }
 
   /**
    * Performs all registered health checks.
    *
-   * @public
-   * @returns {Promise<boolean>} A promise that resolves to true if all health checks pass, or false if any health check fails.
+   * @see {HealthCheckOperations#performHealthChecks}
    */
   public async performHealthChecks(): Promise<boolean> {
-    for (let check of this.healthChecks.values()) {
-      if (!(await this.performHealthCheck(check))) {
-        return false;
-      }
-    }
-    return true;
+    return await this.operations.performHealthChecks();
   }
 
   /**
    * Executes a health check function by either name or directly using the function itself, logs an error if the check fails.
    *
-   * @param {string | HealthCheckWithRemediation} check The name of a registered health check, or a HealthCheckWithRemediation object.
-   * @returns {Promise<boolean>} A promise that resolves to true if the health check passes, or false if it fails.
-   * @throws {Error} If the provided check does not exist, or if the argument is of an invalid type.
+   * @see {HealthCheckOperations#performHealthCheck}
    */
   public async performHealthCheck(check: string | HealthCheckWithRemediation): Promise<boolean> {
-    if (typeof check === 'string') {
-      const healthCheck = this.healthChecks.get(check);
-
-      if (!healthCheck) {
-        throw new Error(`Health check ${check} does not exist.`);
-      }
-
-      return this.runHealthCheck(healthCheck);
-    } else if (typeof check === 'function') {
-      return this.runHealthCheck(check);
-    } else {
-      throw new Error(
-        'Invalid argument provided to performHealthCheck. Expected a string or function.'
-      );
-    }
-  }
-
-  /**
-   * Executes a health check function, logs an error if the check fails.
-   *
-   * @param {HealthCheckWithRemediation} check A HealthCheckWithRemediation object.
-   * @returns {Promise<boolean>} A promise that resolves to true if the health check passes, or false if it fails.
-   * @private
-   */
-  private async runHealthCheck(check: HealthCheckWithRemediation): Promise<boolean> {
-    const checkName = check.check.name;
-    const now = Date.now();
-
-    try {
-      const result = await check.check();
-      return result
-        ? this.handleSuccessfulCheck(checkName, now)
-        : this.handleFailedCheck(check, checkName, now);
-    } catch (error: any) {
-      return this.handleFailedCheck(check, checkName, now, error);
-    }
-  }
-
-  /**
-   * Handles the result of a successful health check.
-   *
-   * @param {string} checkName The name of the health check.
-   * @param {number} now The current timestamp.
-   * @returns {boolean} Always returns true.
-   * @private
-   */
-  private handleSuccessfulCheck(checkName: string, now: number): boolean {
-    this.uptimeTracker.updateUptimeRecord(checkName, now);
-    return true;
-  }
-
-  /**
-   * Handles the result of a failed health check.
-   *
-   * @param {HealthCheckWithRemediation} check The failed health check.
-   * @param {string} checkName The name of the health check.
-   * @param {number} now The current timestamp.
-   * @param {Error} [error] The error that caused the health check to fail.
-   * @returns {boolean} Always returns false.
-   * @private
-   */
-  private handleFailedCheck(
-    check: HealthCheckWithRemediation,
-    checkName: string,
-    now: number,
-    error?: Error
-  ): boolean {
-    this.logger.error('Health check failed:', error);
-    this.attemptRemediation(check);
-    this.uptimeTracker.updateUptimeRecord(checkName, now);
-    return false;
-  }
-
-  /**
-   * Attempts to run the remediation function of a failed health check, if one exists.
-   *
-   * @param {HealthCheckWithRemediation} check The failed health check.
-   * @returns {Promise<void>}
-   * @private
-   */
-  private async attemptRemediation(check: HealthCheckWithRemediation): Promise<void> {
-    if (!check.remediate) {
-      return;
-    }
-
-    try {
-      await check.remediate();
-      this.logger.info('Remediation attempted for health check failure');
-    } catch (remediationError: any) {
-      this.logger.error('Remediation failed:', remediationError);
-    }
+    return await this.operations.performHealthCheck(check);
   }
 
   /**
    * Schedules health checks at a given interval in milliseconds, logs the result.
-   * @param {number} interval - The interval at which to perform health checks, in milliseconds.
+   *
+   * @see {HealthCheckScheduler#scheduleHealthChecks}
    */
   public scheduleHealthChecks(interval: number): void {
-    this.healthCheckIntervalId = setInterval(async () => {
-      const isHealthy = await this.performHealthChecks();
-      if (isHealthy) {
-        this.logger.info('Health check passed');
-      } else {
-        this.logger.warn('Health check failed');
-      }
-    }, interval);
+    this.scheduler.scheduleHealthChecks(interval);
+  }
+
+  /**
+   * Pauses scheduled health checks if they are currently running.
+   *
+   * @see {HealthCheckScheduler#pauseScheduledHealthChecks}
+   */
+  public pauseScheduledHealthChecks(): void {
+    this.scheduler.pauseScheduledHealthChecks();
+  }
+
+  /**
+   * Resumes paused health checks, starting from where they left off.
+   *
+   * @see {HealthCheckScheduler#resumeScheduledHealthChecks}
+   */
+  public resumeScheduledHealthChecks(interval: number): void {
+    this.scheduler.resumeScheduledHealthChecks(interval);
   }
 
   /**
    * Stops scheduled health checks if they are currently running.
+   *
+   * @see {HealthCheckScheduler#stopScheduledHealthChecks}
    */
   public stopScheduledHealthChecks(): void {
-    if (this.healthCheckIntervalId) {
-      clearInterval(this.healthCheckIntervalId);
-      this.healthCheckIntervalId = undefined;
+    this.scheduler.stopScheduledHealthChecks();
+  }
+
+  /**
+   * Checks if a health check exists by a given key name
+   */
+  private checkIfHealthCheckExists(name: string): void {
+    if (!this.healthChecks.has(name)) {
+      throw new HealthCheckError(HealthResponses.HEALTH_CHECK_FAIL(name));
     }
   }
 }

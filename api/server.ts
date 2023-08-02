@@ -30,7 +30,6 @@ import Koa from 'koa';
 
 import * as settings from './settings';
 import { SyServer } from './core/server/SyServer';
-import { RequestLogAnalyzer } from './core/mixins/analyzer/requests/RequestLogAnalyzer';
 
 export const server = new SyServer({
   app: new Koa(),
@@ -43,13 +42,36 @@ export const server = new SyServer({
   version: settings.CURRENT_VERSION,
 });
 
-const analyzer = new RequestLogAnalyzer();
+// Testing purposes
+
+import { RequestLogAnalyzer } from './core/mixins/analyzer/requests/RequestLogAnalyzer';
+import { AnomalyDetector } from './core/mixins/anomaly';
+import { StreamManager } from './core/mixins/streams/StreamManager';
+import { TrafficStream } from './core/mixins/streams/sub/TrafficStream';
+import { QueryLogAnalyzer } from './core/mixins/analyzer/queries/QueryLogAnalyzer';
+
+const anomalyDetector = new AnomalyDetector(settings.APP_LOGGER);
+const trafficStream = new TrafficStream('traffic', anomalyDetector);
+
+const streamManager = StreamManager.getInstance();
+streamManager.on('streamAdded', (name) => {
+  console.log(`Stream "${name}" was added.`);
+});
+
+streamManager.addStream('websiteTraffic', trafficStream);
+trafficStream.onData((visits) => {
+  console.log('Website visits:', visits);
+});
+
+streamManager.startAll();
+
+const analyzer = new QueryLogAnalyzer();
 
 analyzer
-  .loadLog('./logs/app.log')
+  .loadLog('./logs/queries.log')
   .then(() => {
     const report = analyzer.analyzeLogs();
-    // console.log(report);
+    console.log(report);
   })
   .catch((err) => {
     console.error(`An error occurred: ${err.message}`);

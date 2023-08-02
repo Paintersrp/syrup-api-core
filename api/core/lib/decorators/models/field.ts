@@ -1,11 +1,7 @@
-type FieldInterface = {
-  type: any;
-  defaultValue?: any;
-  allowNull?: boolean;
-  primaryKey?: boolean;
-  autoIncrement?: boolean;
+import { ModelAttributeColumnOptions } from 'sequelize';
+
+type FieldInterface = ModelAttributeColumnOptions & {
   readOnly?: boolean;
-  unique?: boolean;
   verbose?: string;
 };
 
@@ -22,6 +18,7 @@ export function Field({
   autoIncrement = false,
   readOnly = false,
   unique = false,
+  validate = undefined,
   verbose = undefined,
 }: FieldInterface): PropertyDecorator {
   return (target: any, propertyKey: string | symbol): void => {
@@ -37,6 +34,7 @@ export function Field({
       autoIncrement,
       readOnly,
       unique,
+      validate,
     };
 
     if (verbose) {

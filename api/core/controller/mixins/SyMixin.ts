@@ -9,7 +9,7 @@ import { RequestProcessor } from './request/RequestProcessor';
 import { QueryProcessor } from './queries/QueryProcessor';
 import { ValidationResponses } from '../../lib/responses';
 import { FieldDTO } from './types';
-import { SyValidator } from '../../mixins/validator/SyValidator';
+import { SyValidator } from '../../mixins/validators/SyValidator';
 
 /**
  * SyMixin is an abstract class designed to be extended by other mixin classes.
@@ -34,7 +34,7 @@ export abstract class SyMixin {
     this.model = options.model;
     this.logger = options.logger;
 
-    this.validator = new SyValidator(this.logger);
+    this.validator = new SyValidator();
     this.requestProcessor = new RequestProcessor(this.logger, this.validator);
     this.queryProcessor = new QueryProcessor(this.model, this.validator);
   }

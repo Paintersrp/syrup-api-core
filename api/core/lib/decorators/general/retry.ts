@@ -17,10 +17,10 @@ type RetryOptions = {
  * @param options The options for retrying.
  */
 export function Retry(options?: RetryOptions) {
-  const maxRetries = options?.retries ?? 3;
-  let retryDelay = options?.retryDelay ?? 1000;
+  const maxRetries = Math.max(0, options?.retries ?? 3);
+  let retryDelay = Math.max(0, options?.retryDelay ?? 1000);
   const exponentialBackoff = options?.exponentialBackoff ?? false;
-  const backoffMultiplier = options?.backoffMultiplier ?? 2;
+  const backoffMultiplier = Math.max(1, options?.backoffMultiplier ?? 2);
 
   // Returns the descriptor for the method that is being decorated
   return function (_: any, __: string, descriptor: PropertyDescriptor) {

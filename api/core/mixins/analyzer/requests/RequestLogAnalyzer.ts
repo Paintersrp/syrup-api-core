@@ -1,153 +1,217 @@
-import fs from 'fs';
-import readline from 'readline';
 import moment from 'moment';
 
-import { RequestLogReport, RequestLogObject } from './types';
+import { RequestLogMetrics, RequestLogObject, RequestLogReport } from './types';
+import { LogAnalyzer } from '../base/LogAnalyzer';
 
 /**
  * Class representing a log analyzer for request logs.
+ *
+ * @extends LogAnalyzer
  */
-export class RequestLogAnalyzer {
-  private logs: RequestLogObject[] = [];
-
+export class RequestLogAnalyzer extends LogAnalyzer<RequestLogObject> {
   /**
-   * Load logs from a file and store them internally.
+   * Analyze the loaded logs and return a partial report of various metrics.
    *
-   * @public
-   * @param {string} filePath - The path to the log file.
-   * @returns {Promise<void>} Resolves when the logs have been loaded.
-   * @throws Will throw an error if the logs cannot be loaded.
-   */
-  public async loadLog(filePath: string): Promise<void> {
-    try {
-      const fileStream = fs.createReadStream(filePath);
-      const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity,
-      });
-
-      for await (const line of rl) {
-        try {
-          this.logs.push(JSON.parse(line));
-        } catch (err: any) {
-          console.error(`Failed to parse log line: ${line}. Error: ${err.message}`);
-        }
-      }
-    } catch (err: any) {
-      throw new Error(`Failed to load logs: ${err.message}`);
-    }
-  }
-
-  /**
-   * Clear the loaded logs.
-   *
-   * @public
-   * @returns {void}
-   */
-  public clearLogs(): void {
-    this.logs = [];
-  }
-
-  /**
-   * Analyze the loaded logs and return a report of various metrics.
-   *
-   * @public
-   * @returns {RequestLogReport} A report of various metrics about the loaded logs.
+   * @returns {Partial<RequestLogReport>} A report of various metrics about the loaded logs.
    * @throws Will throw an error if no logs have been loaded.
    */
-  public analyzeLogs(): RequestLogReport {
-    const totalRequests = this.logs.length;
-    let totalDuration = 0;
-    let totalResponseSize = 0;
-    let errorCount = 0;
-    let shortestDuration = Infinity;
-    let longestDuration = 0;
+  public analyzeLogs(): Partial<RequestLogReport> {
+    const metrics = this.collectMetrics();
+    return this.createReport(metrics);
+  }
 
-    const userIds: string[] = [];
-    const paths: string[] = [];
-    const statusCodes: number[] = [];
-    const methods: string[] = [];
-    const userAgents: string[] = [];
-    const ipAddresses: string[] = [];
-    const requestFrequency: Record<string, number> = {};
+  /**
+   * Collects various metrics from the loaded logs.
+   *
+   * @private
+   * @returns {RequestLogMetrics} An object containing the collected metrics.
+   */
+  private collectMetrics(): RequestLogMetrics {
+    const metrics = this.initializeMetrics();
 
-    this.logs.forEach((log) => {
-      const userId = typeof log.user === 'string' ? log.user : log.user?.id;
-      if (userId) userIds.push(String(userId));
+    for (const log of this.logs) {
+      this.addLogToMetrics(log, metrics);
+    }
 
-      paths.push(log.path);
+    return metrics;
+  }
 
-      if (log.status) statusCodes.push(log.status);
-
-      methods.push(log.method);
-      userAgents.push(log.userAgent);
-      ipAddresses.push(log.ipAddress);
-
-      if (log.responseSize) totalResponseSize += log.responseSize;
-
-      if (log.duration) {
-        totalDuration += log.duration;
-        longestDuration = Math.max(longestDuration, log.duration);
-        shortestDuration = Math.min(shortestDuration, log.duration);
-      }
-
-      const hour = moment(log.timestamp).format('HH');
-      requestFrequency[hour] = (requestFrequency[hour] || 0) + 1;
-
-      if ('error' in log) errorCount++;
-    });
-
-    const userIdsCount = this.countItems(userIds);
-    const pathsCount = this.countItems(paths);
-    const statusCodesCount = this.countItems(statusCodes);
-    const methodsCount = this.countItems(methods);
-    const userAgentsCount = this.countItems(userAgents);
-
+  /**
+   * Initializes an object with the default metrics.
+   *
+   * @private
+   * @returns {RequestLogMetrics} The initialized metrics object.
+   */
+  private initializeMetrics(): RequestLogMetrics {
     return {
-      totalRequests,
-      averageRequestDuration: totalDuration / totalRequests,
-      numberOfUsers: Object.keys(userIdsCount).length,
-      topEndpoints: this.getTop(pathsCount),
-      topUsers: this.getTop(userIdsCount),
-      errorCount,
-      requestFrequency,
-      statusCodes: statusCodesCount,
-      topStatusCodes: this.getTop(statusCodesCount).map(Number),
-      longestDuration,
-      shortestDuration: isFinite(shortestDuration) ? shortestDuration : 0,
-      requestsByMethod: methodsCount,
-      topUserAgents: this.getTop(userAgentsCount),
-      averageResponseSize: totalResponseSize / totalRequests,
-      uniqueIPs: new Set(ipAddresses).size,
+      totalRequests: this.logs.length,
+      totalDuration: 0,
+      totalResponseSize: 0,
+      errorCount: 0,
+      shortestDuration: Infinity,
+      longestDuration: 0,
+      userIds: [],
+      paths: [],
+      statusCodes: [],
+      methods: [],
+      userAgents: [],
+      ipAddresses: [],
+      requestFrequency: {},
     };
   }
 
   /**
-   * Count the occurrences of items in an array and return a map of item to count.
+   * Adds the details from a log to the metrics object.
    *
    * @private
-   * @param {any[]} array - The array of items to count.
-   * @returns {Record<string, number>} A map from item to count.
+   * @param {RequestLogObject} log - The log object.
+   * @param {RequestLogMetrics} metrics - The metrics object.
    */
-  private countItems(array: any[]): Record<string, number> {
-    return array.reduce((countMap, item) => {
-      countMap[item] = (countMap[item] || 0) + 1;
-      return countMap;
-    }, {} as Record<string, number>);
+  private addLogToMetrics(log: RequestLogObject, metrics: RequestLogMetrics): void {
+    metrics.userIds.push(this.extractUserId(log));
+    metrics.paths.push(log.path);
+    metrics.statusCodes.push(log.status || 0);
+    metrics.methods.push(log.method);
+    metrics.userAgents.push(log.userAgent);
+    metrics.ipAddresses.push(log.ipAddress);
+
+    if (log.responseSize) {
+      metrics.totalResponseSize += log.responseSize;
+    }
+
+    if (log.duration) {
+      this.updateDurationMetrics(log.duration, metrics);
+    }
+
+    if ('error' in log) {
+      metrics.errorCount++;
+    }
+
+    const hour = moment(log.timestamp).format('HH');
+    metrics.requestFrequency[hour] = (metrics.requestFrequency[hour] || 0) + 1;
   }
 
   /**
-   * Get the top N items with the highest counts from a count map.
+   * Extracts the user ID from a request log object.
    *
    * @private
-   * @param {Record<string, number>} countMap - A map from item to count.
-   * @param {number} [limit=5] - The maximum number of items to return.
-   * @returns {string[]} The top N items with the highest counts.
+   * @param {RequestLogObject} log - The request log object.
+   * @returns {string} - The user ID as a string or an empty string if no user ID was found.
    */
-  private getTop(countMap: Record<string, number>, limit = 5): string[] {
-    return Object.entries(countMap)
-      .sort(([, aCount], [, bCount]) => bCount - aCount)
-      .slice(0, limit)
-      .map(([item]) => item);
+  private extractUserId(log: RequestLogObject): string {
+    return typeof log.user === 'string' ? log.user : log.user?.username || 'Anonymous';
+  }
+
+  /**
+   * Updates duration related metrics in the provided metrics object based on the provided duration value.
+   *
+   * @private
+   * @param {number} duration - The duration of a request.
+   * @param {RequestLogMetrics} metrics - The metrics object to update.
+   */
+  private updateDurationMetrics(duration: number, metrics: RequestLogMetrics): void {
+    metrics.totalDuration += duration;
+    metrics.longestDuration = Math.max(metrics.longestDuration, duration);
+    metrics.shortestDuration = Math.min(metrics.shortestDuration, duration);
+  }
+
+  /**
+   * Creates a report based on the collected metrics.
+   *
+   * @private
+   * @param {RequestLogMetrics} metrics - The collected metrics.
+   * @returns {Partial<RequestLogReport>} - A partial report based on the metrics.
+   */
+  private createReport(metrics: RequestLogMetrics): Partial<RequestLogReport> {
+    const report = this.initializeReport(metrics);
+
+    this.addUserIdReport(metrics, report);
+    this.addPathReport(metrics, report);
+    this.addStatusCodeReport(metrics, report);
+    this.addMethodReport(metrics, report);
+    this.addUserAgentReport(metrics, report);
+
+    return report;
+  }
+
+  /**
+   * Initializes a report object with some default values based on the metrics.
+   *
+   * @private
+   * @param {RequestLogMetrics} metrics - The collected metrics.
+   * @returns {Partial<RequestLogReport>} - A partial report with the initialized values.
+   */
+  private initializeReport(metrics: RequestLogMetrics): Partial<RequestLogReport> {
+    return {
+      totalRequests: metrics.totalRequests,
+      averageRequestDuration: metrics.totalDuration / metrics.totalRequests,
+      errorCount: metrics.errorCount,
+      longestDuration: metrics.longestDuration,
+      shortestDuration: isFinite(metrics.shortestDuration) ? metrics.shortestDuration : 0,
+      averageResponseSize: metrics.totalResponseSize / metrics.totalRequests,
+      uniqueIPs: new Set(metrics.ipAddresses).size,
+    };
+  }
+
+  /**
+   * Adds user ID related details to the report.
+   *
+   * @private
+   * @param {RequestLogMetrics} metrics - The collected metrics.
+   * @param {Partial<RequestLogReport>} report - The report to add details to.
+   */
+  private addUserIdReport(metrics: RequestLogMetrics, report: Partial<RequestLogReport>): void {
+    const userIdsCount = this.countItems(metrics.userIds);
+    report.numberOfUsers = Object.keys(userIdsCount).length;
+    report.topUsers = this.getTop(userIdsCount);
+  }
+
+  /**
+   * Adds path related details to the report.
+   *
+   * @private
+   * @param {RequestLogMetrics} metrics - The collected metrics.
+   * @param {Partial<RequestLogReport>} report - The report to add details to.
+   */
+  private addPathReport(metrics: RequestLogMetrics, report: Partial<RequestLogReport>): void {
+    const pathsCount = this.countItems(metrics.paths);
+    report.topEndpoints = this.getTop(pathsCount);
+  }
+
+  /**
+   * Adds status code related details to the report.
+   *
+   * @private
+   * @param {RequestLogMetrics} metrics - The collected metrics.
+   * @param {Partial<RequestLogReport>} report - The report to add details to.
+   */
+  private addStatusCodeReport(metrics: RequestLogMetrics, report: Partial<RequestLogReport>): void {
+    const statusCodesCount = this.countItems(metrics.statusCodes);
+    report.statusCodes = statusCodesCount;
+    report.topStatusCodes = this.getTop(statusCodesCount).map(Number);
+  }
+
+  /**
+   * Adds method related details to the report.
+   *
+   * @private
+   * @param {RequestLogMetrics} metrics - The collected metrics.
+   * @param {Partial<RequestLogReport>} report - The report to add details to.
+   */
+  private addMethodReport(metrics: RequestLogMetrics, report: Partial<RequestLogReport>): void {
+    const methodsCount = this.countItems(metrics.methods);
+    report.requestsByMethod = methodsCount;
+  }
+
+  /**
+   * Adds user agent related details to the report.
+   *
+   * @private
+   * @param {RequestLogMetrics} metrics - The collected metrics.
+   * @param {Partial<RequestLogReport>} report - The report to add details to.
+   */
+  private addUserAgentReport(metrics: RequestLogMetrics, report: Partial<RequestLogReport>): void {
+    const userAgentsCount = this.countItems(metrics.userAgents);
+    report.topUserAgents = this.getTop(userAgentsCount);
   }
 }

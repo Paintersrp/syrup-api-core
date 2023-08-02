@@ -1,134 +1,264 @@
-# Style Guide for Health Checks using HealthCheckMixin
+# Comprehensive Guide to HealthCheck Composition
 
-This style guide provides a structured approach to writing health checks for the `HealthCheckMixin` class using `SimpleCheck`, `ComposedCheck`, and `DependentCheck` classes. Adherence to this guide ensures consistency, readability, and maintainability of the health checks implemented.
+This guide is designed to provide in-depth instructions for creating and managing health checks within your application using the HealthCheckService. This comprehensive guide will walk you through the utilization of SimpleCheck, ComposedCheck, and DependentCheck classes as an API for composing health checks.
 
-## 1. SimpleCheck
+## Table of Contents
 
-`SimpleCheck` is the most basic unit of health checks. It encapsulates a single check. While creating instances, ensure the name is expressive and the check is a valid `HealthCheckWithRemediation`.
+1. [Introduction](#introduction)
+2. [The `SimpleCheck` Class](#simplecheck)
+   1. [Creating a `SimpleCheck`](#simplecheck-create)
+   2. [Setting Hooks](#simplecheck-hooks)
+3. [The `ComposedCheck` Class](#composedcheck)
+   1. [Creating a `ComposedCheck`](#composedcheck-create)
+   2. [Setting Hooks](#composedcheck-hooks)
+4. [The `DependentCheck` Class](#dependentcheck)
+   1. [Creating a `DependentCheck`](#dependentcheck-create)
+   2. [Setting Hooks](#dependentcheck-hooks)
+5. [Conclusion](#conclusion)
 
-```javascript
-const dbConnectivityCheck = new SimpleCheck('db_connectivity', {
+<a name="introduction"></a>
+
+## Introduction
+
+Effective health checks are essential for maintaining the robustness and reliability of your application. The HealthCheckService offers an API for defining and orchestrating health checks to ensure your services and dependencies are performing as expected.
+
+<a name="simplecheck"></a>
+
+## The `SimpleCheck` Class
+
+The `SimpleCheck` class is the fundamental building block for creating health checks. It provides an encapsulation of a single health check with hooks for pre-check, post-check, and error handling.
+
+<a name="simplecheck-create"></a>
+
+### Creating a `SimpleCheck`
+
+Below is an example illustrating how to create a `SimpleCheck` instance.
+
+```typescript
+import { HealthCheckWithRemediation } from '../types';
+import { SimpleCheck } from './SimpleCheck';
+
+// Define your health check function
+const databaseHealthCheck: HealthCheckWithRemediation = {
   check: async () => {
-    try {
-      const isConnected = await checkDBConnectivity(); // Assume this function checks database connectivity
-      return isConnected;
-    } catch (err) {
-      console.error(err);
-      return false;
-    }
+    // Your health checking logic goes here...
+    // This function should return true if the check passes, and false otherwise.
   },
   remediate: async () => {
-    try {
-      await restartDBService(); // Assume this function attempts to restart the DB service
-    } catch (err) {
-      console.error('Remediation failed:', err);
-    }
+    // Remediation logic goes here...
   },
-});
+};
+
+// Create a SimpleCheck
+const dbCheck = new SimpleCheck('DatabaseHealthCheck', databaseHealthCheck);
 ```
 
-## 2. ComposedCheck
+<a name="simplecheck-hooks"></a>
 
-`ComposedCheck` allows for running multiple `SimpleCheck`s together. Each check is independent and doesn't affect the others. Make sure the composed check's name is expressive and each check is a valid `SimpleCheck`.
+### Setting Hooks
 
-```javascript
-// A SimpleCheck for cache service
-const cacheServiceCheck = new SimpleCheck('cache_service', {
-  check: async () => {
-    try {
-      const isConnected = await checkCacheService(); // Assume this function checks cache service health
-      return isConnected;
-    } catch (err) {
-      console.error(err);
-      return false;
-    }
-  },
-  remediate: async () => {
-    try {
-      await restartCacheService(); // Assume this function attempts to restart the cache service
-    } catch (err) {
-      console.error('Remediation failed:', err);
-    }
-  },
-});
+After creating a `SimpleCheck`, you can assign optional hooks for additional functionality before and after the check, and upon encountering an error.
 
-// Compose the DB and Cache service checks
-const apiHealthCheck = new ComposedCheck('api_health_check', [
-  dbConnectivityCheck,
-  cacheServiceCheck,
-]);
+```typescript
+// Set the hooks
+dbCheck.onBeforeCheck = () => console.log('Starting the database health check...');
+dbCheck.onAfterCheck = (result) =>
+  console.log(`Database health check completed. Result: ${result}`);
+dbCheck.onError = (error) => console.log(`An error occurred: ${error}`);
 ```
 
-## 3. DependentCheck
+<a name="composedcheck"></a>
 
-`DependentCheck` creates a health check that depends on another check (`SimpleCheck`, `ComposedCheck`, or another `DependentCheck`). If the dependency fails, the check won't be performed.
+## The `ComposedCheck` Class
 
-```javascript
-const dependentCheck = new DependentCheck('serviceA_dependency_check', apiHealthCheck, async () => {
-  try {
-    const canReachServiceA = await checkServiceAReachable(); // Assume this function checks if Service A can be reached
-    return canReachServiceA;
-  } catch (err) {
-    console.error(err);
-    return false;
-  }
-});
+The `ComposedCheck` class enables you to bundle multiple checks (including `SimpleCheck`, `ComposedCheck`, and `DependentCheck` instances) into a single unit, executing them in parallel.
+
+<a name="composedcheck-create"></a>
+
+### Creating a `ComposedCheck`
+
+The following code demonstrates how to combine two `SimpleCheck` instances into a `ComposedCheck`.
+
+```typescript
+import { SimpleCheck, ComposedCheck } from './checks';
+
+// Assume dbCheck and serverCheck are instances of SimpleCheck
+const dbAndServerCheck = new ComposedCheck('DatabaseAndServerCheck', [dbCheck, serverCheck]);
 ```
 
-## 4. Registering Checks
+<a name="composedcheck-hooks"></a>
 
-Register checks with the `HealthCheckMixin` instance using the `registerHealthCheck` method. Do this at the appropriate time during your application's lifecycle (usually during initialization).
+### Setting Hooks
 
-```javascript
-const healthCheckMixin = new HealthCheckMixin(logger);
+Similar to `SimpleCheck`, `ComposedCheck` also offers hooks for events. However, the `onAfterCheck` event will return the overall result of all checks.
 
-// Register SimpleChecks
-healthCheckMixin.registerHealthCheck(
-  dbConnectivityCheck.name,
-  dbConnectivityCheck.perform,
-  dbConnectivityCheck.check.remediate
-);
-healthCheckMixin.registerHealthCheck(
-  cacheServiceCheck.name,
-  cacheServiceCheck.perform,
-  cacheServiceCheck.check.remediate
-);
-
-// Register ComposedCheck
-healthCheckMixin.registerHealthCheck(apiHealthCheck.name, apiHealthCheck.perform);
-
-// Register DependentCheck
-healthCheckMixin.registerHealthCheck(dependentCheck.name, dependentCheck.perform);
+```typescript
+// Set the hooks
+dbAndServerCheck.onBeforeCheck = () => console.log('Starting the composed check...');
+dbAndServerCheck.onAfterCheck = (result) =>
+  console.log(`Composed check completed. Overall result: ${result}`);
+dbAndServerCheck.onError = (error) =>
+  console.log(`An error occurred during one of the checks: ${error}`);
 ```
 
-## 5. Scheduling Health Checks
+<a name="dependentcheck"></a>
 
-Use the `scheduleHealthChecks` method to regularly run checks at an interval. It's crucial to have health checks running periodically to ensure the application's health is regularly verified.
+## The `DependentCheck` Class
 
-```javascript
-healthCheckMixin.scheduleHealthChecks(30000); // Run checks every 30 seconds.
+The `DependentCheck` class enables creating health checks that rely on the success of another health check.
+
+<a name="dependentcheck-create"></a>
+
+### Creating a `DependentCheck`
+
+The following snippet provides an example of a `DependentCheck` that is contingent on the `dbCheck`.
+
+```typescript
+import { SimpleCheck, DependentCheck } from './checks';
+
+// Assume dbCheck is an instance of SimpleCheck
+// Define another health check function that depends on the success of dbCheck
+const dependentCheckFn = async () => {
+  // Insert dependent health checking logic here...
+  // The function should return true if the check passes and false otherwise.
+};
+
+const dependentCheck = new DependentCheck('DependentCheck', dbCheck, dependentCheckFn);
 ```
 
-Remember to stop the checks properly during the shutdown or if they are no longer needed using `stopScheduledHealthChecks`.
+<a name="dependentcheck-hooks"></a>
 
-```javascript
-healthCheckMixin.stopScheduledHealthChecks();
+### Setting Hooks
+
+The hooks for a `DependentCheck` function similarly to those in `SimpleCheck`.
+
+```typescript
+// Set the hooks
+dependentCheck.onBeforeCheck = () => console.log('Starting the
+
+ dependent check...');
+dependentCheck.onAfterCheck = (result) => console.log(`Dependent check completed. Result: ${result}`);
+dependentCheck.onError = (error) => console.log(`An error occurred during the check: ${error}`);
 ```
 
-## 6. Error Handling
+<a name="conclusion"></a>
 
-Ensure that all health checks handle their own errors and return a boolean value. This should be `true` for a passed check and `false` otherwise. This prevents one failing check from stopping others.
+# Health Check Service
 
-## 7. Remediation
+This service is designed to facilitate the monitoring of the uptime and health status of the application. It provides a comprehensive API for managing health checks, which can be used directly or in combination with the `SimpleCheck`, `ComposedCheck`, and `DependentCheck` classes for a rich and versatile health check experience.
 
-If applicable, provide a remediation function when constructing `HealthCheckWithRemediation` objects. This function will be attempted automatically in case the health check fails.
+## Basic Usage
 
-## 8. Naming Conventions
+Create an instance of the `HealthCheckService` with an instance of `SyLogger`:
 
-Names for checks should be descriptive and consistent. If possible, follow a specific pattern like `<subject>_<verb>_<noun>` such as `db_check_connectivity`.
+```typescript
+import { SyLogger } from '../../logging/SyLogger';
+import { HealthCheckService } from './HealthCheckService';
 
-## 9. Keep checks light and fast
+const logger = new SyLogger();
+const healthCheckService = new HealthCheckService(logger);
+```
 
-Health checks are often run frequently and in production environments, so they should be as lightweight and quick as possible. If a check needs to do a lot of work or could potentially take a long time, consider ways you could optimize it or whether it could be broken down into smaller checks.
+### Register a Health Check
 
-By following these guidelines, your health checks will remain consistent, maintainable, and easy to read and debug.
+Register a health check function with a name:
+
+```typescript
+import { HealthCheck, RemediationFunction } from './types';
+
+const check: HealthCheck = async () => {
+  // Check logic goes here
+  return true; // or false
+};
+
+const remediate: RemediationFunction = async () => {
+  // Remediation logic goes here
+};
+
+healthCheckService.registerHealthCheck('myCheck', check, remediate);
+```
+
+### Unregister a Health Check
+
+Unregister a health check function by its name:
+
+```typescript
+healthCheckService.unregisterHealthCheck('myCheck');
+```
+
+### Perform Health Checks
+
+Perform all registered health checks:
+
+```typescript
+const allHealthy = await healthCheckService.performHealthChecks();
+console.log(`All checks healthy: ${allHealthy}`);
+```
+
+Perform a specific health check:
+
+```typescript
+const checkHealthy = await healthCheckService.performHealthCheck('myCheck');
+console.log(`Check healthy: ${checkHealthy}`);
+```
+
+### Scheduling Health Checks
+
+Schedule health checks to run at a regular interval (in milliseconds):
+
+```typescript
+healthCheckService.scheduleHealthChecks(30000); // every 30 seconds
+```
+
+Pause, resume, and stop scheduled health checks:
+
+```typescript
+healthCheckService.pauseScheduledHealthChecks();
+healthCheckService.resumeScheduledHealthChecks(30000);
+healthCheckService.stopScheduledHealthChecks();
+```
+
+## Advanced Usage with Health Check Classes
+
+In addition to the basic usage outlined above, the `HealthCheckService` can be used in conjunction with the `SimpleCheck`, `ComposedCheck`, and `DependentCheck` classes for more advanced health check scenarios. This allows for the composition of health checks, which can be performed sequentially or in parallel, with optional hooks for additional functionality.
+
+### SimpleCheck
+
+The `SimpleCheck` class encapsulates a single health check, optionally with hooks for functionality before and after the check, and upon encountering an error. A `SimpleCheck` can be registered with the `HealthCheckService` as shown below:
+
+```typescript
+import { SimpleCheck } from './checks';
+
+const myCheck = new SimpleCheck('myCheck', someCheckFunction);
+healthCheckService.registerHealthCheck(myCheck.name, myCheck.perform);
+```
+
+### ComposedCheck
+
+The `ComposedCheck` class enables you to bundle multiple checks (including `SimpleCheck`, `ComposedCheck`, and `DependentCheck` instances) into a single unit, which are then executed in parallel. A `ComposedCheck` can be registered with the `HealthCheckService` as shown below:
+
+```typescript
+import { ComposedCheck } from './checks';
+
+// Assume dbCheck and serverCheck are instances of SimpleCheck
+const composedCheck = new ComposedCheck('ComposedCheck', [dbCheck, serverCheck]);
+healthCheckService.registerHealthCheck(composedCheck.name, composedCheck.perform);
+```
+
+### DependentCheck
+
+The `DependentCheck` class enables creating health checks that rely on the success of another health check. A `DependentCheck` can be registered with the `HealthCheckService` as shown below:
+
+```typescript
+import { DependentCheck } from './checks';
+
+// Assume dbCheck is an instance of SimpleCheck
+const dependentCheck = new DependentCheck('DependentCheck', dbCheck, someDependentCheckFunction);
+healthCheckService.registerHealthCheck(dependentCheck.name, dependentCheck.perform);
+```
+
+In all of these examples, the `check` parameter provided to the `registerHealthCheck` function is the `perform` method of the respective check class, which encapsulates the execution of the health check(s), including any specified hooks. The `HealthCheckService` manages these checks just as it would any other health check function, including the ability to perform them manually or schedule them to be performed at regular intervals.
+
+## Conclusion
+
+With these classes, you can craft a comprehensive health check system, capable of addressing simple, compound, and interdependent scenarios. The hooks provide integration points for logging or additional monitoring tools, granting you insightful observations about your application's health status. Remember, robust health checks are the heart of any resilient and reliable system.

@@ -1,4 +1,4 @@
-import { HttpStatus } from '../lib';
+import { HttpStatus } from '../lib/enums';
 import { ErrorCategory, ErrorCodes } from './enums';
 import { SyError } from './SyError';
 
@@ -60,4 +60,32 @@ export const CacheOperationsError = SyError.createErrorType(
   HttpStatus.CACHE_OPERATIONS_FAIL,
   ErrorCategory.CACHE,
   ErrorCodes.CACHE_OPERATIONS_FAIL
+);
+
+//doc
+export const StreamExistsError = SyError.createErrorType(
+  HttpStatus.STREAM_ALREADY_EXISTS,
+  ErrorCategory.STREAM,
+  ErrorCodes.STREAM_ALREADY_EXISTS
+);
+
+//doc
+export const StreamNotFoundError = SyError.createErrorType(
+  HttpStatus.STREAM_NOT_FOUND,
+  ErrorCategory.STREAM,
+  ErrorCodes.STREAM_NOT_FOUND
+);
+
+//doc
+export const UptimeTrackerError = SyError.createErrorType(
+  HttpStatus.STREAM_NOT_FOUND,
+  ErrorCategory.STREAM,
+  ErrorCodes.STREAM_NOT_FOUND
+);
+
+//doc
+export const HealthCheckError = SyError.createErrorType(
+  HttpStatus.HEALTH_CHECK_FAIL,
+  ErrorCategory.SERVER,
+  ErrorCodes.HEALTH_CHECK_FAIL
 );

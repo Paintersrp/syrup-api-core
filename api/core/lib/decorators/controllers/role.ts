@@ -11,6 +11,10 @@ import { Context, Next } from 'koa';
  * async someFunction(ctx: Context, next: Next) {}
  */
 export function Role(roles: string[]) {
+  if (!Array.isArray(roles)) {
+    throw new TypeError('Roles must be an array of strings');
+  }
+
   return function (_: Object, __: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 

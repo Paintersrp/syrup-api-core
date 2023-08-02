@@ -4,4 +4,5 @@ export const AuthResponses = {
   INSUFFICIENT_PERMISSIONS: 'Insufficient permissions',
   TOKEN_EXPIRED: 'Token expired',
   TOKEN_INVALID: 'Invalid token',
+  FORBIDDEN: "Forbidden"
 };

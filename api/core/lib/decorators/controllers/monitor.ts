@@ -2,10 +2,8 @@ import os from 'os';
 import { Context, Next } from 'koa';
 
 /**
- * @todo Document file
  * @todo Worker process queue for scaling
  * @todo Enhanced metric collection and processing
- * @todo Circuit Breaker Middleware (opossum)
  * @todo Event Loop
  */
 
@@ -49,6 +47,7 @@ export function Monitor(_: any, key: string, descriptor: PropertyDescriptor): Pr
   return descriptor;
 }
 
+//doc
 function reportMetrics(key: string, executionTime: number, ctx: Context, memUsageDiff: string) {
   ctx.logger.logAccess({
     key,

@@ -20,4 +20,18 @@ export interface RequestLogReport {
   uniqueIPs: number;
 }
 
-
+export interface RequestLogMetrics {
+  totalRequests: number;
+  totalDuration: number;
+  totalResponseSize: number;
+  errorCount: number;
+  shortestDuration: number;
+  longestDuration: number;
+  userIds: string[];
+  paths: string[];
+  statusCodes: number[];
+  methods: string[];
+  userAgents: string[];
+  ipAddresses: string[];
+  requestFrequency: Record<string, number>;
+}

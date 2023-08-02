@@ -51,13 +51,13 @@ export class HistoryManager {
    * @param {string} key - the key for which the history is retrieved
    * @returns {Anomaly[] | null} - the history for the key or null
    */
-  public getHistory(key: string): Anomaly[] | null {
+  public getHistory(key: string): Anomaly[] | undefined {
     const history = this.history.get(key);
 
-    if (history && history.length > this.seasonLength) {
-      return history;
-    }
-    return null;
+    // if (history && history.length > this.seasonLength) {
+    //   return history;
+    // }
+    return history;
   }
 
   /**

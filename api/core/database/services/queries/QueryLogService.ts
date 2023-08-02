@@ -2,7 +2,7 @@ import { QueryOptions, Sequelize } from 'sequelize';
 
 import * as settings from '../../../../settings';
 import { SyLogger } from '../../../logging/SyLogger';
-import { FixedAbstractQuery, QueryLogObject } from './types';
+import { FixedAbstractQuery, FixedQueryOptions, QueryLogObjectContext } from './types';
 
 /**
  * @todo USE RESPONSES ENUMS
@@ -72,7 +72,10 @@ export class QueryLogService {
    * @description Calculates the duration of the query and logs the information
    * @returns {Promise<void>} A Promise that will resolve when the query log is complete
    */
-  private async afterQueryHook(options: QueryOptions, meta: FixedAbstractQuery): Promise<void> {
+  private async afterQueryHook(
+    options: FixedQueryOptions,
+    meta: FixedAbstractQuery
+  ): Promise<void> {
     const queryId = meta.uuid as string;
     const startTime = this.queryStartTime.get(queryId);
 
@@ -91,7 +94,7 @@ export class QueryLogService {
    * @returns {Promise<void>} A Promise that resolves when the log is complete.
    */
   private async logQuery(
-    options: QueryOptions,
+    options: FixedQueryOptions,
     meta: FixedAbstractQuery,
     duration: number
   ): Promise<void> {
@@ -113,22 +116,26 @@ export class QueryLogService {
    * @param options - The options object for the query
    * @param meta - The meta object for the query
    * @param duration - The duration of the query in milliseconds.
-   * @returns {QueryLogObject} The generated log object
+   * @returns {QueryLogObjectContext} The generated log object
    */
   private generateLogObject(
-    options: QueryOptions,
+    options: FixedQueryOptions,
     meta: FixedAbstractQuery,
     duration: number
-  ): QueryLogObject {
+  ): QueryLogObjectContext {
     const id = meta.uuid as string;
     const modelName = meta.model?.name || 'Unknown';
+    const sqlParameters = options.attributes;
+    const instance = meta.instance || null;
 
     return {
       id,
-      type: options.type,
+      type: options.type || 'unknown',
       modelName,
       sql: meta.sql,
       duration,
+      sqlParameters,
+      instance,
     };
   }
 
@@ -139,7 +146,7 @@ export class QueryLogService {
    * @param logObject - The options object for the query
    * @returns {string} The generated log string
    */
-  private generateLogString(logObject: QueryLogObject): string {
+  private generateLogString(logObject: QueryLogObjectContext): string {
     const logString = `Query ${logObject.type} on model ${logObject.modelName || 'Unknown'} took ${
       logObject.duration
     }ms [SQL: ${logObject.sql}]`;

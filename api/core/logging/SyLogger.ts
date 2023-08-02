@@ -8,7 +8,7 @@ import { LoggerDefaults } from './defaults';
 import { LoggerNames } from './enums';
 import { LogInterface, LoggerConfig } from './types';
 import { Interval } from '../lib';
-import { DataSize } from '../lib/shared/enums/data-sizes';
+import { DataSize } from '../lib/enums/data-sizes';
 
 /**
  * CentralLogger creates and manages multiple loggers in the system.

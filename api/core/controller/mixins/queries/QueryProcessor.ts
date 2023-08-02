@@ -4,7 +4,7 @@ import { Context } from 'koa';
 import { BadRequestError } from '../../../errors/client';
 
 import { CustomWhere, FilterOptions, OperatorMapping, QueryType } from './types';
-import { SyValidator } from '../../../mixins/validator/SyValidator';
+import { SyValidator } from '../../../mixins/validators/SyValidator';
 import * as settings from '../../../../settings';
 import { server } from '../../../../server';
 

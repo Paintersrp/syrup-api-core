@@ -38,9 +38,9 @@
 
 ## Code Quality
 
-- [ ] Refactor code to make it more readable and maintainable
-- [ ] Document each function using JsDoc
-- [ ] Add TypeScript types where possible
+- [x] Refactor code to make it more readable and maintainable
+- [x] Document each function using JsDoc
+- [x] Add TypeScript types where possible
 
 ## Tests
 
@@ -54,13 +54,6 @@
 - [ ] Write a comprehensive README, API documentation with examples
 - [ ] Provide examples of usage in different scenarios
 
-## Performance
-
-- [ ] Benchmark different validation scenarios and optimize where necessary
-- [ ] Implement lazy validations, only validating when necessary
-
 ## Miscellaneous
 
-- [ ] Provide a way to format validated data (trim strings, convert types, etc.)
-- [ ] Provide support for asynchronous validators
 - [ ] Support for validating files and streams

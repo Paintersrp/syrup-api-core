@@ -1,4 +1,4 @@
-import { HttpStatus } from '../lib';
+import { HttpStatus } from '../lib/enums';
 import { ErrorCategory, ErrorCodes } from './enums';
 import { SyError } from './SyError';
 
@@ -11,8 +11,6 @@ export const BadRequestError = SyError.createErrorType(
   ErrorCategory.CLIENT,
   ErrorCodes.BAD_REQUEST
 );
-
-
 
 /**
  * Represents an HTTP 409 Conflict client error.
