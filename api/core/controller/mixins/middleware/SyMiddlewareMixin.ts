@@ -1,6 +1,7 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import * as Yup from 'yup';
+import { AuditAction, AuditLog } from '../../../model/audit';
 
 import { cache, CACHE } from '../../../../settings';
 import { BadRequestError } from '../../../errors/client';
@@ -50,6 +51,7 @@ export class SyMiddlewareMixin extends SyMixin {
    * If `skip` query parameter is set to 'true', the cache is skipped and the endpoint is processed * normally.
    */
   public async cacheEndpoint(ctx: Router.RouterContext, next: Koa.Next) {
+    console.log({ ...this.model });
     const skipAndRefreshCache = ctx.query.skip === 'true';
     const cacheKey = `${ctx.method}-${ctx.url}` as unknown as number;
     const cachedResponse = cache.get(cacheKey);
@@ -77,4 +79,41 @@ export class SyMiddlewareMixin extends SyMixin {
     };
     await next();
   }
+
+  // public async auditLogMiddleware(ctx: Router.RouterContext, next: Koa.Next) {
+  //   const originalData = { ...this.model };
+
+  //   await next();
+
+  //   let action;
+  //   switch (ctx.method) {
+  //     case 'POST':
+  //       action = AuditAction.CREATE;
+  //       break;
+  //     case 'PUT':
+  //     case 'PATCH':
+  //       action = AuditAction.UPDATE;
+  //       break;
+  //     case 'DELETE':
+  //       action = AuditAction.DELETE;
+  //       break;
+  //     default:
+  //       return;
+  //   }
+
+  //   const newData = { ...this.model };
+
+  //   if (JSON.stringify(originalData) !== JSON.stringify(newData)) {
+  //     const auditLog = new AuditLog({
+  //       action: action,
+  //       model: this.model.constructor.name,
+  //       beforeData: originalData,
+  //       afterData: newData,
+  //       userId: ctx.state.user.id, // assuming user is stored in ctx.state.user
+  //       username: ctx.state.user.username, // assuming user is stored in ctx.state.user
+  //     });
+
+  //     await auditLog.save();
+  //   }
+  // }
 }

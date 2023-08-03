@@ -1,14 +1,9 @@
-import { IMiddleware, IRouterContext } from 'koa-router';
+import { IMiddleware } from 'koa-router';
 import { ForbiddenError } from '../core/errors/client';
+import { userRoleResolver } from '../core/lib/resolvers/userRoleResolver';
+import { AuthResponses } from '../core/lib/responses';
+import { AccessLogObject } from '../core/logging/objects/AccessLogObject';
 import { UserRoleEnum } from '../models/user';
-
-type UserRoleResolver = (ctx: IRouterContext) => Promise<UserRoleEnum>;
-
-const userRoleResolver: UserRoleResolver = async (ctx) => {
-  return ctx.state.user ? ctx.state.user.role : UserRoleEnum.USER;
-};
-
-const RBAC_ERROR_MESSAGE = 'You do not have the necessary role to perform this action';
 
 /**
  * A middleware to check if the authenticated user has the required role(s) to access a resource.
@@ -23,8 +18,14 @@ export const rbacMiddleware = (roles: UserRoleEnum | UserRoleEnum[]): IMiddlewar
     const userRole = await userRoleResolver(ctx);
 
     if (!requiredRoles.includes(userRole)) {
-      throw new ForbiddenError(RBAC_ERROR_MESSAGE);
+      const logObject = new AccessLogObject(ctx, 'DENY', AuthResponses.RBAC_FAIL, 'Middleware');
+      logObject.log(ctx);
+
+      throw new ForbiddenError(AuthResponses.RBAC_FAIL);
     }
+
+    const logObject = new AccessLogObject(ctx, 'ALLOW', AuthResponses.RBAC_SUCCESS, 'Middleware');
+    logObject.log(ctx);
 
     await next();
   };

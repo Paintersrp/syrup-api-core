@@ -149,6 +149,7 @@ export class SyLogger {
     }
   }
 
+  //doc
   public batchLog(logs: LogInterface[]): void {
     for (const log of logs) {
       this.log(log.name, log.level, log.message, log.obj);

@@ -206,7 +206,7 @@ export abstract class SyController extends EventEmitter {
    * This method is responsible for obtaining metadata of a Sequelize model
    * @see SyMetaMixin#getMetadata
    */
-  @ETag
+  @ETag()
   public async getMetadata(ctx: Router.RouterContext): Promise<void> {
     this.mixins.meta.getMetadata(ctx);
   }

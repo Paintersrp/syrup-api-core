@@ -16,6 +16,8 @@ import { SyModel } from '../core/model/SyModel';
 import { Profile } from './profile';
 import { faker } from '@faker-js/faker';
 import { UserSession } from '../types';
+import { auditLog } from '../core/lib/auditLog';
+import { AuditAction } from '../core/model/audit';
 
 /**
  * @todo Soft Deletion
@@ -183,7 +185,7 @@ export class User extends SyModel<
    */
   public static hooks = {
     beforeCreate: async (instance: User) => {
-      const { password, salt } = await this.hashPassword(instance.password);
+      const { password, salt } = await User.hashPassword(instance.password);
       instance.password = password;
       instance.salt = salt;
     },
@@ -197,6 +199,7 @@ export class User extends SyModel<
     },
     afterCreate: async (user: User) => {
       user.createBlankProfile();
+      await auditLog(user, AuditAction.CREATE);
     },
   };
 
@@ -230,7 +233,7 @@ User.init(
     ...User.fields,
   },
   {
-    hooks: User.hooks,
+    hooks: { ...SyModel.auditHooks, ...User.hooks },
     tableName: 'users',
     sequelize: ORM.database,
   }

@@ -31,11 +31,24 @@ export interface ErrorResponse {
   timestamp: string;
   stack?: string;
   user?: any;
-  requestId?: number;
+  path?: string;
+  requestId?: string;
   request?: {
     method: string;
     url: string;
     headers: IncomingHttpHeaders;
     body: unknown;
   };
+}
+
+export interface ErrorLogObjectResponse {
+  timestamp: string;
+  status: number;
+  message: string;
+  details?: any;
+  requestId: string;
+  path: string;
+  userAgent: string;
+  ipAddress: string;
+  stack?: string[];
 }

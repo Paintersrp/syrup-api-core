@@ -44,11 +44,11 @@ export const server = new SyServer({
 
 // Testing purposes
 
-import { RequestLogAnalyzer } from './core/mixins/analyzer/requests/RequestLogAnalyzer';
+import { RequestReportGenerator } from './core/reports/request/RequestReportGenerator';
 import { AnomalyDetector } from './core/mixins/anomaly';
 import { StreamManager } from './core/mixins/streams/StreamManager';
 import { TrafficStream } from './core/mixins/streams/sub/TrafficStream';
-import { QueryLogAnalyzer } from './core/mixins/analyzer/queries/QueryLogAnalyzer';
+import { QueryReportGenerator } from './core/reports/query/QueryReportGenerator';
 
 const anomalyDetector = new AnomalyDetector(settings.APP_LOGGER);
 const trafficStream = new TrafficStream('traffic', anomalyDetector);
@@ -65,7 +65,7 @@ trafficStream.onData((visits) => {
 
 streamManager.startAll();
 
-const analyzer = new QueryLogAnalyzer();
+const analyzer = new QueryReportGenerator();
 
 analyzer
   .loadLog('./logs/queries.log')

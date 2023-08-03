@@ -5,7 +5,22 @@ import {
   CreationOptional,
   NonAttribute,
   DataTypes,
+  UpdateOptions,
 } from 'sequelize';
+import { auditLog } from '../lib/auditLog';
+import { AuditAction } from './audit';
+
+// async function auditLog(model: any, action: AuditAction) {
+//   const dataValues = model.dataValues;
+//   const originalData = model._previousDataValues;
+
+//   await AuditLog.create({
+//     action,
+//     model: model.constructor.name,
+//     beforeData: action === AuditAction.DELETE ? originalData : null,
+//     afterData: action !== AuditAction.DELETE ? dataValues : null,
+//   });
+// }
 
 /**
  * Abstract base class for Sequelize models with additional metadata and field definitions.
@@ -78,4 +93,31 @@ export class SyModel<
   public static getFields(): Record<string, any> {
     return this.fields;
   }
+
+  // wip, auto auditing hooks... how to merge with in model defined hooks?
+  public static auditHooks = {
+    afterCreate: async (instance: any, options: any) => {
+      console.log('TEST', instance);
+      await auditLog(instance, AuditAction.CREATE);
+    },
+    afterBulkCreate: async (instances: any[], options: any) => {
+      const promises = instances.map(async (instance) => {
+        await auditLog(instance, AuditAction.CREATE);
+      });
+      await Promise.all(promises);
+    },
+    afterUpdate: async (instance: any, options: any) => {
+      await auditLog(instance, AuditAction.UPDATE);
+    },
+    afterBulkUpdate: async (options: UpdateOptions<any>) => {
+      console.log(options);
+      // const promises = instances.map(async (instance) => {
+      //   await auditLog(instance, AuditAction.UPDATE);
+      // });
+      // await Promise.all(promises);
+    },
+    afterDestroy: async (instance: any, options: any) => {
+      await auditLog(instance, AuditAction.DELETE);
+    },
+  };
 }
