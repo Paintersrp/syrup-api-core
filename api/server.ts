@@ -49,6 +49,8 @@ import { AnomalyDetector } from './core/mixins/anomaly';
 import { StreamManager } from './core/mixins/streams/StreamManager';
 import { TrafficStream } from './core/mixins/streams/sub/TrafficStream';
 import { QueryReportGenerator } from './core/reports/query/QueryReportGenerator';
+import { AuditReportGenerator } from './core/reports/audit/AuditReportGenerator';
+import { AuditLog } from './core/model/auditlog';
 
 const anomalyDetector = new AnomalyDetector(settings.APP_LOGGER);
 const trafficStream = new TrafficStream('traffic', anomalyDetector);
@@ -65,14 +67,21 @@ trafficStream.onData((visits) => {
 
 streamManager.startAll();
 
-const analyzer = new QueryReportGenerator();
+async function generateAuditReport() {
+  const logs = await AuditLog.findAll();
+  const reportGenerator = new AuditReportGenerator(logs);
+  const report = reportGenerator.analyzeLogs();
+  console.log(report);
+}
 
-analyzer
-  .loadLog('./logs/queries.log')
-  .then(() => {
-    const report = analyzer.analyzeLogs();
-    console.log(report);
-  })
-  .catch((err) => {
-    console.error(`An error occurred: ${err.message}`);
-  });
+generateAuditReport();
+
+// analyzer
+//   .loadLog('./logs/audit.log')
+//   .then(() => {
+//     const report = analyzer.analyzeLogs();
+//     console.log(report);
+//   })
+//   .catch((err) => {
+//     console.error(`An error occurred: ${err.message}`);
+//   });

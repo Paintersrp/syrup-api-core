@@ -8,7 +8,7 @@ import {
   UpdateOptions,
 } from 'sequelize';
 import { auditLog } from '../lib/auditLog';
-import { AuditAction } from './audit';
+import { AuditAction } from './auditlog';
 
 // async function auditLog(model: any, action: AuditAction) {
 //   const dataValues = model.dataValues;
@@ -97,27 +97,34 @@ export class SyModel<
   // wip, auto auditing hooks... how to merge with in model defined hooks?
   public static auditHooks = {
     afterCreate: async (instance: any, options: any) => {
-      console.log('TEST', instance);
-      await auditLog(instance, AuditAction.CREATE);
+      console.log(options.context);
+      await auditLog(instance, options, AuditAction.CREATE);
     },
     afterBulkCreate: async (instances: any[], options: any) => {
       const promises = instances.map(async (instance) => {
-        await auditLog(instance, AuditAction.CREATE);
+        await auditLog(instance, AuditAction.CREATE, options.transaction);
       });
       await Promise.all(promises);
     },
     afterUpdate: async (instance: any, options: any) => {
-      await auditLog(instance, AuditAction.UPDATE);
+      console.log('Instance', instance);
+      console.log('Options', options.context);
+      await auditLog(instance, options, AuditAction.UPDATE);
     },
-    afterBulkUpdate: async (options: UpdateOptions<any>) => {
-      console.log(options);
+    afterBulkUpdate: async (options: any) => {
       // const promises = instances.map(async (instance) => {
-      //   await auditLog(instance, AuditAction.UPDATE);
+      //   await auditLog(instance, AuditAction.UPDATE, options.transaction);
       // });
       // await Promise.all(promises);
     },
     afterDestroy: async (instance: any, options: any) => {
-      await auditLog(instance, AuditAction.DELETE);
+      await auditLog(instance, AuditAction.DELETE, options.transaction);
+    },
+    afterBulkDestroy: async (options: any) => {
+      // const promises = instances.map(async (instance) => {
+      //   await auditLog(instance, AuditAction.DELETE, options.transaction);
+      // });
+      // await Promise.all(promises);
     },
   };
 }

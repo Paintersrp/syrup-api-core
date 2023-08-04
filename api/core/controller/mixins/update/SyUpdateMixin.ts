@@ -42,7 +42,7 @@ export class SyUpdateMixin extends SyMixin {
 
   /**
    * @todo Batch large operations
-   * 
+   *
    * Updates a specific instance of the model by its ID.
    * Validated with validateBody class middleware
    *
@@ -50,7 +50,7 @@ export class SyUpdateMixin extends SyMixin {
    * @param {Transaction} transaction - The Sequelize transaction.
    *
    * @throws Will throw an error if the item does not exist.
-   *
+   * 
    * @example
    * ```typescript
    * // In your Koa route handler...
@@ -63,7 +63,7 @@ export class SyUpdateMixin extends SyMixin {
 
     const item = (await this.findItemById(id, transaction)) as Model;
     Object.assign(item, fields);
-    await item.save({ transaction });
+    await item.save({ transaction, context: ctx.state.user } as any);
 
     const modelName = this.getModelName(item);
     this.createResponse(ctx, HttpStatus.OK, item, ControllerResponses.UPDATE_SUCCESS(modelName));

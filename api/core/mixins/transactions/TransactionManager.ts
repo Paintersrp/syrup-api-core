@@ -42,6 +42,7 @@ export class TransactionManager {
 
     try {
       transaction = await ORM.database.transaction();
+
       const result = await callback(transaction);
       await transaction.commit();
       return result;
@@ -51,6 +52,7 @@ export class TransactionManager {
       }
 
       this.logger.error(error, 'Transaction failed');
+      console.log(error);
       throw new InternalServerError(Responses.INTERNAL_SERVER, transaction as any, ctx.url);
     }
   }

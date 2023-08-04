@@ -22,6 +22,7 @@ Cache.init(
     ...Cache.fields,
   },
   {
+    hooks: { ...SyModel.auditHooks },
     tableName: 'cache_dump',
     sequelize: ORM.database,
   }

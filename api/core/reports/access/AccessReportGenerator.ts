@@ -79,12 +79,6 @@ export class AccessReportGenerator extends BaseReportGenerator<RBACLogObject> {
     stats[key][accessType]++;
   }
 
-  private addToListIfUnique(list: string[], item: string): void {
-    if (!list.includes(item)) {
-      list.push(item);
-    }
-  }
-
   private generateAccessKey(log: RBACLogObject): string {
     return `${log.user}-${log.role}-${log.action}-${log.resource}-${log.access}`;
   }

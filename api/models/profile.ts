@@ -169,6 +169,7 @@ Profile.init(
     ...Profile.fields,
   },
   {
+    hooks: { ...SyModel.auditHooks },
     tableName: 'profile',
     sequelize: ORM.database,
   }

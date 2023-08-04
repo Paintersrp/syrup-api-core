@@ -17,7 +17,7 @@ import { Profile } from './profile';
 import { faker } from '@faker-js/faker';
 import { UserSession } from '../types';
 import { auditLog } from '../core/lib/auditLog';
-import { AuditAction } from '../core/model/audit';
+import { AuditAction } from '../core/model/auditlog';
 
 /**
  * @todo Soft Deletion
@@ -189,7 +189,7 @@ export class User extends SyModel<
       instance.password = password;
       instance.salt = salt;
     },
-    beforeBulkCreate: async (users: User[]) => {
+    beforeBulkCreate: async (users: User[], options: any) => {
       const promises = users.map(async (user) => {
         const { password, salt } = await User.hashPassword(user.password);
         user.password = password;
@@ -197,9 +197,9 @@ export class User extends SyModel<
       });
       await Promise.all(promises);
     },
-    afterCreate: async (user: User) => {
+    afterCreate: async (user: User, options: any) => {
       user.createBlankProfile();
-      await auditLog(user, AuditAction.CREATE);
+      SyModel.auditHooks.afterCreate(user, options);
     },
   };
 

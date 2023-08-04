@@ -32,7 +32,7 @@ export class SyCreateMixin extends SyMixin {
    */
   public async create(ctx: Router.RouterContext, transaction: Transaction) {
     const payload = this.processPayload(ctx) as Optional<any, string> | undefined;
-    const item = await this.model.create(payload, { transaction });
+    const item = await this.model.create(payload, { transaction, context: ctx.state.user } as any);
 
     this.createResponse(ctx, HttpStatus.CREATED, item);
   }

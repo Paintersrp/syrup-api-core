@@ -30,6 +30,7 @@ Blacklist.init(
     ...Blacklist.fields,
   },
   {
+    hooks: { ...SyModel.auditHooks },
     tableName: 'blacklist',
     sequelize: ORM.database,
   }

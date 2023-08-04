@@ -77,4 +77,10 @@ export abstract class BaseReportGenerator<T> {
       .slice(0, limit)
       .map(([item]) => item);
   }
+
+  protected addToListIfUnique(list: string[], item: string): void {
+    if (!list.includes(item)) {
+      list.push(item);
+    }
+  }
 }
