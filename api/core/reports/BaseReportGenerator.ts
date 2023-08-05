@@ -6,7 +6,12 @@ import { AggregatedQuery } from './query/types';
  * Class representing a log analyzer for request logs.
  */
 export abstract class BaseReportGenerator<T> {
+  protected logDir: string;
   protected logs: T[] = [];
+
+  constructor(logDir: string) {
+    this.logDir = logDir;
+  }
 
   /**
    * Load logs from a file and store them internally.
@@ -16,9 +21,9 @@ export abstract class BaseReportGenerator<T> {
    * @returns {Promise<void>} Resolves when the logs have been loaded.
    * @throws Will throw an error if the logs cannot be loaded.
    */
-  public async loadLog(filePath: string): Promise<void> {
+  public async loadLogs(filePath?: string): Promise<void> {
     try {
-      const fileStream = fs.createReadStream(filePath);
+      const fileStream = fs.createReadStream(filePath ? filePath : this.logDir);
       const rl = readline.createInterface({
         input: fileStream,
         crlfDelay: Infinity,

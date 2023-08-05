@@ -1,8 +1,17 @@
 import { RBACLogObject, AccessLogMetrics, AccessLogReport, AccessStats } from './types';
 import { BaseReportGenerator } from '../BaseReportGenerator';
 
+/**
+ * The AccessReportGenerator class provides methods for analyzing access logs and generating reports.
+ * It extends the BaseReportGenerator class, adding functionality specific to access logs.
+ */
 export class AccessReportGenerator extends BaseReportGenerator<RBACLogObject> {
-  public analyzeLogs(): Partial<AccessLogReport> {
+  /**
+   * Analyzes the loaded logs and generates a report.
+   * @returns A promise that resolves with the generated report.
+   */
+  public async analyzeLogs(): Promise<Partial<AccessLogReport>> {
+    await this.loadLogs();
     const metrics = this.collectMetrics();
     return this.createReport(metrics);
   }

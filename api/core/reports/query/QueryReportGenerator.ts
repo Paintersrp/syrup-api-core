@@ -37,10 +37,11 @@ export class QueryReportGenerator extends BaseReportGenerator<QueryReportLogObje
    * Analyzes the loaded logs and returns a report of various metrics.
    *
    * @public
-   * @returns {QueryLogReport} A report of various metrics about the loaded logs.
+   * @returns {Promise<QueryLogReport>} A report of various metrics about the loaded logs.
    * @throws Will throw an error if no logs have been loaded.
    */
-  public analyzeLogs(): QueryLogReport {
+  public async analyzeLogs(): Promise<QueryLogReport> {
+    await this.loadLogs();
     for (const log of this.logs) {
       this.collectMetrics(log);
     }

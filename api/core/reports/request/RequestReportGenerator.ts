@@ -15,7 +15,8 @@ export class RequestReportGenerator extends BaseReportGenerator<RequestLogObject
    * @returns {Partial<RequestLogReport>} A report of various metrics about the loaded logs.
    * @throws Will throw an error if no logs have been loaded.
    */
-  public analyzeLogs(): Partial<RequestLogReport> {
+  public async analyzeLogs(): Promise<Partial<RequestLogReport>> {
+    await this.loadLogs();
     const metrics = this.collectMetrics();
     return this.createReport(metrics);
   }

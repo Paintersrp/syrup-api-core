@@ -8,9 +8,10 @@ import { BaseReportGenerator } from '../BaseReportGenerator';
 export class ErrorReportGenerator extends BaseReportGenerator<ErrorLogObject> {
   /**
    * Analyzes the logs and generates a report.
-   * @return {ErrorLogReport}
+   * @return {Promise<ErrorLogReport>}
    */
-  public analyze(): ErrorLogReport {
+  public async analyzeLogs(): Promise<ErrorLogReport> {
+    await this.loadLogs();
     const metrics = this.collectMetrics();
     return this.createReport(metrics);
   }

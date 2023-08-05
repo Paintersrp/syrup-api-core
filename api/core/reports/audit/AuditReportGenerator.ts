@@ -1,14 +1,35 @@
 import { AuditAction, AuditLog } from '../../model/auditlog';
 import { AuditLogMetrics } from './types';
 
+/**
+ * The AuditReportGenerator class provides methods for loading, analyzing, and reporting on audit logs.
+ */
 export class AuditReportGenerator {
-  private logs: AuditLog<any, any>[];
+  private logs: AuditLog<any, any>[] = [];
 
-  constructor(logs: AuditLog<any, any>[]) {
-    this.logs = logs;
+  /**
+   * Loads audit logs into memory.
+   */
+  public async loadLogs(): Promise<void> {
+    this.logs = await AuditLog.findAll();
   }
 
-  public analyzeLogs(): AuditLogMetrics {
+  /**
+   * Clear the loaded logs.
+   *
+   * @public
+   * @returns {void}
+   */
+  public clearLogs(): void {
+    this.logs = [];
+  }
+
+  /**
+   * Analyzes audit logs and returns metrics about them.
+   * @returns The metrics derived from the audit logs.
+   */
+  public async analyzeLogs(): Promise<AuditLogMetrics> {
+    await this.loadLogs();
     const metrics = this.collectMetrics();
 
     Object.entries(metrics.fieldChangeCounts).forEach(([model, fieldCounts]) => {
@@ -17,7 +38,6 @@ export class AuditReportGenerator {
         .map(([field, _]) => field);
       metrics.topChangedFields[model] = sortedFields.slice(0, 5);
     });
-
     return metrics;
   }
 
