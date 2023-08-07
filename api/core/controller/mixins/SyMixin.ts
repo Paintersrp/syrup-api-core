@@ -78,7 +78,7 @@ export abstract class SyMixin {
       status: status >= 200 && status < 300 ? 'success' : 'error',
       message,
       data: body,
-      errorCode: error || null,
+      errorCode: error || undefined,
     };
   }
 
@@ -134,6 +134,10 @@ export abstract class SyMixin {
   protected getModelName(item: Model): string {
     const modelName = item.constructor.name.replace('SequelizeModel', '');
     return modelName;
+  }
+  
+  protected getModelNamePlural(item: Model): string {
+    return `${this.getModelName(item)}s`;
   }
 
   /**

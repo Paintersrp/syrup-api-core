@@ -20,109 +20,109 @@ export enum GenderEnum {
 }
 
 export class Profile extends SyModel<InferAttributes<Profile>, InferCreationAttributes<Profile>> {
-  declare userId: ForeignKey<User['id']>;
+  userId: ForeignKey<User['id']>;
 
   @Field({
     type: DataTypes.STRING(50),
     verbose: 'Email Address',
   })
-  declare email: CreationOptional<string>;
+  email: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'First Name',
   })
-  declare firstName: CreationOptional<string>;
+  firstName: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(40),
     verbose: 'Last Name',
   })
-  declare lastName: CreationOptional<string>;
+  lastName: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(1024),
     verbose: 'Biography',
   })
-  declare bio: CreationOptional<string>;
+  bio: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(50),
     verbose: 'City',
   })
-  declare city: CreationOptional<string>;
+  city: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Country',
   })
-  declare country: CreationOptional<string>;
+  country: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(20),
     verbose: 'Phone Number',
   })
-  declare phone: CreationOptional<string>;
+  phone: CreationOptional<string>;
 
-  @Field({
-    type: DataTypes.STRING(255),
-    verbose: 'Avatar',
-  })
-  declare avatar: CreationOptional<string>;
+  // @Field({
+  //   type: DataTypes.STRING(255),
+  //   verbose: 'Avatar',
+  // })
+  // avatar: CreationOptional<string>;
 
-  @Field({
-    type: DataTypes.ENUM(...Object.values(GenderEnum)),
-    verbose: 'Gender',
-  })
-  declare gender: CreationOptional<GenderEnum>;
+  // @Field({
+  //   type: DataTypes.ENUM(...Object.values(GenderEnum)),
+  //   verbose: 'Gender',
+  // })
+  // gender: CreationOptional<GenderEnum>;
 
-  @Field({
-    type: DataTypes.DATEONLY,
-    verbose: 'Date of Birth',
-  })
-  declare dob: CreationOptional<Date>;
+  // @Field({
+  //   type: DataTypes.DATEONLY,
+  //   verbose: 'Date of Birth',
+  // })
+  // dob: CreationOptional<Date>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Facebook',
   })
-  declare facebook: CreationOptional<string>;
+  facebook: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Instagram',
   })
-  declare instagram: CreationOptional<string>;
+  instagram: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Threads',
   })
-  declare threads: CreationOptional<string>;
+  threads: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Twitter',
   })
-  declare twitter: CreationOptional<string>;
+  twitter: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'LinkedIn',
   })
-  declare linkedIn: CreationOptional<string>;
+  linkedIn: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Github',
   })
-  declare github: CreationOptional<string>;
+  github: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'YouTube',
   })
-  declare youtube: CreationOptional<string>;
+  youtube: CreationOptional<string>;
 
   toJSON(): any {
     return {

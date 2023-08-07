@@ -13,7 +13,7 @@ export class Cache extends SyModel<InferAttributes<Cache>, InferCreationAttribut
     type: DataTypes.JSON,
     verbose: 'Cache Contents',
   })
-  declare contents: JSON;
+  contents: JSON;
 }
 
 Cache.init(

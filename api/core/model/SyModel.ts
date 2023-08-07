@@ -97,7 +97,6 @@ export class SyModel<
   // wip, auto auditing hooks... how to merge with in model defined hooks?
   public static auditHooks = {
     afterCreate: async (instance: any, options: any) => {
-      console.log(options.context);
       await auditLog(instance, options, AuditAction.CREATE);
     },
     afterBulkCreate: async (instances: any[], options: any) => {
@@ -107,8 +106,6 @@ export class SyModel<
       await Promise.all(promises);
     },
     afterUpdate: async (instance: any, options: any) => {
-      console.log('Instance', instance);
-      console.log('Options', options.context);
       await auditLog(instance, options, AuditAction.UPDATE);
     },
     afterBulkUpdate: async (options: any) => {

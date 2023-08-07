@@ -51,7 +51,6 @@ export class SyMiddlewareMixin extends SyMixin {
    * If `skip` query parameter is set to 'true', the cache is skipped and the endpoint is processed * normally.
    */
   public async cacheEndpoint(ctx: Router.RouterContext, next: Koa.Next) {
-    console.log({ ...this.model });
     const skipAndRefreshCache = ctx.query.skip === 'true';
     const cacheKey = `${ctx.method}-${ctx.url}` as unknown as number;
     const cachedResponse = cache.get(cacheKey);

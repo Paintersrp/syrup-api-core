@@ -59,11 +59,13 @@ export class SyRoutes<T extends SyController> {
 
     router
       .post(`/${routeName}`, controller.validateBody, controller.create)
-      .get(`/${routeName}/:id`, controller.cacheEndpoint, controller.read)
+      .get(`/${routeName}/:id`, controller.read)
+      // .get(`/${routeName}/:id`, controller.cacheEndpoint, controller.read)
       .put(`/${routeName}/:id`, controller.validateBody, controller.update)
       .patch(`/${routeName}/:id`, controller.validateBody, controller.update)
       .delete(`/${routeName}/:id`, controller.delete)
-      .get(`/${routeName}`, controller.cacheEndpoint, controller.all)
+      .get(`/${routeName}`, controller.all)
+      // .get(`/${routeName}`, controller.cacheEndpoint, controller.all)
       .get(`/meta/${routeName}`, controller.cacheEndpoint, controller.getMetadata)
       .options(`/${routeName}`, controller.options);
   }

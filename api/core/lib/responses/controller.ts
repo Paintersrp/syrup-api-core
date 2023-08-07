@@ -1,5 +1,3 @@
-import { Model } from 'sequelize';
-
 export const ControllerResponses = {
   CREATE_SUCCESS: (modelName: string) => `${modelName} created successfully`,
   CREATE_FAIL: (modelName: string) => `Failed to create ${modelName}`,

@@ -1,9 +1,10 @@
 import Router from 'koa-router';
 import { Optional, Transaction } from 'sequelize';
-import { HttpStatus } from '../../../lib';
 
 import { SyMixin } from '../SyMixin';
+import { HttpStatus } from '../../../lib';
 import { ControllerMixinOptions } from '../../types';
+import { ControllerMessages } from '../../../messages/services';
 import * as settings from '../../../../settings';
 
 /**
@@ -34,7 +35,12 @@ export class SyCreateMixin extends SyMixin {
     const payload = this.processPayload(ctx) as Optional<any, string> | undefined;
     const item = await this.model.create(payload, { transaction, context: ctx.state.user } as any);
 
-    this.createResponse(ctx, HttpStatus.CREATED, item);
+    this.createResponse(
+      ctx,
+      HttpStatus.CREATED,
+      item,
+      ControllerMessages.SUCCESS(this.getModelName(item), 'create')
+    );
   }
 
   /**
@@ -55,6 +61,11 @@ export class SyCreateMixin extends SyMixin {
       createdItems = [...createdItems, ...batchItems];
     }
 
-    this.createResponse(ctx, HttpStatus.CREATED, createdItems);
+    this.createResponse(
+      ctx,
+      HttpStatus.CREATED,
+      createdItems,
+      ControllerMessages.SUCCESS(this.getModelNamePlural(createdItems[0]), 'create')
+    );
   }
 }

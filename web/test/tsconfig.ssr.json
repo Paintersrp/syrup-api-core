@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "CommonJS",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "./ssr-build"
+  },
+  "include": ["src/pages/**/*", "./global.d.ts"]
+}

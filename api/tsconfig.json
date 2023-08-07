@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
+    "jsx": "react",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "target": "ES6",
-    "module": "commonjs",
+    "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "strictPropertyInitialization": false
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

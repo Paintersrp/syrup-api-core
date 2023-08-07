@@ -18,10 +18,10 @@ export class Blacklist extends SyModel<
   InferAttributes<Blacklist>,
   InferCreationAttributes<Blacklist>
 > {
-  declare userId: ForeignKey<User['id']>;
+  userId: ForeignKey<User['id']>;
 
   @Field({ type: DataTypes.STRING(500), verbose: 'Blacklisted Token' })
-  declare token: CreationOptional<string>;
+  token: CreationOptional<string>;
 }
 
 Blacklist.init(

@@ -53,6 +53,7 @@ import { AuditReportGenerator } from './core/reports/audit/AuditReportGenerator'
 import { AccessReportGenerator } from './core/reports/access/AccessReportGenerator';
 import { ErrorReportGenerator } from './core/reports/error/ErrorReportGenerator';
 import { ReportManager } from './core/reports/manager/ReportManager';
+import { EmailService } from './core/mixins/email/EmailService';
 
 const anomalyDetector = new AnomalyDetector(settings.APP_LOGGER);
 const trafficStream = new TrafficStream('traffic', anomalyDetector);
@@ -133,3 +134,6 @@ const newReportProfile = {
 // Add the new report profile to the ReportManager instance.
 // This will create a new job and add it to the scheduler.
 reportManager.addReportProfile(newReportProfile);
+
+const emailService = new EmailService(settings.EMAIL.EMAIL_BACKEND);
+emailService.sendEmail('test@example.com', 'Test Subject', 'Test Body');

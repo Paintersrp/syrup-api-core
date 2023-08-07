@@ -7,7 +7,7 @@ import { STATIC_DIR } from './general';
  */
 export const MIDDLEWARES = Middleware.compose([
   Middleware.cors(),
-  Middleware.circuitBreakerMiddleware,
+  // Middleware.circuitBreakerMiddleware,
   Middleware.helmetMiddleware,
   Middleware.bodyParser({
     jsonLimit: '2mb',

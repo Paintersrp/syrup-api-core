@@ -8,6 +8,7 @@ import { SyController } from '../core/controller/SyController';
 import { UserSchema } from '../schemas';
 import { JWT_SECRET } from '../settings';
 import { Blacklist, User } from '../models';
+import { AuthMessages } from '../core/messages/services';
 
 export class UserController extends SyController {
   private methodsToBind = ['register', 'login', 'logout', 'refresh_token', 'validateUserBody'];
@@ -116,10 +117,10 @@ export class UserController extends SyController {
     if (fields) {
       try {
         await User.create(fields);
-        ctx.body = 'User registered successfully';
+        ctx.body = AuthMessages.SUCCESS('User', 'registration');
       } catch (error) {
         ctx.status = 500;
-        ctx.body = { message: 'Error registering user', error: error };
+        ctx.body = { message: AuthMessages.FAIL('User', 'registration'), error: error };
       }
     }
   }
@@ -128,8 +129,6 @@ export class UserController extends SyController {
    * Logs in a user and generates access and refresh tokens.
    */
   async login(ctx: Router.RouterContext) {
-    console.log(ctx);
-    console.log('Test2');
     const { username, password } = ctx.request.body as {
       [key: string]: string;
     };
@@ -137,7 +136,7 @@ export class UserController extends SyController {
 
     if (hasToken) {
       ctx.status = 403;
-      ctx.body = { message: 'Already logged in' };
+      ctx.body = { message: AuthMessages.ALREADY_LOGGED_IN };
       return;
     }
 
@@ -145,13 +144,13 @@ export class UserController extends SyController {
       const user = await User.findOne({ where: { username } });
 
       if (!user) {
-        ctx.throw(401, 'User not found');
+        ctx.throw(401, AuthMessages.USER_NOT_FOUND(username));
       }
 
       const isValidPassword = await bcrypt.compare(password, user.password);
 
       if (!isValidPassword) {
-        ctx.throw(401, 'Invalid password');
+        ctx.throw(401, AuthMessages.INVALID_PASSWORD);
       }
 
       if (user.refreshToken) {
@@ -176,7 +175,7 @@ export class UserController extends SyController {
     } catch (error: any) {
       this.logger.error(error);
       ctx.status = 500;
-      ctx.body = { message: 'An error occurred while logging in', error: error.message };
+      ctx.body = { message: AuthMessages.FAIL('User', 'login'), error: error.message };
     }
   }
 
@@ -201,11 +200,11 @@ export class UserController extends SyController {
           ctx.body = { accessToken };
         } else {
           ctx.status = 401;
-          ctx.body = 'Invalid refresh token';
+          ctx.body = AuthMessages.TOKEN_EXPIRED;
         }
       } catch (error) {
         ctx.status = 500;
-        ctx.body = 'Error refreshing token';
+        ctx.body = AuthMessages.TOKEN_ERROR;
       }
     }
   }
@@ -231,10 +230,10 @@ export class UserController extends SyController {
         signed: false,
         expires: new Date(0),
       });
-      ctx.body = 'Logged out successfully';
+      ctx.body = AuthMessages.SUCCESS('User', 'logout');
     } catch (erorr) {
       ctx.status = 500;
-      ctx.body = 'Error logging out';
+      ctx.body = AuthMessages.FAIL('User', 'logout');
     }
   }
 }

@@ -244,7 +244,6 @@ export class QueryProcessor {
    * @returns {boolean} True if valid, false otherwise
    */
   private isValidSortOption(sort: string, pathContext: string): boolean {
-    console.log(sort);
     return (
       this.validator.assertAlphanumeric({ param: sort, context: pathContext }) &&
       this.validSortOptions.includes(sort.toLowerCase())

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node-dev --respawn --transpile-only server.ts"
+    "start": "ts-node-dev --respawn --transpile-only server.tsx",
+    "ts": "ts-node -r tsconfig-paths/register server.tsx"
   },
   "keywords": [],
   "author": "Ryan Painter",

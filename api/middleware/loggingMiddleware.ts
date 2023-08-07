@@ -39,7 +39,11 @@ export function generateLogObject(ctx: Koa.Context, startTime: bigint, err?: Err
   const user: User | string = ctx.state.user?.username || 'Anonymous';
   const role: string = ctx.state.user?.role || 'Unknown';
 
-  const responseSize = Buffer.byteLength(JSON.stringify(ctx.body), 'utf8');
+  let responseSize = 0;
+  
+  if (ctx.body) {
+    responseSize = Buffer.byteLength(JSON.stringify(ctx.body), 'utf8');
+  }
 
   // Create the log object. If an error occurred, include its message and stack trace.
   const logObject: LogObject = {

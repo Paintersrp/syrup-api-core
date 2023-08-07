@@ -1,3 +1,4 @@
+import { CacheMessages } from '../../../../messages/services/cache';
 import { SyLFUCache } from '../SyLFUCache';
 
 /**
@@ -61,6 +62,7 @@ export class LFUOperations<T> {
     const node = this.client.cache.get(key);
 
     if (!node) {
+      this.client.logger.debug(CacheMessages.INFO(`${key} missed`));
       return this.client.incrementCacheMisses();
     }
 
@@ -79,6 +81,7 @@ export class LFUOperations<T> {
 
     this.client.frequencyManager.updateFrequency(node);
     this.client.incrementCacheHits();
+    this.client.logger.debug(CacheMessages.INFO(`${key} hit`));
 
     return node.value;
   }
@@ -110,7 +113,7 @@ export class LFUOperations<T> {
    */
   public clear(): void {
     this.client.cache.clear();
-    this.client.logger.info('Cache cleared.');
+    this.client.logger.info(CacheMessages.SUCCESS('Cache', 'clear'));
   }
 
   /**
@@ -124,9 +127,9 @@ export class LFUOperations<T> {
       this.client.frequencyManager.removeNodeFromFrequencyList(node);
       this.client.cache.delete(key);
       this.client.size--;
-      this.client.logger.debug(`Deleted item: ${key} from the cache.`);
+      this.client.logger.debug(CacheMessages.SUCCESS(String(key), 'delete'));
     } else {
-      this.client.logger.warn(`Failed to delete item: ${key} from the cache.`);
+      this.client.logger.warn(CacheMessages.FAIL(String(key), 'delete'));
     }
   }
 
