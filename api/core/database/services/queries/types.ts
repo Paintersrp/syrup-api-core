@@ -2,7 +2,7 @@ import { QueryOptions } from 'sequelize';
 import { AbstractQuery } from 'sequelize/types/dialects/abstract/query';
 
 export interface QueryLogObjectContext {
-  id: string;
+  id: number;
   type: string;
   modelName: string;
   sql: string;

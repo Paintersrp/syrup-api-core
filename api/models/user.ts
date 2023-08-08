@@ -11,13 +11,13 @@ import bcrypt from 'bcrypt';
 
 import { Field } from '../core/lib/decorators/models';
 import { APP_LOGGER, ORM } from '../settings';
-import { SyModel } from '../core/model/SyModel';
+import { SyModel } from '../core/models/SyModel';
 
 import { Profile } from './profile';
 import { faker } from '@faker-js/faker';
 import { UserSession } from '../types';
 import { auditLog } from '../core/lib/auditLog';
-import { AuditAction } from '../core/model/auditlog';
+import { AuditAction } from '../core/models/auditlog';
 
 /**
  * @todo Soft Deletion

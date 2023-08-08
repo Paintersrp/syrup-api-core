@@ -1,6 +1,6 @@
 import fs from 'fs';
 import readline from 'readline';
-import { AggregatedQuery } from './query/types';
+import { AggregatedQuery } from '../query/types';
 
 /**
  * Class representing a log analyzer for request logs.
@@ -74,7 +74,7 @@ export abstract class BaseReportGenerator<T> {
    * @returns {string[]} The top N items with the highest counts.
    */
   protected getTop(
-    countMap: Record<string, number> | AggregatedQuery,
+    countMap: Record<string, number> | AggregatedQuery | Record<number, number>,
     limit: number = 5
   ): string[] {
     return Object.entries(countMap)
@@ -83,9 +83,75 @@ export abstract class BaseReportGenerator<T> {
       .map(([item]) => item);
   }
 
+  protected getTopK(items: { [id: string]: number }, k: number): { id: string; ms: number }[] {
+    const heap: { id: string; ms: number }[] = [];
+    const entries = Object.entries(items);
+
+    for (let i = 0; i < entries.length; i++) {
+      const [id, ms] = entries[i];
+      if (i < k) {
+        heap.push({ id, ms });
+      } else if (ms > heap[0].ms) {
+        heap[0] = { id, ms };
+      }
+      heap.sort((a, b) => a.ms - b.ms);
+    }
+
+    return heap.reverse();
+  }
+
   protected addToListIfUnique(list: string[], item: string): void {
     if (!list.includes(item)) {
       list.push(item);
+    }
+  }
+
+  /**
+   * Exports the error report in JSON format.
+   * @param {ErrorLogReport} report
+   * @return {string}
+   */
+  private exportAsJSON(report: any): string {
+    return JSON.stringify(report, null, 2);
+  }
+
+  /**
+   * Exports the error report in CSV format.
+   * @param {ErrorLogReport} report
+   * @return {string}
+   */
+  private exportAsCSV(report: any): string {
+    const rows: string[] = [];
+
+    for (const [key, value] of Object.entries(report)) {
+      if (typeof value === 'number' || typeof value === 'string') {
+        rows.push(`${key},${value}`);
+      } else if (typeof value === 'object') {
+        rows.push(
+          `${key},${Object.entries(value!)
+            .map(([k, v]) => `${k}:${v}`)
+            .join(',')}`
+        );
+      }
+    }
+
+    return rows.join('\n');
+  }
+
+  /**
+   * Exports the error report in the given format.
+   * @param {ErrorLogReport} report
+   * @param {'json' | 'csv'} format
+   * @return {string}
+   */
+  public exportReport(report: any, format: 'json' | 'csv'): string {
+    switch (format) {
+      case 'json':
+        return this.exportAsJSON(report);
+      case 'csv':
+        return this.exportAsCSV(report);
+      default:
+        throw new Error(`Unsupported format: ${format}`);
     }
   }
 }

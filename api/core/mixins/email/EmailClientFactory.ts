@@ -1,6 +1,4 @@
-import { ConsoleClient } from './ConsoleClient';
-import { MockClient } from './MockClient';
-import { SMTPClient } from './SMTPClient';
+import { ConsoleClient, MockClient, SMTPClient } from './clients';
 
 export class EmailClientFactory {
   static getBackend(backendIdentifier: string, config?: any): EmailBackend {

@@ -1,50 +1,30 @@
-import { FindOptions, Model, ModelStatic, Op } from 'sequelize';
+import { FindOptions, Model, ModelStatic } from 'sequelize';
 import { Context } from 'koa';
 
-import { BadRequestError } from '../../../errors/client';
-
-import { CustomWhere, FilterOptions, OperatorMapping, QueryType } from './types';
+import { CustomWhere, QueryType } from './types';
 import { SyValidator } from '../../../mixins/validators/SyValidator';
-import * as settings from '../../../../settings';
-import { server } from '../../../../server';
+
+import {
+  FilterService,
+  PaginationService,
+  ScopeService,
+  SearchService,
+  SortingService,
+} from './services';
 
 /**
- * Class for processing query parameters
+ * Class responsible for processing Koa context query parameters to generate Sequelize FindOptions.
+ * Utilizes specialized service classes to handle different types of query parameters.
  */
 export class QueryProcessor {
   private model: ModelStatic<Model>;
   private validator: SyValidator;
-  private modelAttributes: Set<string>;
-  private DEFAULT_PAGE_SIZE = settings.CONTROLLERS.DEFAULT_PAGE_SIZE;
-  private MAX_PAGE_SIZE = settings.CONTROLLERS.MAX_PAGE_SIZE;
-  private validSortOptions = settings.CONTROLLERS.VALID_SORT_OPTIONS;
 
-  /**
-   * Mapping of filter operators to Sequelize operator symbols.
-   * These are used to construct the query condition in a Sequelize-compatible format.
-   */
-  private sequelizeOperators: { [operator: string]: symbol } = {
-    greaterThan: Op.gt,
-    lessThan: Op.lt,
-    in: Op.in,
-    notIn: Op.notIn,
-    like: Op.like,
-    notEqual: Op.ne,
-    between: Op.between,
-  };
-
-  /**
-   * Mapping of filter operators to functions that transform a string value into the desired format for a query condition.
-   */
-  private operators: OperatorMapping = {
-    greaterThan: (value: string) => value,
-    lessThan: (value: string) => value,
-    in: (value: string) => value.split(','),
-    notIn: (value: string) => value.split(','),
-    like: (value: string) => `%${value}%`,
-    notEqual: (value: string) => value,
-    between: (value: string) => value.split(',') as [string, string],
-  };
+  private filterService: FilterService;
+  private paginationService: PaginationService;
+  private scopeService: ScopeService;
+  private searchService: SearchService;
+  private sortingService: SortingService;
 
   /**
    * Constructs a new instance of the QueryProcessor class
@@ -53,7 +33,12 @@ export class QueryProcessor {
   constructor(model: ModelStatic<Model>, validator: SyValidator) {
     this.model = model;
     this.validator = validator;
-    this.modelAttributes = new Set(Object.keys(this.model.getAttributes()));
+
+    this.filterService = new FilterService(this.model, this.validator);
+    this.paginationService = new PaginationService();
+    this.scopeService = new ScopeService();
+    this.searchService = new SearchService();
+    this.sortingService = new SortingService(this.validator);
   }
 
   /**
@@ -62,15 +47,15 @@ export class QueryProcessor {
    * @returns {Promise<FindOptions>} Promise object representing the Sequelize find options
    */
   public async processQueryParams(ctx: Context): Promise<FindOptions> {
-    const pathContext = ctx.url;
+    const path = ctx.url;
     const query = ctx.request.query as QueryType;
-    const findOptions: FindOptions = this.createInitialFindOptions(query);
-    this.addFields(findOptions, query.fields);
-    this.addSorting(findOptions, pathContext, query);
-    this.addFiltering(findOptions, pathContext, query);
-    this.addSearch(findOptions, query);
-    this.addRangeFilters(findOptions, query);
-    this.addIncludes(findOptions, query.includes);
+
+    const findOptions: FindOptions = this.initialializeFindOptions(query);
+    this.processPaginationParams(findOptions, query);
+    this.processScopeParams(findOptions, query);
+    this.processFilterParams(findOptions, query, path);
+    this.processSearchParams(findOptions, query);
+    this.processSortParams(findOptions, query, path);
 
     return findOptions;
   }
@@ -80,173 +65,66 @@ export class QueryProcessor {
    * @param {QueryType} query - The query parameters
    * @returns {FindOptions} Sequelize find options
    */
-  private createInitialFindOptions(query: QueryType): FindOptions {
+  private initialializeFindOptions(query: QueryType): FindOptions {
     return {
-      offset: this.calculateOffset(query),
-      limit: this.calculateLimit(query.pageSize),
+      offset: this.paginationService.calculateOffset(query),
+      limit: this.paginationService.calculateLimit(query.pageSize),
       where: {} as CustomWhere,
     };
   }
 
   /**
-   * Calculate the offset for pagination
-   * @param {QueryType} query - The query parameters
-   * @returns {number} Calculated offset
+   * Processes pagination related query parameters and updates the FindOptions object.
+   *
+   * @param {FindOptions} findOptions - Sequelize FindOptions object to be updated.
+   * @param {QueryType} query - The query parameters from the context.
    */
-  private calculateOffset(query: QueryType): number {
-    return ((query.page || 1) - 1) * (query.pageSize || this.DEFAULT_PAGE_SIZE);
+  private processPaginationParams(findOptions: FindOptions, query: QueryType): void {
+    this.paginationService.addCursorPagination(findOptions, query);
   }
 
   /**
-   * Calculate the limit for pagination
-   * @param {number} [pageSize] - The page size
-   * @returns {number} Calculated limit
+   * Processes scope related query parameters (fields and includes) and updates the FindOptions object.
+   *
+   * @param {FindOptions} findOptions - Sequelize FindOptions object to be updated.
+   * @param {QueryType} query - The query parameters from the context.
    */
-  private calculateLimit(pageSize?: number): number {
-    return Math.min(pageSize || this.DEFAULT_PAGE_SIZE, this.MAX_PAGE_SIZE);
+  private processScopeParams(findOptions: FindOptions, query: QueryType): void {
+    this.scopeService.addFields(findOptions, query.fields);
+    this.scopeService.addIncludes(findOptions, query.includes);
   }
 
   /**
-   * Add fields to the FindOptions
-   * @param {FindOptions} findOptions - Sequelize find options
-   * @param {string} [fields] - Fields to include
+   * Processes filter related query parameters and updates the FindOptions object.
+   *
+   * @param {FindOptions} findOptions - Sequelize FindOptions object to be updated.
+   * @param {QueryType} query - The query parameters from the context.
+   * @param {string} path - The URL path context.
    */
-  private addFields(findOptions: FindOptions, fields?: string): void {
-    if (fields) {
-      findOptions.attributes = fields.split(',');
-    }
+  private processFilterParams(findOptions: FindOptions, query: QueryType, path: string): void {
+    this.filterService.addFiltering(findOptions, path, query);
+    this.filterService.addRangeFilters(findOptions, query);
+    this.filterService.addComplexFiltering(findOptions, query);
   }
 
   /**
-   * Add sorting options to the FindOptions
-   * @param {FindOptions} findOptions - Sequelize find options
-   * @param {string} pathContext - The URL path context
-   * @param {QueryType} query - The query parameters
+   * Processes search related query parameters and updates the FindOptions object.
+   *
+   * @param {FindOptions} findOptions - Sequelize FindOptions object to be updated.
+   * @param {QueryType} query - The query parameters from the context.
    */
-  private addSorting(findOptions: FindOptions, pathContext: string, query: QueryType): void {
-    if (query.sort && query.sortOrder) {
-      if (this.isValidSortOption(query.sortOrder, pathContext)) {
-        findOptions.order = [[query.sort, query.sortOrder]];
-      }
-    }
+  private processSearchParams(findOptions: FindOptions, query: QueryType): void {
+    this.searchService.addSearch(findOptions, query);
   }
 
   /**
-   * Add search options to the FindOptions
-   * @param {FindOptions} findOptions - Sequelize find options
-   * @param {QueryType} query - The query parameters
+   * Processes sorting related query parameters and updates the FindOptions object.
+   *
+   * @param {FindOptions} findOptions - Sequelize FindOptions object to be updated.
+   * @param {QueryType} query - The query parameters from the context.
+   * @param {string} path - The URL path context.
    */
-  private addSearch(findOptions: FindOptions, query: QueryType): void {
-    if (query.search && query.searchColumns && Array.isArray(query.searchColumns)) {
-      (findOptions.where as CustomWhere)[Op.or] = {
-        [Op.or]: query.searchColumns.map((column: string) => ({
-          [column]: {
-            [Op.like]: `%${query.search}%`,
-          },
-        })),
-      };
-    }
-  }
-
-  /**
-   * Add range filters to the FindOptions
-   * @param {FindOptions} findOptions - Sequelize find options
-   * @param {QueryType} query - The query parameters
-   */
-  private addRangeFilters(findOptions: FindOptions, query: QueryType): void {
-    if (query.range && Array.isArray(query.range) && query.rangeColumn) {
-      const [rangeStart, rangeEnd] = query.range;
-      (findOptions.where as any)[query.rangeColumn] = {
-        [Op.gte]: rangeStart,
-        [Op.lte]: rangeEnd,
-      };
-    }
-  }
-
-  /**
-   * Add filtering options to the FindOptions
-   * @param {FindOptions} findOptions - Sequelize find options
-   * @param {string} pathContext - The URL path context
-   * @param {QueryType} query - The query parameters
-   */
-  private addFiltering(findOptions: FindOptions, pathContext: string, query: QueryType): void {
-    if (query.filter && query.column && this.isValidFilterColumn(query.column, pathContext)) {
-      if (!findOptions.where) {
-        findOptions.where = {};
-      }
-
-      (findOptions.where as any)[query.column] = query.filter;
-    }
-
-    this.addQueryCondition(findOptions.where as any, query);
-  }
-
-  /**
-   * Add include options to the FindOptions
-   * @param {FindOptions} findOptions - Sequelize find options
-   * @param {string[]} [includes] - Array of models to include
-   */
-  private addIncludes(findOptions: FindOptions, includes?: string[]): void {
-    if (includes) {
-      findOptions.include = includes.map((modelName) => {
-        const model = server.ORM.database.models[modelName];
-        if (!model) {
-          throw new BadRequestError(`Invalid model name: ${modelName}`);
-        }
-        return model;
-      });
-    }
-  }
-
-  /**
-   * Add query conditions to the CustomWhere object
-   * @param {CustomWhere} where - The where clause
-   * @param {FilterOptions} query - The query parameters
-   */
-  private addQueryCondition(where: CustomWhere, query: FilterOptions): void {
-    for (const operatorKey in this.operators) {
-      const queryValue = query[operatorKey as keyof FilterOptions];
-      if (queryValue && typeof queryValue === 'string') {
-        const sequelizeOperator = this.sequelizeOperators[operatorKey].toString();
-        where[sequelizeOperator] = this.operators[operatorKey as keyof OperatorMapping](queryValue);
-      }
-    }
-  }
-
-  /**
-   * Check if filter column is valid
-   * @param {string} column - The column to check
-   * @param {string} pathContext - The URL path context
-   * @returns {boolean} True if valid, false otherwise
-   */
-  private isValidFilterColumn(column: string, pathContext: string): boolean {
-    return (
-      this.validator.assertAlphanumeric({
-        param: column,
-        context: pathContext,
-      }) && this.modelHasColumn(column)
-    );
-  }
-
-  /**
-   * Check if the model has the specified column
-   * @param {string} column - The column to check
-   * @returns {boolean} True if the model has the column, false otherwise
-   */
-  private modelHasColumn(column: string): boolean {
-    return this.modelAttributes.has(column);
-  }
-
-  /**
-   * Check if sort option is valid
-   * @param {string} sort - The sort option to check
-   * @param {string} pathContext - The URL path context
-   * @returns {boolean} True if valid, false otherwise
-   */
-  private isValidSortOption(sort: string, pathContext: string): boolean {
-    return (
-      this.validator.assertAlphanumeric({ param: sort, context: pathContext }) &&
-      this.validSortOptions.includes(sort.toLowerCase())
-    );
+  private processSortParams(findOptions: FindOptions, query: QueryType, path: string): void {
+    this.sortingService.addSorting(findOptions, path, query);
   }
 }

@@ -1,16 +1,16 @@
-import { ErrorLevel } from './enums';
+import { ErrorSeverity } from './enums';
 
 /**
  * `ErrorLogObject` represents a single error log entry.
  */
 export interface ErrorLogObject {
-  timestamp: Date;
+  time: Date;
   path: string;
   method: string;
   userAgent: string;
   ipAddress: string;
   status: number;
-  errorLevel: ErrorLevel;
+  errorLevel: ErrorSeverity;
   errorMessage: string;
   errorStack?: string;
 }
@@ -25,12 +25,10 @@ export interface ErrorLogMetrics {
   methods: { [key: string]: number };
   userAgents: { [key: string]: number };
   ipAddresses: { [key: string]: number };
-  errorLevels: { [key in ErrorLevel]?: number };
-  errorFrequency: { [key: string]: number };
   errorCountByHour: { [hour: string]: number };
   errorCountByDay: { [day: string]: number };
-  errorSources: string[];
-  errorMessages: string[];
+  classifications: { [key: string]: number };
+  severityCounts: { [key in ErrorSeverity]?: number };
 }
 
 /**
@@ -43,10 +41,10 @@ export interface ErrorLogReport {
   topErrorEndpoints: { [key: string]: number };
   errorsByMethod: { [key: string]: number };
   topErrorUserAgents: { [key: string]: number };
-  errorLevels: { [key in ErrorLevel]?: number };
   peakErrorHour: string;
   errorCountByHour: { [hour: string]: number };
   errorCountByDay: { [day: string]: number };
-  errorSources: string[];
-  errorMessages: string[];
+  classifications: { [key: string]: number };
+  severityCounts: { [key in ErrorSeverity]?: number };
+  // [key: string]: any;
 }

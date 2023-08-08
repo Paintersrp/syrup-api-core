@@ -24,56 +24,53 @@ export class AuditLog<
     autoIncrement: true,
     primaryKey: true,
   })
-  declare id: CreationOptional<number>;
+  id: CreationOptional<number>;
 
   @Field({ type: DataTypes.DATE })
-  declare createdAt: CreationOptional<Date>;
+  createdAt: CreationOptional<Date>;
 
   @Field({ type: DataTypes.DATE })
-  declare updatedAt: CreationOptional<Date>;
+  updatedAt: CreationOptional<Date>;
 
   @Field({
     type: DataTypes.ENUM(...Object.values(AuditAction)),
     allowNull: false,
     verbose: 'Action',
   })
-  declare action: CreationOptional<AuditAction>;
+  action: CreationOptional<AuditAction>;
 
   @Field({
     type: DataTypes.STRING(64),
     verbose: 'Model',
     allowNull: false,
   })
-  declare model: CreationOptional<string>;
+  model: CreationOptional<string>;
 
   @Field({
     type: DataTypes.JSONB,
     verbose: 'Before Data',
   })
-  declare beforeData: CreationOptional<JSON>;
+  beforeData: CreationOptional<JSON>;
 
   @Field({
     type: DataTypes.JSONB,
     verbose: 'After Data',
   })
-  declare afterData: CreationOptional<JSON>;
+  afterData: CreationOptional<JSON>;
 
   @Field({
     type: DataTypes.STRING(500),
     verbose: 'User ID',
   })
-  declare userId: CreationOptional<string>;
+  userId: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(500),
     verbose: 'Username',
   })
-  declare username: CreationOptional<string>;
+  username: CreationOptional<string>;
 
-  /**
-   * Additional field definitions for the model.
-   */
-  declare static fields?: any;
+  static fields?: any;
 }
 
 AuditLog.init(
@@ -81,6 +78,7 @@ AuditLog.init(
     ...AuditLog.fields,
   },
   {
+    indexes: [{ fields: ['action'] }, { fields: ['username'] }, { fields: ['model'] }],
     tableName: 'audits3',
     sequelize: ORM.database,
   }

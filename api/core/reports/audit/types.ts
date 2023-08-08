@@ -1,15 +1,20 @@
+import { AuditAction } from '../../models/auditlog';
+
+export type ModelRecord = Record<string, unknown>;
+export type MetricKey = string | AuditAction;
+export type ActionCounts = Map<MetricKey, number>;
+export type NestedActionCounts = Map<MetricKey, ActionCounts>;
+
 export interface AuditLogMetrics {
   totalLogs: number;
-  createActions: number;
-  updateActions: number;
-  deleteActions: number;
-  users: string[];
-  models: string[];
-  userActionFrequency: Record<string, number>;
-  modelActionFrequency: Record<string, number>;
-  userChangeCounts: Record<string, number>;
-  userModelCounts: Record<string, Record<string, number>>;
-  modelActionCounts: Record<string, Record<string, number>>;
-  fieldChangeCounts: Record<string, Record<string, number>>;
-  topChangedFields: Record<string, string[]>;
+  actionCounts: ActionCounts;
+  users: Set<string>;
+  models: Set<string>;
+  userActionFrequency: ActionCounts;
+  modelActionFrequency: ActionCounts;
+  userChangeCounts: ActionCounts;
+  userModelCounts: NestedActionCounts;
+  modelActionCounts: NestedActionCounts;
+  fieldChangeCounts: NestedActionCounts;
+  topChangedFields: Map<string, string[]>;
 }

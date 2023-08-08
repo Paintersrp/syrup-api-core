@@ -12,10 +12,13 @@ export interface QueryParams {
   filter?: string;
   column?: string;
   search?: string;
-  searchColumns?: string[];
+  searchColumns?: string;
   range?: [string, string];
   rangeColumn?: string;
-  includes?: string[];
+  includes?: string;
+  before?: number;
+  after?: number;
+  complexFilter?: string;
 }
 
 /**
@@ -44,6 +47,7 @@ export type OperatorMapping = { [operator: string]: OperatorFunc };
 
 export interface CustomWhere extends WhereAttributeHash {
   [Op.like]?: string;
+  [Op.iLike]?: any;
   [Op.or]?: CustomWhere | CustomWhere[];
   [Op.and]?: CustomWhere | CustomWhere[];
   [Op.gte]?: number;

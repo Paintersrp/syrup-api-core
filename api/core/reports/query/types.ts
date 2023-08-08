@@ -15,18 +15,20 @@ export interface QueryLogReport {
   averageQueryDuration: number;
   longestDuration: number;
   shortestDuration: number;
-  queriesByType: Record<string, AggregatedQueryMetrics>;
-  queriesByModel: Record<string, AggregatedQueryMetrics>;
+  queriesByType: Map<string, AggregatedQueryMetrics>;
+  queriesByModel: Map<string, AggregatedQueryMetrics>;
   queryFrequency: QueryFrequencies;
   durationBuckets: Record<string, number>;
-  top10QueryTypes: string[];
-  top10SlowestQueries: string[];
+  topModels: { type: string; totalDuration: number }[];
+  slowestQueries: { id: string; ms: number }[];
 }
 
-export type AggregatedQuery = Record<string, AggregatedQueryMetrics>;
+export type AggregatedQuery = Map<string, AggregatedQueryMetrics>;
 export type AggregatedMetrics = 'type' | 'modelName';
 
-export type QueryFrequency = Record<string, number>;
+export interface QueryFrequency {
+  [key: number]: number;
+}
 
 export interface QueryFrequencies {
   hourly: QueryFrequency;
@@ -42,3 +44,5 @@ export interface AggregatedQueryMetrics {
   maxDuration: number;
   minDuration: number;
 }
+
+export type FrequencyOptions = 'hourly' | 'daily' | 'weekly' | 'monthly';

@@ -1,4 +1,4 @@
-import { AuditAction, AuditLog } from '../model/auditlog';
+import { AuditAction, AuditLog } from '../models/auditlog';
 
 export async function auditLog(model: any, options: any, action: AuditAction) {
   const dataValues = model.dataValues;

@@ -52,7 +52,7 @@ import { QueryReportGenerator } from './core/reports/query/QueryReportGenerator'
 import { AuditReportGenerator } from './core/reports/audit/AuditReportGenerator';
 import { AccessReportGenerator } from './core/reports/access/AccessReportGenerator';
 import { ErrorReportGenerator } from './core/reports/error/ErrorReportGenerator';
-import { ReportManager } from './core/reports/manager/ReportManager';
+import { ReportManager } from './core/reports/ReportManager';
 import { EmailService } from './core/mixins/email/EmailService';
 
 const anomalyDetector = new AnomalyDetector(settings.APP_LOGGER);

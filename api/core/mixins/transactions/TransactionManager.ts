@@ -5,6 +5,10 @@ import { ORM } from '../../../settings';
 import { InternalServerError } from '../../errors/server';
 import { Responses } from '../../lib';
 
+interface TransactionMixin {
+  [key: string]: (ctx: RouterContext, transaction: Transaction) => Promise<void>;
+}
+
 export class TransactionManager {
   private logger: Logger;
 
@@ -19,7 +23,14 @@ export class TransactionManager {
    * @param {Object} mixin - The Mixin object which has the action method.
    * @return {Promise<void>} Promise represents the completion of the transactional operation.
    */
-  public async performTransaction(ctx: RouterContext, action: string, mixin: any): Promise<void> {
+  public async performTransaction(
+    ctx: RouterContext,
+    action: string,
+    mixin: TransactionMixin
+  ): Promise<void> {
+    if (typeof mixin[action] !== 'function') {
+      throw new Error(`Mixin does not have a method named "${action}"`);
+    }
     return this.withTransaction(ctx, async (transaction) => {
       return mixin[action](ctx, transaction);
     });
@@ -32,7 +43,6 @@ export class TransactionManager {
    * @param {RouterContext} ctx - Koa RouterContext.
    * @param {Function} callback - Callback function to be executed within the transaction.
    * @return {Promise<T>} The result of the callback function execution.
-   * @emits SyController#error
    */
   private async withTransaction<T>(
     ctx: RouterContext,

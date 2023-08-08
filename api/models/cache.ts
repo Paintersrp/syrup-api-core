@@ -2,7 +2,7 @@ import { DataTypes, InferAttributes, InferCreationAttributes } from 'sequelize';
 
 import { Field } from '../core/lib/decorators/models';
 
-import { SyModel } from '../core/model/SyModel';
+import { SyModel } from '../core/models/SyModel';
 import { ORM } from '../settings';
 
 /**

@@ -1,7 +1,6 @@
-export enum ErrorLevel {
-  CRITICAL = 'CRITICAL',
-  ERROR = 'ERROR',
-  WARNING = 'WARNING',
-  INFO = 'INFO',
-  DEBUG = 'DEBUG',
+export enum ErrorSeverity {
+  LOW = 'Low',
+  MEDIUM = 'Medium',
+  HIGH = 'High',
+  CRITICAL = 'Critical',
 }

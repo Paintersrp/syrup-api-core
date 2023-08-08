@@ -34,7 +34,11 @@ import serve from 'koa-static';
 
 import * as settings from './settings';
 import { SyServer } from './core/server/SyServer';
-import { fetchProfiles, fetchUsers } from './fetch';
+import { paths } from './paths';
+import { Emitter } from './core/mixins/events/EventEmitter';
+import { ErrorReportGenerator } from './core/reports/error/ErrorReportGenerator';
+import { QueryReportGenerator } from './core/reports/query/QueryReportGenerator';
+import { AuditReportGenerator } from './core/reports/audit/AuditReportGenerator';
 
 const koa = new Koa();
 koa.use(serve('../web/test/dist'));
@@ -50,36 +54,110 @@ export const server = new SyServer({
   version: settings.CURRENT_VERSION,
 });
 
+const emitter = new Emitter();
+
+emitter.on('testEvent', () => {
+  console.log('Default priority (0) listener');
+});
+
+emitter.on(
+  'testEvent',
+  () => {
+    console.log('Higher priority (5) listener');
+  },
+  5
+);
+
+emitter.on(
+  'testEvent',
+  () => {
+    console.log('Lower priority (-5) listener');
+  },
+  -5,
+  { source: 'core' }
+);
+
+emitter.emit('testEvent');
+
+console.log(emitter.getEvents());
+
 const router = new Router();
 
-// handle dynamically
-const fetchRoutes = [
-  {
-    path: '/app/users',
-    fetchData: fetchUsers,
-  },
-  {
-    path: '/app/profiles',
-    fetchData: fetchProfiles,
-  },
-];
+// Dynamic config reading
+const dynamicImport = async (filePath: string) => {
+  return import(filePath);
+};
+const generatePageConfigs = async () => {
+  const pagesDir = paths.web.test.src.pages;
+
+  if (!pagesDir) {
+    return;
+  }
+
+  const directories = fs
+    .readdirSync(pagesDir)
+    .filter((dir) => fs.statSync(path.join(pagesDir, dir)).isDirectory());
+
+  const pageConfigs = [];
+
+  for (const dir of directories) {
+    const configFilePath = path.join(pagesDir, dir, 'config.ts');
+
+    if (fs.existsSync(configFilePath)) {
+      const configFile = await dynamicImport(configFilePath);
+      const config = configFile.default;
+
+      if (!config) {
+        settings.APP_LOGGER.warn(`No default export found in ${configFilePath}`);
+        continue;
+      }
+
+      if (!config.path) {
+        settings.APP_LOGGER.warn(`Missing path in ${configFilePath}`);
+        continue;
+      }
+
+      if (!config.fetchData) {
+        settings.APP_LOGGER.warn(`Missing fetchData in ${configFilePath}`);
+        continue;
+      }
+
+      if (!config.seo) {
+        settings.APP_LOGGER.warn(`Missing SEO data in ${configFilePath}`);
+      }
+
+      pageConfigs.push({
+        path: config.path,
+        seoData: config.seo,
+        fetchData: config.fetchData,
+      });
+    }
+  }
+  return pageConfigs;
+};
 
 // better vite integration / ssr integration
 // encapsulate in syserver, ssr client
 // add configuration options
 router.get('*', async (ctx) => {
-  let initialData = null;
-  let matchedRoute = null;
+  const pageConfigs = await generatePageConfigs();
 
-  for (const route of fetchRoutes) {
-    if (ctx.path === route.path) {
-      matchedRoute = route;
+  if (!pageConfigs) {
+    return;
+  }
+
+  let initialData = null;
+  let matchedPage = null;
+
+  for (const config of pageConfigs) {
+    if (ctx.path === config.path) {
+      matchedPage = config;
       break;
     }
   }
 
-  if (matchedRoute && matchedRoute.fetchData) {
-    initialData = await matchedRoute.fetchData();
+  if (matchedPage && matchedPage.fetchData) {
+    initialData = await matchedPage.fetchData();
   }
 
   const htmlContent = fs.readFileSync(
@@ -98,3 +176,12 @@ router.get('*', async (ctx) => {
 
 koa.use(router.routes());
 koa.use(router.allowedMethods());
+
+const genny = new AuditReportGenerator();
+
+async function runGenny() {
+  const test = await genny.analyzeLogs();
+  console.log(test);
+}
+
+runGenny();

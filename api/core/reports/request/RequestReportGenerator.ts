@@ -1,7 +1,7 @@
 import moment from 'moment';
 
 import { RequestLogMetrics, RequestLogObject, RequestLogReport } from './types';
-import { BaseReportGenerator } from '../BaseReportGenerator';
+import { BaseReportGenerator } from '../base/BaseReportGenerator';
 
 /**
  * Class representing a log analyzer for request logs.

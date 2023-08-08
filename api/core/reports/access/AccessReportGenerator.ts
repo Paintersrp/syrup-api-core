@@ -1,5 +1,5 @@
 import { RBACLogObject, AccessLogMetrics, AccessLogReport, AccessStats } from './types';
-import { BaseReportGenerator } from '../BaseReportGenerator';
+import { BaseReportGenerator } from '../base/BaseReportGenerator';
 
 /**
  * The AccessReportGenerator class provides methods for analyzing access logs and generating reports.

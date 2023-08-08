@@ -6,7 +6,7 @@ export const LOGGERS = {
   APP: {
     ENABLED: true,
     LOGLEVEL: 'trace',
-    VERBOSE: true,
+    VERBOSE: false,
     LOG_FILE_DESTINATION: './logs/app.log',
   },
   QUERY: {
@@ -24,13 +24,13 @@ export const LOGGERS = {
   AUDIT: {
     ENABLED: true,
     LOGLEVEL: 'trace',
-    VERBOSE: true,
+    VERBOSE: false,
     LOG_FILE_DESTINATION: './logs/audits.log',
   },
   ACCESS: {
     ENABLED: true,
     LOGLEVEL: 'trace',
-    VERBOSE: true,
+    VERBOSE: false,
     LOG_FILE_DESTINATION: './logs/access.log',
   },
   MAX_LOG_FILE_SIZE: 5,

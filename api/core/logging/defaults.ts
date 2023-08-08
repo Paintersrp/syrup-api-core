@@ -27,7 +27,7 @@ export const LoggerDefaults: LoggerConfig = {
   [LoggerNames.ERROR]: {
     name: LoggerNames.ERROR,
     level: 'trace',
-    verbose: true,
+    verbose: false,
     streams: [
       {
         target: 'pino/file',
@@ -38,7 +38,7 @@ export const LoggerDefaults: LoggerConfig = {
   [LoggerNames.AUDIT]: {
     name: LoggerNames.AUDIT,
     level: 'trace',
-    verbose: true,
+    verbose: false,
     streams: [
       {
         target: 'pino/file',
@@ -49,7 +49,7 @@ export const LoggerDefaults: LoggerConfig = {
   [LoggerNames.ACCESS]: {
     name: LoggerNames.ACCESS,
     level: 'trace',
-    verbose: true,
+    verbose: false,
     streams: [
       {
         target: 'pino/file',

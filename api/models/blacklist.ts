@@ -8,7 +8,7 @@ import {
 
 import { Field } from '../core/lib/decorators/models';
 import { ORM } from '../settings';
-import { SyModel } from '../core/model/SyModel';
+import { SyModel } from '../core/models/SyModel';
 import { User } from './user';
 
 /**
