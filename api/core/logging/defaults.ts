@@ -13,6 +13,17 @@ export const LoggerDefaults: LoggerConfig = {
       },
     ],
   },
+  [LoggerNames.REQUEST]: {
+    name: LoggerNames.REQUEST,
+    level: 'trace',
+    verbose: true,
+    streams: [
+      {
+        target: 'pino/file',
+        options: { destination: `./logs/requests.log` },
+      },
+    ],
+  },
   [LoggerNames.QUERY]: {
     name: LoggerNames.QUERY,
     level: 'trace',

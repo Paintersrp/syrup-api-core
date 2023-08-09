@@ -89,3 +89,23 @@ export const HealthCheckError = SyError.createErrorType(
   ErrorCategory.SERVER,
   ErrorCodes.HEALTH_CHECK_FAIL
 );
+
+//doc
+export const JobCronError = SyError.createErrorType(
+  HttpStatus.JOB_CRON_ERROR,
+  ErrorCategory.SERVER,
+  ErrorCodes.JOB_CRON_ERROR
+);
+
+//doc
+export const JobNotFoundError = SyError.createErrorType(
+  HttpStatus.JOB_NOT_FOUND,
+  ErrorCategory.SERVER,
+  ErrorCodes.JOB_NOT_FOUND
+);
+
+export const JobDuplicationError = SyError.createErrorType(
+  HttpStatus.JOB_DUPLICATION,
+  ErrorCategory.SERVER,
+  ErrorCodes.JOB_DUPLICATION
+);

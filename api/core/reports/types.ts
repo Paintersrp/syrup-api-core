@@ -1,4 +1,4 @@
-import { JobHooks } from '../mixins/job/types';
+import { JobHooks } from '../jobs/types';
 
 export interface ReportProfile {
   generator: any;

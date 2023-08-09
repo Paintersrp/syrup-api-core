@@ -2,7 +2,7 @@ import { FindOptions } from 'sequelize';
 
 import { QueryType } from '../types';
 import { BadRequestError } from '../../../../errors/client';
-import { SyValidator } from '../../../../mixins/validators';
+import { SyValidator } from '../../../../validators';
 import * as settings from '../../../../../settings';
 
 /**

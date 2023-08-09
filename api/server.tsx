@@ -35,10 +35,12 @@ import serve from 'koa-static';
 import * as settings from './settings';
 import { SyServer } from './core/server/SyServer';
 import { paths } from './paths';
-import { Emitter } from './core/mixins/events/EventEmitter';
+import { Emitter } from './core/emitter/Emitter';
 import { ErrorReportGenerator } from './core/reports/error/ErrorReportGenerator';
 import { QueryReportGenerator } from './core/reports/query/QueryReportGenerator';
 import { AuditReportGenerator } from './core/reports/audit/AuditReportGenerator';
+import { AccessReportGenerator } from './core/reports/access/AccessReportGenerator';
+import { RequestReportGenerator } from './core/reports/request/RequestReportGenerator';
 
 const koa = new Koa();
 koa.use(serve('../web/test/dist'));
@@ -177,11 +179,14 @@ router.get('*', async (ctx) => {
 koa.use(router.routes());
 koa.use(router.allowedMethods());
 
-const genny = new AuditReportGenerator();
+const genny = new RequestReportGenerator('./logs/app.log');
 
 async function runGenny() {
   const test = await genny.analyzeLogs();
   console.log(test);
+
+  // const test2 = await genny.exportReport(test, 'csv', { dir: './logs', fileName: 'tom' });
+  // console.log('test2', test2);
 }
 
 runGenny();

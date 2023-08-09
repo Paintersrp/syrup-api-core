@@ -1,7 +1,7 @@
-import { fetchProfiles } from '../components/Profiles/fetchProfiles';
-import { Profiles } from '../components/Profiles/Profiles';
-import { fetchUsersData } from './fetch';
-import { Users } from '../components/Users/Users';
+import { fetchProfiles } from './Profiles/fetch';
+import { Profiles } from './Profiles/Profiles';
+import { fetchUsersData } from './Users/fetch';
+import { Users } from './Users/Users';
 
 export const routes = [
   {

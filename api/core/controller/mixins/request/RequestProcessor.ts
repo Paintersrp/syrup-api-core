@@ -5,7 +5,7 @@ import { ForbiddenError } from '../../../errors/client';
 import { Responses } from '../../../lib';
 import { UserSession } from '../../../../types';
 import { ValidationResponses } from '../../../lib/responses';
-import { SyValidator } from '../../../mixins/validators/SyValidator';
+import { SyValidator } from '../../../validators/SyValidator';
 import { Logger } from 'pino';
 
 /**

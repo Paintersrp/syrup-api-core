@@ -5,10 +5,9 @@ import {
   CreationOptional,
   NonAttribute,
   DataTypes,
-  UpdateOptions,
 } from 'sequelize';
-import { auditLog } from '../lib/auditLog';
-import { AuditAction } from './auditlog';
+import { auditLog } from '../logging/objects/auditLog';
+import { AuditAction } from './logging/AuditLog';
 
 // async function auditLog(model: any, action: AuditAction) {
 //   const dataValues = model.dataValues;

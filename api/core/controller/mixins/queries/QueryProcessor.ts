@@ -2,7 +2,7 @@ import { FindOptions, Model, ModelStatic } from 'sequelize';
 import { Context } from 'koa';
 
 import { CustomWhere, QueryType } from './types';
-import { SyValidator } from '../../../mixins/validators/SyValidator';
+import { SyValidator } from '../../../validators/SyValidator';
 
 import {
   FilterService,

@@ -14,7 +14,7 @@ import {
   SyUpdateMixin,
 } from './mixins';
 import { ControllerMixins, SyControllerOptions } from './types';
-import { TransactionManager } from '../mixins/transactions';
+import { TransactionManager } from '../transactions';
 import { InternalMethodsToBind } from './enums';
 
 /**

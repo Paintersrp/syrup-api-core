@@ -8,8 +8,8 @@ import {
   DatabaseTestService,
   DatabaseRecoveryService,
 } from './services';
-import { HealthCheckService } from '../mixins/health';
-import { HealthCheck, HealthCheckWithRemediation } from '../mixins/health/types';
+import { HealthCheckService } from '../server/health';
+import { HealthCheck, HealthCheckWithRemediation } from '../server/health/types';
 import { SyLogger } from '../logging/SyLogger';
 
 /**

@@ -1,7 +1,6 @@
 import Koa from 'koa';
 
 export class AccessLogObject {
-  timestamp: number;
   event: string;
   method: string;
   path: string;
@@ -21,7 +20,6 @@ export class AccessLogObject {
     const userName = ctx.state.user.username || 'Anonymous';
     const userRole = ctx.state.user.role || 'Guest';
 
-    this.timestamp = Date.now();
     this.event = 'access_control';
     this.method = ctx.method;
     this.path = ctx.path;
@@ -40,7 +38,6 @@ export class AccessLogObject {
 
   public toLogEntry() {
     return {
-      timestamp: this.timestamp,
       event: this.event,
       method: this.method,
       path: this.path,

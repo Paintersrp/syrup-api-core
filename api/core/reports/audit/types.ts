@@ -1,4 +1,4 @@
-import { AuditAction } from '../../models/auditlog';
+import { AuditAction } from '../../models/logging/AuditLog';
 
 export type ModelRecord = Record<string, unknown>;
 export type MetricKey = string | AuditAction;

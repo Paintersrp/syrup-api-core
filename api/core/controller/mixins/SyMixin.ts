@@ -9,7 +9,7 @@ import { RequestProcessor } from './request/RequestProcessor';
 import { QueryProcessor } from './queries/QueryProcessor';
 import { ValidationResponses } from '../../lib/responses';
 import { FieldDTO } from './types';
-import { SyValidator } from '../../mixins/validators/SyValidator';
+import { SyValidator } from '../../validators/SyValidator';
 
 /**
  * SyMixin is an abstract class designed to be extended by other mixin classes.
@@ -135,7 +135,7 @@ export abstract class SyMixin {
     const modelName = item.constructor.name.replace('SequelizeModel', '');
     return modelName;
   }
-  
+
   protected getModelNamePlural(item: Model): string {
     return `${this.getModelName(item)}s`;
   }

@@ -1,7 +1,7 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import * as Yup from 'yup';
-import { AuditAction, AuditLog } from '../../../models/auditlog';
+import { AuditAction, AuditLog } from '../../../models/logging/AuditLog';
 
 import { cache, CACHE } from '../../../../settings';
 import { BadRequestError } from '../../../errors/client';

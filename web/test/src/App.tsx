@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { HelmetProvider } from 'react-helmet-async';
 
 import './App.css';
-import { Users } from './components/Users/Users';
-import { Profiles } from './components/Profiles/Profiles';
+import { Users } from './pages/Users/Users';
+import { Profiles } from './pages/Profiles/Profiles';
 import { Navbar } from './components/Navbar/Navbar';
 
 const queryClient = new QueryClient();

@@ -13,6 +13,9 @@ export class ErrorLogObject {
   error: Error;
   stack: string[] | undefined;
   ctx: Context;
+  userId: string;
+  requestMethod: string;
+  responseStatus: number;
 
   constructor(error: Error, ctx: Context) {
     this.error = error;
@@ -23,6 +26,9 @@ export class ErrorLogObject {
     this.path = ctx.url;
     this.userAgent = ctx.request.get('User-Agent');
     this.ipAddress = ctx.request.ip;
+    this.userId = ctx.state.user?.username || 'Anonymous';
+    this.requestMethod = ctx.method;
+    this.responseStatus = ctx.status;
   }
 
   public categorizeAndLogError(): ErrorLogObjectResponse {
@@ -40,6 +46,9 @@ export class ErrorLogObject {
         userAgent: this.userAgent,
         ipAddress: this.ipAddress,
         stack: this.cleanStackTrace(this.error.stack),
+        userId: this.userId,
+        requestMethod: this.requestMethod,
+        responseStatus: this.responseStatus,
       };
     } else if (this.error instanceof ValidationError) {
       this.ctx.logger.error(this.error.message, this.error.stack);
@@ -53,6 +62,9 @@ export class ErrorLogObject {
         userAgent: this.userAgent,
         ipAddress: this.ipAddress,
         stack: this.cleanStackTrace(this.error.stack),
+        userId: this.userId,
+        requestMethod: this.requestMethod,
+        responseStatus: this.responseStatus,
       };
     } else {
       this.ctx.logger.error(this.error);
@@ -66,6 +78,9 @@ export class ErrorLogObject {
         userAgent: this.userAgent,
         ipAddress: this.ipAddress,
         stack: this.cleanStackTrace(this.error.stack),
+        userId: this.userId,
+        requestMethod: this.requestMethod,
+        responseStatus: this.responseStatus,
       };
     }
   }

@@ -45,15 +45,15 @@ export const server = new SyServer({
 // Testing purposes
 
 import { RequestReportGenerator } from './core/reports/request/RequestReportGenerator';
-import { AnomalyDetector } from './core/mixins/anomaly';
-import { StreamManager } from './core/mixins/streams/StreamManager';
-import { TrafficStream } from './core/mixins/streams/sub/TrafficStream';
+import { AnomalyDetector } from './core/monitoring/anomaly';
+import { StreamManager } from './core/streams/StreamManager';
+import { TrafficStream } from './core/streams/sub/TrafficStream';
 import { QueryReportGenerator } from './core/reports/query/QueryReportGenerator';
 import { AuditReportGenerator } from './core/reports/audit/AuditReportGenerator';
 import { AccessReportGenerator } from './core/reports/access/AccessReportGenerator';
 import { ErrorReportGenerator } from './core/reports/error/ErrorReportGenerator';
 import { ReportManager } from './core/reports/ReportManager';
-import { EmailService } from './core/mixins/email/EmailService';
+import { EmailService } from './core/email/EmailService';
 
 const anomalyDetector = new AnomalyDetector(settings.APP_LOGGER);
 const trafficStream = new TrafficStream('traffic', anomalyDetector);

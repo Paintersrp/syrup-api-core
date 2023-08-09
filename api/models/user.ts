@@ -16,8 +16,7 @@ import { SyModel } from '../core/models/SyModel';
 import { Profile } from './profile';
 import { faker } from '@faker-js/faker';
 import { UserSession } from '../types';
-import { auditLog } from '../core/lib/auditLog';
-import { AuditAction } from '../core/models/auditlog';
+import { IRouterContext } from 'koa-router';
 
 /**
  * @todo Soft Deletion
@@ -112,6 +111,15 @@ export class User extends SyModel<
       APP_LOGGER.error('Failed to find user by token:', error);
       throw error;
     }
+  }
+
+  /**
+   * Finds returns user role if user in context session
+   * @param ctx The application context.
+   * @returns The user role if found, otherwise default value.
+   */
+  static roleResolver(ctx: IRouterContext) {
+    return ctx.state.user ? ctx.state.user.role : UserRoleEnum.USER;
   }
 
   /**

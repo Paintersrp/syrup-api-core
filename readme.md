@@ -1,148 +1,45 @@
-# Syrup
+<h1 align="center">Syrup</h1>
+
+<p align="center">
+    <a href="#syrup"><img src="https://img.shields.io/badge/-Syrup-brightgreen?style=for-the-badge" alt="Syrup"/></a>
+    <a href="#core-features"><img src="https://img.shields.io/badge/-Core%20Features-blue?style=for-the-badge" alt="Core Features"/></a>
+    <a href="#getting-started-with-syrup"><img src="https://img.shields.io/badge/-Getting%20Started-yellow?style=for-the-badge" alt="Getting Started"/></a>
+    <a href="#project-structure"><img src="https://img.shields.io/badge/-Project%20Structure-orange?style=for-the-badge" alt="Project Structure"/></a>
+    <a href="#contributing"><img src="https://img.shields.io/badge/-Contributing-red?style=for-the-badge" alt="Contributing"/></a>
+    <a href="#syrups-roadmap"><img src="https://img.shields.io/badge/-Syrup%27s%20Roadmap-lightgrey?style=for-the-badge" alt="Syrup's Roadmap"/></a>
+    <a href="#license"><img src="https://img.shields.io/badge/-License-lightblue?style=for-the-badge" alt="License"/></a>
+    <a href="#contact"><img src="https://img.shields.io/badge/-Contact-purple?style=for-the-badge" alt="Contact"/></a>
+</p>
 
 Welcome to Syrup, an advanced, feature-rich backend framework architectured on Koa and Sequelize. Syrup is designed to push the boundaries of web development by leveraging the power of TypeScript, providing a strongly-typed, developer-friendly environment. With an array of custom-built systems and utilities, Syrup takes server development to the next level by handling all its complexities, allowing you to focus on creating incredible applications.
 
-# 🌟 Core Features
-
-### 🏗️ Robust Server Foundation
-
-A steadfast core server offering unparalleled stability, performance, security, and scalability.
-
-#
-
-### 🛠️ Seamless Configuration (WIP)
-
-A simplified, yet flexible, configuration process providing sensible defaults and complete customization.
-
-#
-
-### 🔒 Flexible Authentication
-
-A configurable base auth system and User model that can be easily adapted to suit your application's needs.
-
-#
-
-### 🛡️ Secure by Design
-
-A dedicated focus on secure mechanisms and implementations to fortify your application.
-
-#
-
-### 🎟️ Session Mastery
-
-Efficient management of user sessions, ensuring a smooth and seamless user experience.
-
-#
-
-### 📄 Integrated JWT Authentication
-
-Easy integration of JWT authentication, providing secure access and protection for your resources.
-
-#
-
-### 🧮 Decorator-Driven Simplification
-
-Simplified and readable code with our decorator-based helpers.
-
-#
-
-### 📜 Automated API Documentation (WIP)
-
-Automated, comprehensive, and easy-to-understand Swagger documentation for your APIs.
-
-#
-
-### 🏛️ Auto-Generated Schemas (SEMI)
-
-Automatic schema generation ensuring database consistency with your data models.
-
-#
-
-### 🕵️ Tracing & Error Handling
-
-Efficient error tracing and handling, making debugging easier and improving application reliability.
-
-#
-
-### 📚 Structured Logging & Archiving
-
-Monitor your application's behavior with structured logging and long-term storage for analysis.
-
-#
-
-### 🖼️ Admin Panels (Metadata Utilization) (SEMI)
-
-Easy access and use of your ORM's metadata through built-in admin panels, simplifying administrative tasks.
-
-#
-
-### 📈 Built-In Analytics & Monitoring (WIP)
-
-Built-in support for Prometheus or Grafana endpoints with Opentelemetry for monitoring and analyzing application metrics.
-
-#
-
-### 🧰 Middleware Excellence
-
-Seamless request handling with a suite of middleware solutions, including structured logging, error handling, and consistent server responses.
-
-#
-
-### 🚀 API-Driven Routing
-
-Simplified process of defining controllers and routes with an API that auto-generates CRUD functionality.
-
-#
-
-### 📊 Resource Monitoring & AI-Based Anomaly Detection
-
-Built-in resource monitoring, logging, and check endpoints. Anomaly detection system using machine learning for data anomaly detection.
-
-#
-
-### ⏰ Event-Driven Scheduling
-
-Easy scheduling of cron jobs and comprehensive server-based event hooks for event-driven programming.
-
-#
-
-### 📈 Insightful Analysis & Reports
-
-Deep insights into your application with automatic analysis and reports for queries, requests, RBAC access, model audit logs, and errors.
-
-#
-
-### 🗄️ Customizable Caching
-
-Choose the caching solution that suits you best, with Etag support, Redis clients, or an in-memory LFU or LRU cache.
-
-#
-
-### 📚 Flexible Database Support (SEMI)
-
-Seamless integration with various SQL-based database dialects for maximum data storage flexibility and performance.
-
-#
-
-### 🛡️ Data Integrity & Health Checks
-
-Ensure the integrity of your data with our custom validation library and comprehensive health checks API.
-
-#
-
-### 💻 Command Line Mastery
-
-Speed up your development process with our CLI suite, capable of generating everything from projects and hooks to models, routes, and controllers.
-
-#
-
-### 🏢 Consistent Project Structure
-
-Enjoy a consistent, intuitive, and efficient development experience thanks to our well-maintained project structure.
-
----
-
-## 🚀 Getting Started with Syrup
+<h2 id='core-features'>🌟 Core Features</h2>
+
+- 🏗️ **Robust Server Foundation**: A steadfast core server offering unparalleled stability, performance, security, and scalability.
+- 🛠️ **Seamless Configuration**: A simplified, yet flexible, configuration process providing sensible defaults and complete customization.
+- 🔒 **Flexible Authentication**: A configurable base auth system and User model that can be easily adapted to suit your application's needs.
+- 🛡️ **Secure by Design**: A dedicated focus on secure mechanisms and implementations to fortify your application.
+- 🎟️ **Session Mastery**: Efficient management of user sessions, ensuring a smooth and seamless user experience.
+- 📄 **Integrated JWT Authentication**: Easy integration of JWT authentication, providing secure access and protection for your resources.
+- 🧮 **Decorator-Driven Simplification**: Simplified and readable code with our decorator-based helpers.
+- 📜 **Automated API Documentation**: Automated, comprehensive, and easy-to-understand Swagger documentation for your APIs.
+- 🏛️ **Auto-Generated Schemas**: Automatic schema generation ensuring database consistency with your data models.
+- 🕵️ **Tracing & Error Handling**: Efficient error tracing and handling, making debugging easier and improving application reliability.
+- 📚 **Structured Logging & Archiving**: Monitor your application's behavior with structured logging and long-term storage for analysis.
+- 🖼️ **Admin Panels**: Easy access and use of your ORM's metadata through built-in admin panels, simplifying administrative tasks.
+- 📈 **Built-In Analytics & Monitoring**: Built-in support for Prometheus or Grafana endpoints with Opentelemetry for monitoring and analyzing application metrics.
+- 🧰 **Middleware Excellence**: Seamless request handling with a suite of middleware solutions, including structured logging, error handling, and consistent server responses.
+- 🚀 **API-Driven Routing**: Simplified process of defining controllers and routes with an API that auto-generates CRUD functionality.
+- 📊 **Resource Monitoring & AI-Based Anomaly Detection**: Built-in resource monitoring, logging, and check endpoints. Anomaly detection system using machine learning for data anomaly detection.
+- ⏰ **Event-Driven Scheduling**: Easy scheduling of cron jobs and comprehensive server-based event hooks for event-driven programming.
+- 📈 **Insightful Analysis & Reports**: Deep insights into your application with automatic analysis and reports for queries, requests, RBAC access, model audit logs, and errors.
+- 🗄️ **Customizable Caching**: Choose the caching solution that suits you best, with Etag support, Redis clients, or an in-memory LFU or LRU cache.
+- 📚 **Flexible Database Support**: Seamless integration with various SQL-based database dialects for maximum data storage flexibility and performance.
+- 🛡️ **Data Integrity & Health Checks**: Ensure the integrity of your data with our custom validation library and comprehensive health checks API.
+- 💻 **Command Line Mastery**: Speed up your development process with our CLI suite, capable of generating everything from projects and hooks to models, routes, and controllers.
+- 🏢 **Consistent Project Structure**: Enjoy a consistent, intuitive, and efficient development experience thanks to our well-maintained project structure.
+
+<h2 id='getting-started-with-syrup'>🚀 Getting Started with Syrup</h2>
 
 Embark on your journey with Syrup! Below are the steps to set up your development environment and start using this feature-rich framework.
 
@@ -192,9 +89,7 @@ npm run start
 
 Remember, Syrup is all about streamlining and supercharging your web development process. Enjoy the journey!
 
----
-
-## 🏗️ Project Structure
+<h2 id='project-structure'>🚀 Project Structure</h2>
 
 Our project structure prioritizes developer experience with a clear separation of backend and frontend files. Frontend structure is recommended, but not opinionated within the CLI.
 
@@ -231,15 +126,11 @@ Our project structure prioritizes developer experience with a clear separation o
 
 This structured environment ensures a clear separation of concerns, making it easy to locate files and work on different parts of the application independently.
 
----
-
-## 🤝 Contributing
+<h2 id='contributing'>🤝 Contributing</h2>
 
 If you'd like to contribute, please fork the repository and make changes as you'd like. Pull requests are warmly welcome.
 
----
-
-## 🛣️ Syrup's Roadmap
+<h2 id='syrups-roadmap'>🛣️ Syrup's Roadmap</h2>
 
 At Syrup, we are always brewing new features to supercharge your web development journey even further. Our roadmap illustrates the ambitious trajectory we have planned. Here's a preview of what's on the horizon:
 
@@ -271,15 +162,11 @@ This roadmap is a testament to our commitment to making Syrup the go-to framewor
 
 We welcome contributions to help us realize this vision. If you're as excited about these features as we are and want to contribute, please feel free to submit pull requests or suggest new ideas. Let's brew the future of web development together with Syrup!
 
----
-
-## 📜 License
+<h2 id='license'>📜 License</h2>
 
 This project is licensed under the MIT License.
 
----
-
-## 📞 Contact
+<h2 id='contact'>📞 Contact</h2>
 
 If you want to contact me, you can reach me at Paintersrp@gmail.com.
 

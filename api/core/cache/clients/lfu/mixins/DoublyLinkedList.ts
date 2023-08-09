@@ -1,4 +1,4 @@
-import { EventEmitter } from '../../../../mixins/events/EventEmitter';
+import { EventEmitter } from '../../../../emitter/Emitter';
 import { ListItem } from './ListItem';
 
 /**

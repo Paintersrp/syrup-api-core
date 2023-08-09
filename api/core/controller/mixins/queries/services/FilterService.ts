@@ -1,5 +1,5 @@
 import { FindOptions, Model, ModelStatic, Op } from 'sequelize';
-import { SyValidator } from '../../../../mixins/validators';
+import { SyValidator } from '../../../../validators';
 import { CustomWhere, FilterOptions, OperatorMapping, QueryType } from '../types';
 
 /**

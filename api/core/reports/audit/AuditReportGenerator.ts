@@ -1,5 +1,4 @@
-import { AuditLogFetcher } from './AuditLogFetcher';
-import { AuditLogProcessor } from './AuditLogProcessor';
+import { AuditLogFetcher, AuditLogProcessor } from './services';
 import { AuditLogMetrics } from './types';
 
 /**

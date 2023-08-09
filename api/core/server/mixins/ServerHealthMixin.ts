@@ -7,8 +7,8 @@ import * as settings from '../../../settings';
 import { SyServer } from '../SyServer';
 import { ServerResourceThresholds } from '../types';
 
-import { AnomalyDetector } from '../../mixins/anomaly/AnomlyDetector';
-import { HealthCheckService } from '../../mixins/health';
+import { AnomalyDetector } from '../../monitoring/anomaly/AnomlyDetector';
+import { HealthCheckService } from '../health';
 
 export class ServerHealthMixin extends HealthCheckService {
   server: SyServer;

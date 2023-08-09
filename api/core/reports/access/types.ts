@@ -1,3 +1,5 @@
+export type LogKey = 'role' | 'action' | 'resource';
+
 export interface RBACLogObject {
   timestamp: string;
   user: string;
@@ -14,14 +16,14 @@ export interface AccessLogMetrics {
   totalRequests: number;
   totalDenied: number;
   totalAllowed: number;
-  users: string[];
-  roles: string[];
-  accessDecisions: string[];
-  actions: string[];
-  resources: string[];
-  rules: string[];
-  userAgents: string[];
-  ipAddresses: string[];
+  users: Set<string>;
+  roles: Set<string>;
+  accessDecisions: Set<string>;
+  actions: Set<string>;
+  resources: Set<string>;
+  rules: Set<string>;
+  userAgents: Set<string>;
+  ipAddresses: Set<string>;
   accessFrequency: Record<string, number>;
   deniedAccessPatterns: Record<string, number>;
   roleAccessStats: Record<string, AccessStats>;

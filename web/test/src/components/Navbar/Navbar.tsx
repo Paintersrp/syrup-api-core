@@ -7,7 +7,7 @@ interface NavbarProps {}
 export const Navbar: React.FC<NavbarProps> = () => {
   return (
     <div className={styles.navbar}>
-      <div className={styles.logo}>My App</div>
+      <div className={styles.logo}></div>
       <div className={styles.links}>
         <Link className={styles.link} to="/app/users">
           Users

@@ -2,11 +2,11 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 export type SEOData = {
-  title: string;
-  description: string;
-  keywords: string;
-  url: string;
-  image: string;
+  title?: string;
+  description?: string;
+  keywords?: string;
+  url?: string;
+  image?: string;
 };
 
 export const SEO: React.FC<SEOData> = (seoData) => {

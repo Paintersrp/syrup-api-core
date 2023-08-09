@@ -1,5 +1,5 @@
-import { Scheduler } from '../mixins/scheduler/Scheduler2';
-import { Job } from '../mixins/job/Job';
+import { Scheduler } from '../scheduler';
+import { Job } from '../jobs';
 import { ReportProfile } from './types';
 
 /**

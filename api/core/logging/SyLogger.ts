@@ -1,14 +1,13 @@
 import fs from 'fs-extra';
 import path from 'path';
-import * as settings from '../../settings';
 import { Logger, Level } from 'pino';
 
-import { LoggerController } from './LoggerController';
+import * as settings from '../../settings';
+import { LoggerController } from './controller';
 import { LoggerDefaults } from './defaults';
 import { LoggerNames } from './enums';
 import { LogInterface, LoggerConfig } from './types';
-import { Interval } from '../lib';
-import { DataSize } from '../lib/enums/data-sizes';
+import { DataSize, Interval } from '../lib';
 
 /**
  * CentralLogger creates and manages multiple loggers in the system.
@@ -120,6 +119,15 @@ export class SyLogger {
    */
   public logAudit(message: string, obj?: Record<string, any>) {
     this.log(LoggerNames.AUDIT, 'info', message, obj);
+  }
+
+  /**
+   * @public Logs a query message.
+   * @param {string} message - The message to be logged.
+   * @param {Record<string, any>} obj - Optional additional information.
+   */
+  public logRequest(message: string, obj?: Record<string, any>) {
+    this.log(LoggerNames.REQUEST, 'info', message, obj);
   }
 
   /**

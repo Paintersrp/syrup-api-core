@@ -1,11 +1,7 @@
-import { BaseReportGenerator } from '../base/BaseReportGenerator';
-import {
-  AggregatedQueryMetrics,
-  QueryFrequencies,
-  QueryFrequency,
-  QueryLogReport,
-  QueryReportLogObject,
-} from './types';
+import { BinaryHeap } from '../../lib/structures/BinaryHeap';
+import { BaseReportGenerator } from '../base';
+import { QueryFrequencyAggregator, QueryLogTransformer, QueryMetricsAggregator } from './services';
+import { AggregatedQueryMetrics, QueryLogReport, QueryReportLogObject } from './types';
 
 /**
  * @class QueryLogAnalyzer
@@ -16,19 +12,20 @@ import {
  * count parameters and aggregate metrics and frequencies.
  */
 export class QueryReportGenerator extends BaseReportGenerator<QueryReportLogObject> {
-  private readonly invalidTypes = new Set(['SHOWTABLES', 'SHOWINDEXES', 'DEFERRED']);
+  public totalDuration = 0;
+  public longestDuration = 0;
+  public shortestDuration = Infinity;
+  public totalValidQueries = 0;
 
-  private totalDuration = 0;
-  private longestDuration = 0;
-  private shortestDuration = Infinity;
-  private totalValidQueries = 0;
+  public typeMetrics: Map<string, AggregatedQueryMetrics> = new Map();
+  public modelNameMetrics: Map<string, AggregatedQueryMetrics> = new Map();
 
-  private typeMetrics: Map<string, AggregatedQueryMetrics> = new Map();
-  private modelNameMetrics: Map<string, AggregatedQueryMetrics> = new Map();
-  private frequencies: QueryFrequencies;
-
-  private queryDurations: { [key: string]: number } = {};
   private durationBuckets: Record<string, number> = {};
+
+  private logTransformer: QueryLogTransformer;
+  private metricsAggregator: QueryMetricsAggregator;
+  private frequencyAggregator: QueryFrequencyAggregator;
+  // private queryReportCreator: QueryReportCreator;
 
   /**
    * Constructs a new instance of the QueryReportGenerator class.
@@ -38,35 +35,10 @@ export class QueryReportGenerator extends BaseReportGenerator<QueryReportLogObje
   constructor(logDir: string) {
     super(logDir);
 
-    this.setupFrequencies();
-  }
+    this.frequencyAggregator = new QueryFrequencyAggregator();
+    this.logTransformer = new QueryLogTransformer(this.frequencyAggregator);
 
-  /**
-   * Setups the frequencies object with initial values.
-   */
-  private setupFrequencies(): void {
-    this.frequencies = {
-      hourly: this.initializeFrequenciesForAllKeys(24),
-      daily: this.initializeFrequenciesForAllKeys(31),
-      weekly: this.initializeFrequenciesForAllKeys(5),
-      monthly: this.initializeFrequenciesForAllKeys(12),
-    };
-  }
-
-  /**
-   * Initializes an object with provided number of keys.
-   *
-   * @param {number} numKeys - The number of keys to initialize in the object.
-   * @returns {QueryFrequency} An object with keys initialized to 0.
-   */
-  private initializeFrequenciesForAllKeys(numKeys: number): QueryFrequency {
-    const frequencies: { [key: number]: number } = {};
-
-    for (let i = 0; i < numKeys; i++) {
-      frequencies[i] = 0;
-    }
-
-    return frequencies;
+    this.metricsAggregator = new QueryMetricsAggregator(this);
   }
 
   /**
@@ -83,11 +55,11 @@ export class QueryReportGenerator extends BaseReportGenerator<QueryReportLogObje
     const durationBucketCount = new Array(numBuckets).fill(0);
 
     this.logs.forEach((log) => {
-      const transformedLog = this.transformLog(log);
+      const transformedLog = this.logTransformer.transformLog(log);
       if (transformedLog) {
         const duration = transformedLog.context.duration || 0;
 
-        this.accumulateMetrics(transformedLog);
+        this.metricsAggregator.accumulateMetrics(transformedLog);
 
         const range = (this.longestDuration - this.shortestDuration) / numBuckets;
         const bucketIndex = Math.floor((duration - this.shortestDuration) / range);
@@ -103,114 +75,6 @@ export class QueryReportGenerator extends BaseReportGenerator<QueryReportLogObje
     );
 
     return this.createReport();
-  }
-
-  /**
-   * Transforms and filters the log based on its validity.
-   * It also aggregates the query frequency based on the log's timestamp.
-   *
-   * @param {QueryReportLogObject} log - The log to transform.
-   * @returns {QueryReportLogObject | null} The transformed log or null if the log is not valid.
-   */
-  private transformLog(log: QueryReportLogObject): QueryReportLogObject | null {
-    if (!this.isValidLog(log)) {
-      return null;
-    }
-
-    const duration = log.context.duration || 0;
-
-    this.aggregateFrequencies(log, duration);
-
-    return log;
-  }
-
-  /**
-   * Accumulates metrics from a log. The log should be previously transformed.
-   *
-   * @param {QueryReportLogObject | null} log - The transformed log from which to accumulate metrics.
-   */
-  private accumulateMetrics(log: QueryReportLogObject | null): void {
-    if (!log) return;
-
-    const duration = log.context.duration || 0;
-    this.totalDuration += duration;
-    this.longestDuration = Math.max(this.longestDuration, duration);
-    this.shortestDuration = Math.min(this.shortestDuration, duration);
-    this.totalValidQueries++;
-
-    this.aggregateMetrics(log, this.typeMetrics, 'type');
-    this.aggregateMetrics(log, this.modelNameMetrics, 'modelName');
-  }
-
-  /**
-   * Checks if a log is valid based on its type and SQL content.
-   *
-   * @private
-   * @param {QueryReportLogObject} log - The log to check.
-   * @returns {boolean} True if the log is valid, false otherwise.
-   */
-  private isValidLog(log: QueryReportLogObject): boolean {
-    return !this.invalidTypes.has(log.context.type) && log.context.sql !== 'SELECT 1+1 AS result';
-  }
-
-  /**
-   * Aggregates metrics for a particular context field from a log
-   * and updates the passed aggregate object with the metrics.
-   *
-   * @param {QueryReportLogObject} log - The log to aggregate metrics from.
-   * @param {Map<string, AggregatedQueryMetrics>} aggregate - The aggregate object to update with metrics.
-   * @param {keyof QueryReportLogObject['context']} field - The context field to aggregate metrics for.
-   */
-  private aggregateMetrics(
-    log: QueryReportLogObject,
-    aggregate: Map<string, AggregatedQueryMetrics>,
-    field: keyof QueryReportLogObject['context']
-  ): void {
-    const key = log.context[field] as string;
-    const duration = log.context.duration || 0;
-    if (key) {
-      const metrics = aggregate.get(key) || this.initializeEmptyMetrics();
-      metrics.totalQueries++;
-      metrics.totalDuration += duration;
-      metrics.maxDuration = Math.max(metrics.maxDuration, duration);
-      metrics.minDuration = Math.min(metrics.minDuration, duration);
-      aggregate.set(key, metrics);
-      if (metrics.totalQueries > 0) {
-        metrics.avgDuration = metrics.totalDuration / metrics.totalQueries;
-      }
-    }
-  }
-
-  /**
-   * Initializes and returns an empty metrics object.
-   *
-   * @private
-   * @returns {AggregatedQueryMetrics} The newly initialized empty metrics object.
-   */
-  private initializeEmptyMetrics(): AggregatedQueryMetrics {
-    return {
-      totalQueries: 0,
-      totalDuration: 0,
-      avgDuration: 0,
-      maxDuration: 0,
-      minDuration: Infinity,
-    };
-  }
-
-  /**
-   * Aggregates frequencies for different time divisions.
-   *
-   * @param {QueryReportLogObject} log - The log to aggregate frequencies from.
-   * @param {number} duration - The duration of the log.
-   */
-  private aggregateFrequencies(log: QueryReportLogObject, duration: number): void {
-    this.queryDurations[log.context.id] = duration;
-    const date = new Date(log.time);
-
-    this.frequencies.hourly[date.getHours()]++;
-    this.frequencies.daily[date.getDate()]++;
-    this.frequencies.weekly[Math.floor(date.getDate() / 7)]++;
-    this.frequencies.monthly[date.getMonth()]++;
   }
 
   /**
@@ -249,38 +113,30 @@ export class QueryReportGenerator extends BaseReportGenerator<QueryReportLogObje
    * @returns {QueryLogReport} A report of various metrics about the loaded logs.
    */
   private createReport(): QueryLogReport {
+    const queryDurations = this.frequencyAggregator.getQueryDurations();
+    const shortestDuration = isFinite(this.shortestDuration) ? this.shortestDuration : 0;
+
     return {
       totalQueries: this.totalValidQueries,
       averageQueryDuration: this.getAverageQueryDuration(),
       longestDuration: this.longestDuration,
-      shortestDuration: isFinite(this.shortestDuration) ? this.shortestDuration : 0,
+      shortestDuration: shortestDuration,
       queriesByType: this.typeMetrics,
       queriesByModel: this.modelNameMetrics,
-      queryFrequency: this.getQueryFrequency(),
+      queryFrequency: this.frequencyAggregator.getFrequencies(),
       durationBuckets: this.durationBuckets,
-      topModels: this.getTopKMap(this.modelNameMetrics, 3),
-      slowestQueries: this.getTopK(this.queryDurations, 10),
+      topModels: this.getSlowestQueries(this.modelNameMetrics, 3),
+      slowestQueries: this.getTopK(queryDurations, 10),
     };
   }
 
   /**
    * Returns the average query duration for the report
    *
-   * @private
    * @returns {number} Average query duration
    */
-  private getAverageQueryDuration(): number {
+  public getAverageQueryDuration(): number {
     return this.totalValidQueries > 0 ? this.totalDuration / this.totalValidQueries : 0;
-  }
-
-  /**
-   * Returns the QueryFrequencies object for the report
-   *
-   * @private
-   * @returns {QueryFrequencies} QueryFrequencies object
-   */
-  private getQueryFrequency(): QueryFrequencies {
-    return this.frequencies;
   }
 
   /**
@@ -290,23 +146,28 @@ export class QueryReportGenerator extends BaseReportGenerator<QueryReportLogObje
    * @param {number} k - The number of entries to extract.
    * @returns {Array<{type: string, totalDuration: number}>} The top K entries.
    */
-  protected getTopKMap(
-    metrics: Map<string, AggregatedQueryMetrics>,
+  public getSlowestQueries(
+    metrics: Map<string, any>,
     k: number
-  ): { type: string; totalDuration: number }[] {
-    const heap: { type: string; totalDuration: number; avgDuration: number }[] = [];
-    const entries = Array.from(metrics.entries());
+  ): { type: string; totalDuration: number; avgDuration: number }[] {
+    const heap = new BinaryHeap<{ type: string; totalDuration: number; avgDuration: number }>(
+      (a, b) => a.totalDuration - b.totalDuration
+    );
 
-    for (let i = 0; i < entries.length; i++) {
-      const [type, metric] = entries[i];
-      if (i < k) {
-        heap.push({ type, totalDuration: metric.totalDuration, avgDuration: metric.avgDuration });
-      } else if (metric.totalDuration > heap[0].totalDuration) {
-        heap[0] = { type, totalDuration: metric.totalDuration, avgDuration: metric.avgDuration };
+    for (const [type, metric] of metrics) {
+      const item = { type, totalDuration: metric.totalDuration, avgDuration: metric.avgDuration };
+      if (heap.size() < k) {
+        heap.push(item);
+      } else if (metric.totalDuration > heap.peek().totalDuration) {
+        heap.pop();
+        heap.push(item);
       }
-      heap.sort((a, b) => a.totalDuration - b.totalDuration);
     }
 
-    return heap.reverse();
+    const topKItems: { type: string; totalDuration: number; avgDuration: number }[] = [];
+    while (heap.size() > 0) {
+      topKItems.push(heap.pop());
+    }
+    return topKItems.reverse();
   }
 }

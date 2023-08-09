@@ -3,7 +3,7 @@ import styles from './Page.module.css';
 import { SEO, SEOData } from '../SEO/SEO';
 
 interface PageProps {
-  seoData: SEOData;
+  seoData?: SEOData;
   children: React.ReactNode;
 }
 

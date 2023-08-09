@@ -51,4 +51,7 @@ export interface ErrorLogObjectResponse {
   userAgent: string;
   ipAddress: string;
   stack?: string[];
+  userId: string;
+  requestMethod: string;
+  responseStatus: number;
 }
