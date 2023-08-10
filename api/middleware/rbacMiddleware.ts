@@ -2,7 +2,8 @@ import { IMiddleware } from 'koa-router';
 import { ForbiddenError } from '../core/errors/client';
 import { AuthResponses } from '../core/lib/responses';
 import { AccessLogObject } from '../core/logging/objects/AccessLogObject';
-import { User, UserRoleEnum } from '../models/user';
+import { UserRoleEnum } from '../core/models/auth/User';
+import { UserService } from '../core/auth/user/UserService';
 
 /**
  * A middleware to check if the authenticated user has the required role(s) to access a resource.
@@ -14,7 +15,7 @@ import { User, UserRoleEnum } from '../models/user';
 export const rbacMiddleware = (roles: UserRoleEnum | UserRoleEnum[]): IMiddleware => {
   return async (ctx, next) => {
     const requiredRoles = Array.isArray(roles) ? roles : [roles];
-    const userRole = await User.roleResolver(ctx);
+    const userRole = await UserService.contextRoleResolver(ctx);
 
     if (!requiredRoles.includes(userRole)) {
       const logObject = new AccessLogObject(ctx, 'DENY', AuthResponses.RBAC_FAIL, 'Middleware');

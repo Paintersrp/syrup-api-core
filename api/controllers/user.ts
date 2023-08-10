@@ -7,8 +7,10 @@ import { InferCreationAttributes } from 'sequelize';
 import { SyController } from '../core/controller/SyController';
 import { UserSchema } from '../schemas';
 import { JWT_SECRET } from '../settings';
-import { Blacklist, User } from '../models';
+import { Blacklist, User } from '../core/models/auth';
 import { AuthMessages } from '../core/messages/services';
+import { JWTAuthService } from '../core/auth/jwt/JWTAuthService';
+import { UserService } from '../core/auth/user/UserService';
 
 export class UserController extends SyController {
   private methodsToBind = ['register', 'login', 'logout', 'refresh_token', 'validateUserBody'];
@@ -21,72 +23,6 @@ export class UserController extends SyController {
     super({ model: User, schema: UserSchema, logger });
 
     this.bindMethods(this.methodsToBind);
-  }
-
-  /**
-   * Checks if the request contains a valid access token.
-   */
-  private async checkForToken(ctx: Router.RouterContext): Promise<boolean> {
-    const accessToken = ctx.cookies.get('jwt');
-
-    if (accessToken) {
-      try {
-        const decodedToken: any = jwt.verify(accessToken, JWT_SECRET);
-        const user = await User.findOne({
-          where: { username: decodedToken.username },
-        });
-
-        if (user) {
-          return true;
-        }
-      } catch (error) {
-        return false;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Generate access token for a user
-   */
-  private generateAccessToken(user: User) {
-    return jwt.sign({ username: user.username, role: user.role }, JWT_SECRET, {
-      expiresIn: '480h',
-    });
-  }
-
-  /**
-   * Generate refresh token for a user
-   */
-  private generateRefreshToken(user: User) {
-    return jwt.sign({ username: user.username }, JWT_SECRET);
-  }
-
-  /**
-   * Set authentication cookies
-   */
-  private async setCookies(ctx: Router.RouterContext, accessToken: string, refreshToken: string) {
-    ctx.cookies.set('jwt', accessToken, {
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 48,
-    });
-    ctx.cookies.set('refreshToken', refreshToken, { httpOnly: true });
-  }
-
-  /**
-   * Blacklists a token by adding it to the blacklist table.
-   */
-  private async blacklistToken(token: string) {
-    await Blacklist.create({ token });
-  }
-
-  /**
-   * Checks if a token is blacklisted.
-   */
-  private async isTokenBlacklisted(token: string): Promise<boolean> {
-    const blacklistEntry = await Blacklist.findOne({ where: { token } });
-    return !!blacklistEntry;
   }
 
   /**
@@ -132,7 +68,7 @@ export class UserController extends SyController {
     const { username, password } = ctx.request.body as {
       [key: string]: string;
     };
-    const hasToken = await this.checkForToken(ctx);
+    const hasToken = await JWTAuthService.checkForToken(ctx);
 
     if (hasToken) {
       ctx.status = 403;
@@ -141,38 +77,41 @@ export class UserController extends SyController {
     }
 
     try {
-      const user = await User.findOne({ where: { username } });
+      const user = await UserService.getByUsername(username);
 
       if (!user) {
         ctx.throw(401, AuthMessages.USER_NOT_FOUND(username));
       }
 
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const isValidPassword = await UserService.comparePassword(password, user.password);
 
       if (!isValidPassword) {
         ctx.throw(401, AuthMessages.INVALID_PASSWORD);
       }
 
       if (user.refreshToken) {
-        const isBlacklisted = await this.isTokenBlacklisted(user.refreshToken);
+        const isBlacklisted = await JWTAuthService.isBlacklisted(user.refreshToken);
 
         if (!isBlacklisted) {
-          const decodedOriginalRefresh = jwt.decode(user.refreshToken) as jwt.JwtPayload;
+          const decodedOriginalRefresh = JWTAuthService.decode(user.refreshToken);
           if (decodedOriginalRefresh) {
-            await this.blacklistToken(user.refreshToken);
+            await JWTAuthService.addToBlacklist(user.refreshToken);
           }
         }
       }
 
-      const accessToken = this.generateAccessToken(user);
-      const refreshToken = this.generateRefreshToken(user);
-      await this.setCookies(ctx, accessToken, refreshToken);
+      const userDTO = { id: user.id, username: user.username, role: user.role };
+      const accessToken = await JWTAuthService.sign(userDTO);
+      const refreshToken = await JWTAuthService.signRefresh({ username: user.username });
+
+      await JWTAuthService.setCookies(ctx, accessToken, refreshToken);
 
       user.refreshToken = refreshToken;
       await user.save();
 
       ctx.body = { accessToken, refreshToken };
     } catch (error: any) {
+      console.log(error);
       this.logger.error(error);
       ctx.status = 500;
       ctx.body = { message: AuthMessages.FAIL('User', 'login'), error: error.message };
@@ -188,19 +127,21 @@ export class UserController extends SyController {
 
     if (originalAccessToken) {
       try {
-        const decodedToken: any = jwt.verify(refreshToken, JWT_SECRET);
-        const user = await User.findOne({
-          where: { username: decodedToken.username },
-        });
+        const decodedToken = await JWTAuthService.verify(refreshToken);
 
-        if (user && user.refreshToken === refreshToken) {
-          const accessToken = this.generateAccessToken(user);
-          await this.setCookies(ctx, accessToken, refreshToken);
-          await this.blacklistToken(originalAccessToken);
-          ctx.body = { accessToken };
-        } else {
-          ctx.status = 401;
-          ctx.body = AuthMessages.TOKEN_EXPIRED;
+        if (decodedToken) {
+          const user = await UserService.getByUsername(decodedToken.username);
+
+          if (user && user.refreshToken === refreshToken) {
+            const accessToken = await JWTAuthService.sign(user);
+            await JWTAuthService.setCookies(ctx, accessToken, refreshToken);
+            await JWTAuthService.addToBlacklist(originalAccessToken);
+
+            ctx.body = { accessToken };
+          } else {
+            ctx.status = 401;
+            ctx.body = AuthMessages.TOKEN_EXPIRED;
+          }
         }
       } catch (error) {
         ctx.status = 500;
@@ -217,19 +158,15 @@ export class UserController extends SyController {
     const refreshToken = ctx.cookies.get('refreshToken');
 
     if (accessToken) {
-      await this.blacklistToken(accessToken);
+      await JWTAuthService.addToBlacklist(accessToken);
     }
 
     if (refreshToken) {
-      await this.blacklistToken(refreshToken);
+      await JWTAuthService.addToBlacklist(refreshToken);
     }
 
     try {
-      ctx.cookies.set('jwt', '', { signed: false, expires: new Date(0) });
-      ctx.cookies.set('refreshToken', '', {
-        signed: false,
-        expires: new Date(0),
-      });
+      JWTAuthService.clearCookies(ctx);
       ctx.body = AuthMessages.SUCCESS('User', 'logout');
     } catch (erorr) {
       ctx.status = 500;

@@ -1,6 +1,6 @@
 import path from 'path';
-import { BasePathStructure } from './core/utils/pathresolver/types';
-import { PathResolver } from './core/utils/pathresolver/PathResolver';
+import { BasePathStructure } from './core/utils/PathResolver/types';
+import { PathResolver } from './core/utils/PathResolver/PathResolver';
 
 interface PathStructure extends BasePathStructure {
   api: {

@@ -1,4 +1,4 @@
-import { BinaryHeap } from '../../lib/structures/BinaryHeap';
+import { BinaryHeap } from '../../structures/BinaryHeap/BinaryHeap';
 import { BaseReportGenerator } from '../base';
 import { QueryFrequencyAggregator, QueryLogTransformer, QueryMetricsAggregator } from './services';
 import { AggregatedQueryMetrics, QueryLogReport, QueryReportLogObject } from './types';

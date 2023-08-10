@@ -1,5 +1,5 @@
 import { Context } from 'koa';
-import { User } from '../../../models';
+import { User } from '../../models/auth';
 import _ from 'lodash';
 
 /**

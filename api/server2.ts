@@ -136,4 +136,4 @@ const newReportProfile = {
 reportManager.addReportProfile(newReportProfile);
 
 const emailService = new EmailService(settings.EMAIL.EMAIL_BACKEND);
-emailService.sendEmail('test@example.com', 'Test Subject', 'Test Body');
+// emailService.sendEmail('test@example.com', 'Test Subject', 'Test Body');

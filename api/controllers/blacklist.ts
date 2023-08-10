@@ -1,7 +1,7 @@
 import { Logger } from 'pino';
 
 import { SyController } from '../core/controller/SyController';
-import { Blacklist } from '../models/blacklist';
+import { Blacklist } from '../core/models/auth/Blacklist';
 import { BlacklistSchema } from '../schemas/blacklist';
 
 export class BlacklistController extends SyController {

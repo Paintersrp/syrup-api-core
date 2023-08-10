@@ -1,4 +1,4 @@
-import { ConditionFunction, EmitterData, EventListener } from '../types';
+import { ConditionFunction, EmitterData, EmitterListener } from '../types';
 
 /**
  * Service responsible for managing and emitting events.
@@ -29,7 +29,7 @@ export class EventManager {
    */
   public on(
     event: string,
-    listener: EventListener,
+    listener: EmitterListener,
     priority: number = 0,
     metadata: Record<string, any> = {},
     condition: ConditionFunction = () => true
@@ -63,7 +63,7 @@ export class EventManager {
    * @param event - The name of the event.
    * @param listener - The callback function to remove.
    */
-  public off(event: string, listener: EventListener): void {
+  public off(event: string, listener: EmitterListener): void {
     const eventData = this.ensureEventInitialized(event);
     const index = eventData.findIndex((e) => e.listener === listener);
     if (index !== -1) {

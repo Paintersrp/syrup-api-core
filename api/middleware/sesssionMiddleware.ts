@@ -1,5 +1,6 @@
-import { Middleware, Context, Next } from 'koa';
-import { User } from '../models';
+import { Context, Middleware, Next } from 'koa';
+import { User } from '../core/models/auth';
+import { UserService } from '../core/auth/user/UserService';
 
 /**
  * The `sessionMiddleware` function is a Koa middleware that authenticates a user based on a token found in a cookie.
@@ -9,8 +10,8 @@ import { User } from '../models';
  *
  * If an error occurs during the process, the session and the cookie are cleared.
  *
- * @param {Object} ctx - The Koa context object.
- * @param {Function} next - The next middleware in the Koa middleware stack.
+ * @param {Context} ctx - The Koa context object.
+ * @param {Next} next - The next middleware in the Koa middleware stack.
  *
  * @throws Will clear the session and the cookie if an error occurs.
  *
@@ -26,24 +27,31 @@ import { User } from '../models';
  * @public
  */
 export const sessionMiddleware: Middleware = async (ctx: Context, next: Next): Promise<void> => {
-  const token = ctx.cookies.get('refreshToken');
+  if (ctx.path === '/favicon.ico') return;
 
-  // If the token is not found, continue with the request.
-  // We can safely assume the user is not authenticated.
+  ctx.session!.views = (ctx.session!.views || 0) + 1;
+  ctx.session!.actions = ctx.session!.actions || [];
+  ctx.session!.actions.push({ action: 'visited', url: ctx.url, timestamp: new Date() });
+
+  const token = ctx.cookies.get('refreshToken');
+  // const sid = ctx.cookies.get(config.key) || generateNewSid(); // Define your sid generation logic
+
   if (!token) {
     await next();
     return;
   }
 
   try {
-    const user = await User.findByToken(token);
+    const user = await UserService.findByToken(token);
 
-    // If the user was not found, continue with the request.
-    // We can safely assume the user is not authenticated.
     if (!user) {
       await next();
       return;
     }
+
+    // ctx.session.lastLoginTime = user.lastLoginTime;
+    ctx.session!.devices = ctx.session!.devices || [];
+    ctx.session!.devices.push(ctx.request.headers['user-agent']);
 
     // Check if user session expired.
     // if (user.sessionExpired()) {
@@ -52,7 +60,7 @@ export const sessionMiddleware: Middleware = async (ctx: Context, next: Next): P
     //   return;
     // }
 
-    const userObject = await user.generateSessionObject();
+    const userObject = await UserService.generateSessionObject(user);
 
     // // If user's last activity was a long time ago but session has not expired, refresh the token.
     // if (user.shouldRefreshToken()) {

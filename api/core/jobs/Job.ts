@@ -31,12 +31,16 @@ export class Job {
    * @param options - The job options including name, task, schedule and hooks.
    */
   constructor(options: JobOptions) {
-    this._name = options.name;
-    this.task = options.task;
-    this.schedule = options.schedule;
-    this._hooks = options.hooks || {};
-    this._priority = options.priority || 0;
-    this._maxRetries = options.maxRetries || 0;
+    try {
+      this._name = options.name;
+      this.task = options.task;
+      this.schedule = options.schedule;
+      this._hooks = options.hooks || {};
+      this._priority = options.priority || 0;
+      this._maxRetries = options.maxRetries || 0;
+    } catch (error: any) {
+      console.log(error);
+    }
   }
 
   /**

@@ -1,5 +1,5 @@
-export { AccessLog } from './AccessLog';
-export { AuditLog } from './AuditLog';
-export { ErrorLog } from './ErrorLog';
-export { QueryLog } from './QueryLog';
-export { RequestLog } from './RequestLog';
+export { AccessLog } from './Access';
+export { Audit as AuditLog } from './Audit';
+export { Error as ErrorLog } from './Error';
+export { Query as QueryLog } from './Query';
+export { Request as RequestLog } from './Request';

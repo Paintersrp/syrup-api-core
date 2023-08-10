@@ -7,19 +7,7 @@ import {
   DataTypes,
 } from 'sequelize';
 import { auditLog } from '../logging/objects/auditLog';
-import { AuditAction } from './logging/AuditLog';
-
-// async function auditLog(model: any, action: AuditAction) {
-//   const dataValues = model.dataValues;
-//   const originalData = model._previousDataValues;
-
-//   await AuditLog.create({
-//     action,
-//     model: model.constructor.name,
-//     beforeData: action === AuditAction.DELETE ? originalData : null,
-//     afterData: action !== AuditAction.DELETE ? dataValues : null,
-//   });
-// }
+import { AuditAction } from './logging/Audit';
 
 /**
  * Abstract base class for Sequelize models with additional metadata and field definitions.

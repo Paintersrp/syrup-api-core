@@ -1,5 +1,5 @@
 import { Sequelize, Transaction } from 'sequelize';
-import { Cache } from '../../../../models';
+import { Cache } from '../../../models/general';
 import { SyLogger } from '../../../logging/SyLogger';
 import { CacheContents } from '../../types';
 

@@ -20,6 +20,8 @@ export function Field({
   unique = false,
   validate = undefined,
   verbose = undefined,
+  references = undefined,
+  comment = undefined,
 }: FieldInterface): PropertyDecorator {
   return (target: any, propertyKey: string | symbol): void => {
     if (!target.constructor.fields) {
@@ -35,6 +37,8 @@ export function Field({
       readOnly,
       unique,
       validate,
+      references,
+      comment,
     };
 
     if (verbose) {

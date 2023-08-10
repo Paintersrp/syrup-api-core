@@ -1,4 +1,4 @@
-import { EventListener } from '../types';
+import { EmitterListener } from '../types';
 
 /**
  * Manager responsible for managing and emitting wildcard events.
@@ -8,14 +8,14 @@ export class WildcardManager {
   /**
    * Collection of event listeners registered for wildcard events.
    */
-  private wildcardListeners: EventListener[] = [];
+  private wildcardListeners: EmitterListener[] = [];
 
   /**
    * Register a new listener for wildcard events.
    *
    * @param listener - The listener function to be added.
    */
-  public on(listener: EventListener): void {
+  public on(listener: EmitterListener): void {
     this.wildcardListeners.push(listener);
   }
 
@@ -24,7 +24,7 @@ export class WildcardManager {
    *
    * @param listener - The listener function to be removed.
    */
-  public off(listener: EventListener): void {
+  public off(listener: EmitterListener): void {
     const index = this.wildcardListeners.indexOf(listener);
     if (index > -1) {
       this.wildcardListeners.splice(index, 1);

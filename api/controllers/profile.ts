@@ -1,7 +1,7 @@
 import { Logger } from 'pino';
 
 import { SyController } from '../core/controller/SyController';
-import { Profile } from '../models/profile';
+import { Profile } from '../core/models/auth/Profile';
 import { ProfileSchema } from '../schemas';
 
 export class ProfileController extends SyController {

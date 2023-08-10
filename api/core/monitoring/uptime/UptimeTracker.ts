@@ -17,11 +17,11 @@ export class UptimeTracker {
   constructor(autoUpdateIntervalCron?: string) {
     if (autoUpdateIntervalCron) {
       this.autoUpdateScheduler = new Scheduler();
-      this.autoUpdateJob = new Job(
-        'autoUpdateUptimeRecords',
-        async () => this.autoUpdateRecords(),
-        autoUpdateIntervalCron
-      );
+      this.autoUpdateJob = new Job({
+        name: 'autoUpdateUptimeRecords',
+        task: async () => this.autoUpdateRecords(),
+        schedule: autoUpdateIntervalCron,
+      });
       this.autoUpdateScheduler.addJob(this.autoUpdateJob);
     }
   }
@@ -41,21 +41,21 @@ export class UptimeTracker {
    */
   public stopAutoUpdate() {
     if (this.autoUpdateScheduler && this.autoUpdateJob) {
-      this.autoUpdateScheduler.stopJob(this.autoUpdateJob.getName());
+      this.autoUpdateScheduler.stopJob(this.autoUpdateJob.name);
     }
   }
 
   public setAutoUpdateIntervalCron(intervalCron: string): void {
     if (!this.autoUpdateScheduler || !this.autoUpdateJob) {
       this.autoUpdateScheduler = new Scheduler();
-      this.autoUpdateJob = new Job(
-        'autoUpdateUptimeRecords',
-        async () => this.autoUpdateRecords(),
-        intervalCron
-      );
+      this.autoUpdateJob = new Job({
+        name: 'autoUpdateUptimeRecords',
+        task: async () => this.autoUpdateRecords(),
+        schedule: intervalCron,
+      });
       this.autoUpdateScheduler.addJob(this.autoUpdateJob);
     } else {
-      this.autoUpdateScheduler.rescheduleJob(this.autoUpdateJob.getName(), intervalCron);
+      this.autoUpdateScheduler.rescheduleJob(this.autoUpdateJob.name, intervalCron);
     }
   }
 

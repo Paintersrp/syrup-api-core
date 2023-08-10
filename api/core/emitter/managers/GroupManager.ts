@@ -4,7 +4,7 @@ import { EventManager } from './EventManager';
  * Manager responsible for managing and emitting event groups.
  */
 export class GroupManager {
-  private groups: Map<string, string[]> = new Map();
+  public groups: Map<string, string[]> = new Map();
   private operationService: EventManager;
 
   /**
@@ -13,6 +13,10 @@ export class GroupManager {
    */
   constructor(operationService: EventManager) {
     this.operationService = operationService;
+  }
+
+  public getGroups(): Map<string, string[]> {
+    return this.groups;
   }
 
   /**

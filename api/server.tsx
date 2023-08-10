@@ -36,11 +36,14 @@ import * as settings from './settings';
 import { SyServer } from './core/server/SyServer';
 import { paths } from './paths';
 import { Emitter } from './core/emitter/Emitter';
+
 import { ErrorReportGenerator } from './core/reports/error/ErrorReportGenerator';
 import { QueryReportGenerator } from './core/reports/query/QueryReportGenerator';
 import { AuditReportGenerator } from './core/reports/audit/AuditReportGenerator';
 import { AccessReportGenerator } from './core/reports/access/AccessReportGenerator';
 import { RequestReportGenerator } from './core/reports/request/RequestReportGenerator';
+
+import { testAllStructures } from './core/structures/checkAll';
 
 const koa = new Koa();
 koa.use(serve('../web/test/dist'));
@@ -81,14 +84,13 @@ emitter.on(
 
 emitter.emit('testEvent');
 
-console.log(emitter.getEvents());
-
 const router = new Router();
 
 // Dynamic config reading
 const dynamicImport = async (filePath: string) => {
   return import(filePath);
 };
+
 const generatePageConfigs = async () => {
   const pagesDir = paths.web.test.src.pages;
 
@@ -189,4 +191,5 @@ async function runGenny() {
   // console.log('test2', test2);
 }
 
-runGenny();
+// runGenny();
+// testAllStructures();

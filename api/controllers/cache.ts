@@ -1,7 +1,7 @@
 import { Logger } from 'pino';
 
 import { SyController } from '../core/controller/SyController';
-import { Cache } from '../models/cache';
+import { Cache } from '../core/models/general/Cache';
 import { CacheSchema } from '../schemas';
 
 export class CacheController extends SyController {

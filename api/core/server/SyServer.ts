@@ -18,6 +18,7 @@ import { SyLRUCache } from '../cache/clients/lru/SyLRUCache';
 import { SyDatabase } from '../database/SyDatabase';
 import { RouteConstructor } from '../../types';
 import { SyLogger } from '../logging/SyLogger';
+import SessionStore from '../../stores/SessionStore';
 
 /**
  * @class
@@ -89,10 +90,10 @@ export class SyServer {
     app.context.logger = this.logger;
 
     this.initializeLogger(app);
+    // this.initializeSessions(app);
     this.initializeMiddleware(app, middleware);
     this.initializeSSR(app, distPath);
     this.initializeRoutes(app, routes);
-    this.initializeSessions(app);
     this.initializeManagementRoutes(app);
 
     // Attaches the application with applied routes and middlewares to the Koa Server
@@ -120,6 +121,19 @@ export class SyServer {
    * @param {Middleware} middleware - The middleware to apply.
    */
   private initializeMiddleware(app: Koa, middleware: ComposedMiddlewares | undefined) {
+    const SESSIONS_CONFIG = {
+      key: 'koa.sess',
+      maxAge: 86400000,
+      autoCommit: true,
+      overwrite: true,
+      httpOnly: true,
+      signed: true,
+      store: new SessionStore(),
+    };
+
+    app.keys = ['some secret']; // env
+    app.use(session(SESSIONS_CONFIG, app));
+
     if (middleware) {
       app.use(middleware);
     }
@@ -161,8 +175,20 @@ export class SyServer {
    * @param {Koa} app - The Koa application instance.
    */
   private initializeSessions(app: Koa) {
+    const CONFIG = {
+      key: 'koa:sess',
+      maxAge: 86400000,
+      autoCommit: true,
+      overwrite: true,
+      httpOnly: true,
+      signed: true,
+      rolling: false,
+      renew: false,
+      // store: new SessionStore(),
+    };
+
     app.keys = ['some secret hurr']; // env
-    app.use(session({ key: 'syrup:sess' }, app));
+    app.use(session(CONFIG, app));
   }
 
   /**
@@ -229,7 +255,6 @@ export class SyServer {
   public async startServerWithClustering(): Promise<void> {
     if (cluster.isPrimary) {
       const cpuCount = os.cpus().length;
-      console.log(cpuCount);
 
       // Create as many workers as there are CPUs
       for (let i = 0; i < cpuCount; i++) {

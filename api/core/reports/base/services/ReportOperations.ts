@@ -1,5 +1,5 @@
-import { BinaryHeap } from '../../../lib/structures/BinaryHeap';
-import { MinHeap } from '../../../lib/structures/MinHeap';
+import { BinaryHeap } from '../../../structures/BinaryHeap/BinaryHeap';
+import { MinHeap } from '../../../structures/MinHeap/MinHeap';
 
 /**
  * Class for performing various operations on reports.

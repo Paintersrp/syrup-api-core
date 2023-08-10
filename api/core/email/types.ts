@@ -6,6 +6,8 @@ export interface SMTPConfig {
   retryTimes?: number;
 }
 
+export type EmailBackendConfig = SMTPConfig | undefined;
+
 export interface EmailOptions {
   to: string | string[];
   cc?: string | string[];

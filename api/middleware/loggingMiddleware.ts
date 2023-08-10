@@ -1,5 +1,5 @@
 import Koa from 'koa';
-import { User } from '../models';
+import { User } from '../core/models/auth';
 import _ from 'lodash';
 import { RequestLogObject } from '../core/logging/objects/RequestLogObject';
 
