@@ -44,6 +44,8 @@ import { AccessReportGenerator } from './core/reports/access/AccessReportGenerat
 import { RequestReportGenerator } from './core/reports/request/RequestReportGenerator';
 
 import { testAllStructures } from './core/structures/checkAll';
+import { ModelController } from './core/controller/model/ModelController';
+import { User } from './core/models/auth';
 
 // import madge from 'madge';
 
@@ -207,3 +209,32 @@ async function runGenny() {
 
 // runGenny();
 // testAllStructures();
+
+async function testModelController() {
+  const userService = new ModelController<User>(User);
+
+  const newUser = await userService.create({
+    username: 'john_doe',
+    password: 'password123',
+  });
+
+  const activeUsers = await userService
+    .where([{ username: 'Johnny' }])
+    .limit(10)
+    .find();
+
+  console.log('activeUsers', activeUsers);
+
+  // const deletedCount = await userService.where({ id: 5 }).delete();
+  // console.log(deletedCount);
+
+  await userService.transaction(async (service) => {
+    const user = await service.where({ id: 1 }).findOne();
+    if (user) {
+      await service.where({ id: user.id }).update({ username: 'updated_username' });
+    }
+    console.log(user);
+  });
+}
+
+testModelController();
