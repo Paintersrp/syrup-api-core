@@ -7,7 +7,7 @@ import {
 import { UptimeTracker } from '../../monitoring/uptime/UptimeTracker';
 import { SyLogger } from '../../logging/SyLogger';
 import { HealthCheckOperations, HealthCheckScheduler } from './services';
-import { HealthCheckError } from '../../errors/server';
+import { HealthCheckError } from '../../errors/monitoring';
 import { HealthResponses } from '../../lib/responses/health';
 
 /**

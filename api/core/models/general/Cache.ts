@@ -6,14 +6,19 @@ import { SyModel } from '../SyModel';
 import { ORM } from '../../../settings';
 
 /**
- * Model for saving the in-memory cache to storage on graceful shutdowns for reloading
+ * @class Cache
+ *
+ * @classdesc The Cache model represents a cached data within the system.
+ * This class allows for efficient retrieval of data that is expensive to compute or fetch.
+ *
+ * @extends {SyModel<InferAttributes<Cache>, InferCreationAttributes<Cache>>}
  */
 export class Cache extends SyModel<InferAttributes<Cache>, InferCreationAttributes<Cache>> {
   @Field({
     type: DataTypes.JSON,
     verbose: 'Cache Contents',
   })
-  contents: JSON;
+  public contents: JSON;
 }
 
 Cache.init(
@@ -22,7 +27,6 @@ Cache.init(
     ...Cache.fields,
   },
   {
-
     hooks: { ...SyModel.auditHooks },
     tableName: 'cache_dump',
     sequelize: ORM.database,

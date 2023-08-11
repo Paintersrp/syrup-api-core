@@ -52,7 +52,6 @@ export class RequestProcessor {
    * @description Processes a named header from the request.
    * @param {RouterContext} ctx - Koa Router context.
    * @param {string} headerName - The name of the header to process.
-   * @throws {BadRequestError} If the header is missing in the request.
    * @returns {string | string[] | undefined} The value of the header.
    */
   public processHeader(ctx: RouterContext, headerName: string): string | string[] | undefined {
@@ -70,7 +69,6 @@ export class RequestProcessor {
    * @description Processes the payload from the request body and checks for forbidden keys.
    * @param {RouterContext} ctx - Koa Router context.
    * @param {boolean} arrayCheck - A flag indicating whether to check if the payload is an array.
-   * @throws {BadRequestError} If the payload is missing in the request, if it's not an array when arrayCheck is true, or if it contains forbidden keys.
    * @returns {any} The payload from the request body.
    */
   public processPayload(ctx: RouterContext, arrayCheck: boolean = false): any {
@@ -93,7 +91,6 @@ export class RequestProcessor {
    * @description Processes a named parameter from the request context.
    * @param {RouterContext} ctx - Koa Router context.
    * @param {string} paramName - The name of the parameter to process.
-   * @throws {BadRequestError} If the parameter is missing in the request.
    * @returns {string} The value of the parameter.
    */
   public processParam(ctx: RouterContext, paramName: string): string {
@@ -112,8 +109,7 @@ export class RequestProcessor {
    * @public
    * @description Processes a named parameter from the request body.
    * @param {RouterContext} ctx - Koa Router context.
-   * @param {string} paramName - The name of the parameter to process.
-   * @throws {BadRequestError} If the parameter is missing in the request.
+   * @param {string} paramName - The name of the parameter to process..
    * @returns {any} The value of the parameter.
    */
   public processBodyParam(ctx: RouterContext, paramName: string): any {
@@ -133,7 +129,6 @@ export class RequestProcessor {
   //  * @private
   //  * @description Checks a payload for forbidden keys and throws an error if any are found.
   //  * @param {any} fields - The payload to check.
-  //  * @throws {BadRequestError} If the payload contains forbidden keys.
   //  * @returns {void}
   //  */
   // private checkForForbiddenKeys(fields: any): void {

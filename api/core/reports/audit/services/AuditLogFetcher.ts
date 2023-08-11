@@ -8,7 +8,7 @@ export class AuditLogFetcher {
    * Fetches a batch of logs from the database.
    * @returns A batch of logs.
    */
-  public async fetchBatch(page: number): Promise<Audit<any, any>[]> {
+  public async fetchBatch(page: number): Promise<Audit[]> {
     try {
       return await Audit.findAll({
         limit: BATCH_SIZE,

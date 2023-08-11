@@ -5,7 +5,8 @@ import { Transaction } from 'sequelize';
 import { SyMixin } from '../SyMixin';
 import { ControllerMixinOptions } from '../../types';
 import { HttpStatus, Responses } from '../../../lib';
-import { BadRequestError, NotFoundError } from '../../../errors/client';
+import { NotFoundError } from '../../../errors/client';
+import { BadRequestError } from '../../../errors/client';
 
 /**
  * SyDeleteMixin is an advanced and comprehensive class which extends SyMixin.

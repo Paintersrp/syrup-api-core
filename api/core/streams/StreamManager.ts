@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { StreamNotFoundError } from '../errors/server';
+import { StreamNotFoundError } from '../errors/stream';
 import { StreamResponses } from '../lib/responses/stream';
 import { DataStream } from './DataStream';
 

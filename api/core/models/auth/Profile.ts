@@ -19,119 +19,126 @@ export enum GenderEnum {
   OTHER = 'other',
 }
 
+/**
+ * @class Profile
+ *
+ * @classdesc The Profile model represents the user's personal profile, including contact information, social media accounts, and personal details.
+ *
+ * @extends {SyModel<InferAttributes<Profile>, InferCreationAttributes<Profile>>}
+ */
 export class Profile extends SyModel<InferAttributes<Profile>, InferCreationAttributes<Profile>> {
-  userId: ForeignKey<User['id']>;
+  public userId: ForeignKey<User['id']>;
 
   @Field({
     type: DataTypes.STRING(50),
     verbose: 'Email Address',
   })
-  email: CreationOptional<string>;
+  public email: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'First Name',
   })
-  firstName: CreationOptional<string>;
+  public firstName: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(40),
     verbose: 'Last Name',
   })
-  lastName: CreationOptional<string>;
+  public lastName: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(1024),
     verbose: 'Biography',
   })
-  bio: CreationOptional<string>;
+  public bio: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(50),
     verbose: 'City',
   })
-  city: CreationOptional<string>;
+  public city: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Country',
   })
-  country: CreationOptional<string>;
+  public country: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(20),
     verbose: 'Phone Number',
   })
-  phone: CreationOptional<string>;
+  public phone: CreationOptional<string>;
 
   // @Field({
   //   type: DataTypes.STRING(255),
   //   verbose: 'Avatar',
   // })
-  // avatar: CreationOptional<string>;
+  // public avatar: CreationOptional<string>;
 
   // @Field({
   //   type: DataTypes.ENUM(...Object.values(GenderEnum)),
   //   verbose: 'Gender',
   // })
-  // gender: CreationOptional<GenderEnum>;
+  // public gender: CreationOptional<GenderEnum>;
 
   // @Field({
   //   type: DataTypes.DATEONLY,
   //   verbose: 'Date of Birth',
   // })
-  // dob: CreationOptional<Date>;
+  // public dob: CreationOptional<Date>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Facebook',
   })
-  facebook: CreationOptional<string>;
+  public facebook: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Instagram',
   })
-  instagram: CreationOptional<string>;
+  public instagram: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Threads',
   })
-  threads: CreationOptional<string>;
+  public threads: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Twitter',
   })
-  twitter: CreationOptional<string>;
+  public twitter: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'LinkedIn',
   })
-  linkedIn: CreationOptional<string>;
+  public linkedIn: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'Github',
   })
-  github: CreationOptional<string>;
+  public github: CreationOptional<string>;
 
   @Field({
     type: DataTypes.STRING(30),
     verbose: 'YouTube',
   })
-  youtube: CreationOptional<string>;
+  public youtube: CreationOptional<string>;
 
-  toJSON(): any {
+  public toJSON(): any {
     return {
       ...super.toJSON(),
       fullName: `${this.firstName} ${this.lastName}`,
     };
   }
 
-  static async seedProfile(count: number) {
+  public static async seedProfile(count: number) {
     try {
       const profileData = [];
 

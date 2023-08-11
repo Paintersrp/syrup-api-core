@@ -15,7 +15,7 @@ export function Role(roles: string[]) {
     throw new TypeError('Roles must be an array of strings');
   }
 
-  return function (_: Object, __: string, descriptor: PropertyDescriptor) {
+  return function (target: Object, key: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (ctx: Context, next: Next) {
@@ -25,7 +25,10 @@ export function Role(roles: string[]) {
         throw new Error('Forbidden');
       }
 
-      await originalMethod.call(this, ctx, next);
+      // Return the result of the original method
+      return await originalMethod.call(this, ctx, next);
     };
+
+    return descriptor;
   };
 }

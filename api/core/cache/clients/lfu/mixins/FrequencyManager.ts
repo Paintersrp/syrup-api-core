@@ -1,4 +1,4 @@
-import { CacheInputError, CacheOperationsError } from '../../../../errors/server';
+import { CacheInputError, CacheOperationsError } from '../../../../errors/cache';
 import { SyLogger } from '../../../../logging/SyLogger';
 import { DoublyLinkedList } from './DoublyLinkedList';
 import { ListItem } from './ListItem';

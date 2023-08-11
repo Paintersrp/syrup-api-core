@@ -5,10 +5,6 @@ import { ORM } from '../../settings';
 import { InternalServerError } from '../errors/server';
 import { Responses } from '../lib';
 
-interface TransactionMixin {
-  [key: string]: (ctx: RouterContext, transaction: Transaction) => Promise<void>;
-}
-
 export class TransactionManager {
   private logger: Logger;
 
@@ -23,11 +19,7 @@ export class TransactionManager {
    * @param {Object} mixin - The Mixin object which has the action method.
    * @return {Promise<void>} Promise represents the completion of the transactional operation.
    */
-  public async performTransaction(
-    ctx: RouterContext,
-    action: string,
-    mixin: TransactionMixin
-  ): Promise<void> {
+  public async performTransaction(ctx: RouterContext, action: string, mixin: any): Promise<void> {
     if (typeof mixin[action] !== 'function') {
       throw new Error(`Mixin does not have a method named "${action}"`);
     }

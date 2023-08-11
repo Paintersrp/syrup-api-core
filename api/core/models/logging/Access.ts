@@ -9,6 +9,13 @@ import {
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 
+/**
+ * @class AccessLog
+ *
+ * @classdesc Represents an access log entry within the system, capturing details of access events.
+ *
+ * @extends {Model<InferAttributes<AccessLog>, InferCreationAttributes<AccessLog>>}
+ */
 export class AccessLog extends Model<
   InferAttributes<AccessLog>,
   InferCreationAttributes<AccessLog>

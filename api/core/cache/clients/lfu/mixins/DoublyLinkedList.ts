@@ -1,4 +1,4 @@
-import { EventEmitter } from '../../../../emitter/Emitter';
+import { Emitter } from '../../../../emitter/Emitter';
 import { ListItem } from './ListItem';
 
 /**
@@ -7,7 +7,7 @@ import { ListItem } from './ListItem';
 export class DoublyLinkedList {
   public head: ListItem; // The head of the linked list
   public tail: ListItem; // The tail of the linked list
-  private events: EventEmitter;
+  private events: Emitter;
 
   /**
    * Creates a new DoublyLinkedList.
@@ -20,7 +20,7 @@ export class DoublyLinkedList {
     // Initially, the head node's next is the tail node and the tail node's prev is the head node
     this.head.next = this.tail;
     this.tail.prev = this.head;
-    this.events = new EventEmitter();
+    this.events = new Emitter();
   }
 
   /**

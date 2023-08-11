@@ -1,6 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { UserRoleEnum } from '../core/models/auth/User';
-import { BlacklistRoutes, CacheRoutes, ProfileRoutes, UserRoutes } from '../routes';
 import { Context } from 'koa';
 
 export type SyContext = Context & {
@@ -23,12 +22,7 @@ export type UserSession = {
   theme?: string;
 };
 
-export type RouteConstructor =
-  | typeof UserRoutes
-  | typeof ProfileRoutes
-  | typeof BlacklistRoutes
-  | typeof CacheRoutes
-  | any;
+
 
 export type CacheDTO = {
   cacheKey: string;

@@ -9,6 +9,11 @@ import {
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 
+/**
+ * @class Query
+ * @classdesc Represents a query log entry within the system, capturing details of each database query execution.
+ * @extends {Model<InferAttributes<Query>, InferCreationAttributes<Query>>}
+ */
 export class Query extends Model<InferAttributes<Query>, InferCreationAttributes<Query>> {
   @Field({
     type: DataTypes.INTEGER,

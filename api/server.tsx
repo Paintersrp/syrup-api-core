@@ -45,6 +45,20 @@ import { RequestReportGenerator } from './core/reports/request/RequestReportGene
 
 import { testAllStructures } from './core/structures/checkAll';
 
+// import madge from 'madge';
+
+// madge('../core').then((res) => {
+//   console.log('Starting');
+//   res
+//     .image('graph.png')
+//     .then(() => {
+//       console.log('Image was saved to graph.png');
+//     })
+//     .catch((error) => {
+//       console.log('Error saving image:', error);
+//     });
+// });
+
 const koa = new Koa();
 koa.use(serve('../web/test/dist'));
 

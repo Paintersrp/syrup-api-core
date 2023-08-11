@@ -3,7 +3,7 @@ import type { Config } from '@jest/types';
 const config: Config.InitialOptions = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['./core'],
+  roots: ['./core', './middleware'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },

@@ -45,6 +45,13 @@ export enum ThemeEnum {
   DARK = 'dark',
 }
 
+/**
+ * @class User
+ *
+ * @classdesc The User model represents an individual user within the system, including their authentication details, user role, theme preference, and associated profile.
+ *
+ * @extends {SyModel<InferAttributes<User, { omit: 'profile' }>, InferCreationAttributes<User, { omit: 'profile' }>>}
+ */
 export class User extends SyModel<
   InferAttributes<User, { omit: 'profile' }>,
   InferCreationAttributes<User, { omit: 'profile' }>
@@ -54,26 +61,26 @@ export class User extends SyModel<
     allowNull: false,
     verbose: 'Username',
   })
-  declare username: string;
+  public username: string;
 
   @Field({
     type: DataTypes.STRING(255),
     allowNull: false,
     verbose: 'Password',
   })
-  declare password: string;
+  public password: string;
 
   @Field({
     type: DataTypes.STRING(255),
     verbose: 'Salt',
   })
-  declare salt?: string;
+  public salt?: string;
 
   @Field({
     type: DataTypes.STRING(500),
     verbose: 'Refresh Token',
   })
-  declare refreshToken?: string;
+  public refreshToken?: string;
 
   @Field({
     type: DataTypes.ENUM(...Object.values(UserRoleEnum)),
@@ -81,7 +88,7 @@ export class User extends SyModel<
     verbose: 'User Role',
     defaultValue: UserRoleEnum.USER,
   })
-  declare role?: UserRoleEnum;
+  public role?: UserRoleEnum;
 
   @Field({
     type: DataTypes.ENUM(...Object.values(ThemeEnum)),
@@ -89,12 +96,12 @@ export class User extends SyModel<
     verbose: 'User Theme',
     defaultValue: ThemeEnum.DARK,
   })
-  declare theme?: ThemeEnum;
+  public theme?: ThemeEnum;
 
-  declare getProfile: HasOneGetAssociationMixin<Profile>;
-  declare createProfile: HasOneCreateAssociationMixin<Profile>;
-  declare setProfile: HasOneSetAssociationMixin<Profile, 'userId'>;
-  declare profile?: NonAttribute<Profile>;
+  public getProfile: HasOneGetAssociationMixin<Profile>;
+  public createProfile: HasOneCreateAssociationMixin<Profile>;
+  public setProfile: HasOneSetAssociationMixin<Profile, 'userId'>;
+  public profile?: NonAttribute<Profile>;
 
   /**
    * Creates a blank profile for the user.

@@ -8,8 +8,8 @@ export async function auditLog(model: any, options: any, action: AuditAction) {
     {
       action: action,
       model: model.constructor.name,
-      beforeData: action === AuditAction.DELETE ? JSON.stringify(originalData) : {},
-      afterData: action !== AuditAction.DELETE ? JSON.stringify(dataValues) : null,
+      beforeData: action === AuditAction.DELETE ? originalData : {},
+      afterData: action !== AuditAction.DELETE ? dataValues : null,
       userId: options.context?.id,
       username: options.context?.username,
     },

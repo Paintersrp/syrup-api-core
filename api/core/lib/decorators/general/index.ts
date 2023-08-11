@@ -1,5 +1,4 @@
-export { Mixin } from './mixin';
-export { Retry } from './retry';
+export { Retry } from './Retry';
 export { Timer } from './timer';
 export { Singleton } from './singleton';
 export { Validate } from './validate';

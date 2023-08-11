@@ -40,24 +40,20 @@ export function Monitor(_: any, key: string, descriptor: PropertyDescriptor): Pr
       const endMemUsage = process.memoryUsage().rss;
       const memUsageDiff = `${(endMemUsage - startMemUsage) / (1024 * 1024)}mb`;
       const executionTime = hrTime[0] * 1e3 + hrTime[1] / 1e6;
-      reportMetrics(key, executionTime, ctx, memUsageDiff);
+
+      ctx.logger.logAccess({
+        key,
+        executionTime,
+        method: ctx.method,
+        path: ctx.path,
+        status: ctx.status,
+        userAgent: ctx.get('User-Agent'),
+        memoryUsageDiff: memUsageDiff,
+        cpuUsage: `${process.cpuUsage().user / 1000}ms`,
+        loadAvg: os.loadavg(),
+      });
     }
   };
 
   return descriptor;
-}
-
-//doc
-function reportMetrics(key: string, executionTime: number, ctx: Context, memUsageDiff: string) {
-  ctx.logger.logAccess({
-    key,
-    executionTime,
-    method: ctx.method,
-    path: ctx.path,
-    status: ctx.status,
-    userAgent: ctx.get('User-Agent'),
-    memoryUsageDiff: memUsageDiff,
-    cpuUsage: `${process.cpuUsage().user / 1000}ms`,
-    loadAvg: os.loadavg(),
-  });
 }

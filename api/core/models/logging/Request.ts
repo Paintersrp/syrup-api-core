@@ -9,6 +9,11 @@ import {
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 
+/**
+ * @class Request
+ * @classdesc Represents an HTTP request log entry within the system, capturing details of each request and response.
+ * @extends {Model<InferAttributes<Request>, InferCreationAttributes<Request>>}
+ */
 export class Request extends Model<InferAttributes<Request>, InferCreationAttributes<Request>> {
   @Field({
     type: DataTypes.INTEGER,

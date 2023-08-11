@@ -1,5 +1,7 @@
 import pino, { Level, Logger, LoggerOptions } from 'pino';
 import { LoggerControllerConfig } from '../types';
+import { LoggerDefaults } from '../defaults';
+import { LoggerNames } from '../enums';
 
 /**
  * LoggerController encapsulates the Logger instance and controls its behavior.
@@ -16,9 +18,9 @@ export class LoggerController {
    * @param {LoggerControllerConfig} config - The logger configuration.
    * @param {boolean} [isEnabled=true] - The status of the logger (enabled/disabled).
    */
-  constructor(config: LoggerControllerConfig, isEnabled: boolean = true) {
-    this.logger = this.createLogger(config);
-    this.verbose = config.verbose || true;
+  constructor(config?: LoggerControllerConfig, isEnabled: boolean = true) {
+    this.logger = this.createLogger(config || LoggerDefaults[LoggerNames.APP]);
+    this.verbose = config?.verbose || true;
 
     this.isEnabled = isEnabled;
   }

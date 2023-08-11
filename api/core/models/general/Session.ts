@@ -9,6 +9,13 @@ import {
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 
+/**
+ * @class Session
+ *
+ * @classdesc Represents a user session within the system.
+ *
+ * @extends {Model<InferAttributes<Session>, InferCreationAttributes<Session>>}
+ */
 export class Session extends Model<InferAttributes<Session>, InferCreationAttributes<Session>> {
   @Field({
     type: DataTypes.STRING,

@@ -1,4 +1,4 @@
-import { JobCronError } from '../errors/server';
+import { JobCronError } from '../errors/cron';
 import { JobResponses } from '../lib';
 import { JobHooks, JobOptions, JobStatus, JobTask } from './types';
 
@@ -31,16 +31,12 @@ export class Job {
    * @param options - The job options including name, task, schedule and hooks.
    */
   constructor(options: JobOptions) {
-    try {
-      this._name = options.name;
-      this.task = options.task;
-      this.schedule = options.schedule;
-      this._hooks = options.hooks || {};
-      this._priority = options.priority || 0;
-      this._maxRetries = options.maxRetries || 0;
-    } catch (error: any) {
-      console.log(error);
-    }
+    this._name = options.name;
+    this.task = options.task;
+    this.schedule = options.schedule;
+    this._hooks = options.hooks || {};
+    this._priority = options.priority || 0;
+    this._maxRetries = options.maxRetries || 0;
   }
 
   /**
@@ -78,7 +74,8 @@ export class Job {
    * @throws {Error} Will throw an error if the schedule is not in the correct cron format.
    */
   public set schedule(schedule: string) {
-    if (!/^(\*\/\d+|\*|\d+)( \(\*\/\d+|\*|\d+\)){4}$/.test(schedule)) {
+    console.log(schedule);
+    if (!/^(\*\/\d+|\*|\d+)( (\*\/\d+|\*|\d+)){4}$/.test(schedule)) {
       throw new JobCronError(JobResponses.INVALID_CRON);
     }
     this._schedule = schedule;
@@ -133,9 +130,7 @@ export class Job {
    * Pauses the job if it's currently running.
    */
   public pause(): void {
-    if (this._status === 'running') {
-      this._status = 'paused';
-    }
+    this._status = 'paused';
   }
 
   /**

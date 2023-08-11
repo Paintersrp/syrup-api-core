@@ -30,7 +30,6 @@ export function ETag(algorithm: string = 'sha256', encoding: BinaryToTextEncodin
 
         return ctx.body;
       } catch (error) {
-        // Log or handle error appropriately
         console.error(`Error in ETag decorator: ${error}`);
         throw error;
       }

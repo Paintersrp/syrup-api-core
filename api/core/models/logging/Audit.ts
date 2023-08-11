@@ -9,12 +9,21 @@ import {
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 
+/**
+ * @enum AuditAction
+ * @desc Enum representing the type of audit actions.
+ */
 export enum AuditAction {
   CREATE = 'CREATE',
   UPDATE = 'UPDATE',
   DELETE = 'DELETE',
 }
 
+/**
+ * @class Audit
+ * @classdesc Represents an audit log entry within the system, capturing details of create, update, and delete events.
+ * @extends {Model<InferAttributes<Audit>, InferCreationAttributes<Audit>>}
+ */
 export class Audit extends Model<InferAttributes<Audit>, InferCreationAttributes<Audit>> {
   @Field({
     type: DataTypes.INTEGER,

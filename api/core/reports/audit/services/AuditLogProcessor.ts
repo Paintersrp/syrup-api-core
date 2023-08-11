@@ -31,7 +31,7 @@ export class AuditLogProcessor {
   /**
    * Processes a batch of logs.
    */
-  public processBatch(batch: Audit<any, any>[], metrics: AuditLogMetrics): void {
+  public processBatch(batch: Audit[], metrics: AuditLogMetrics): void {
     batch.forEach((log) => this.addLogToMetrics(log, metrics));
   }
 
@@ -40,7 +40,7 @@ export class AuditLogProcessor {
    * @param log The audit log to process.
    * @param metrics The metrics to update.
    */
-  private addLogToMetrics(log: Audit<any, any>, metrics: AuditLogMetrics): void {
+  private addLogToMetrics(log: Audit, metrics: AuditLogMetrics): void {
     console.log(metrics);
     metrics.totalLogs++;
     this.incrementCounter(log.action, metrics.actionCounts);
@@ -104,7 +104,7 @@ export class AuditLogProcessor {
    * @param log The audit log to analyze.
    * @returns The fields that were changed.
    */
-  private getChangedFields(log: Audit<any, any>): string[] {
+  private getChangedFields(log: Audit): string[] {
     const beforeData = (log.beforeData as unknown as ModelRecord) || {};
     const afterData = (log.afterData as unknown as ModelRecord) || {};
 

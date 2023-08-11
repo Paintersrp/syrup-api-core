@@ -45,6 +45,8 @@ export class RequestLogObject {
       responseSize = Buffer.byteLength(JSON.stringify(ctx.body), 'utf8');
     }
 
+    console.log(ctx.query);
+
     const logObject = new RequestLogObject(
       'request',
       ctx.method,

@@ -1,8 +1,8 @@
 import { Context } from 'koa';
-import { APP_LOGGER } from '../../settings';
 
 import { ErrorCategory, ErrorCodes } from './enums';
 import { ErrorResponse } from './types';
+import { Logger } from 'pino';
 
 /**
  * Base class for system errors.
@@ -91,7 +91,7 @@ export abstract class SyError extends Error {
   /**
    * Logs the error details for debugging and tracing.
    */
-  public logError(ctx: Context): void {
+  public logError(ctx: Context, logger: Logger): void {
     const logData: Record<string, unknown> = {
       status: this.status,
       code: this.errorCode,
@@ -118,7 +118,7 @@ export abstract class SyError extends Error {
       };
     }
 
-    APP_LOGGER.error(this.message, logData);
+    logger.error(this.message, logData);
   }
 
   /**

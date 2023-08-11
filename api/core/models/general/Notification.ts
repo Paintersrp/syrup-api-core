@@ -5,6 +5,13 @@ import { ORM } from '../../../settings';
 import { SyModel } from '../SyModel';
 import { User } from '../auth';
 
+/**
+ * @class Notification
+ *
+ * @classdesc Represents a notification that can be sent to a user.
+ *
+ * @extends {SyModel<InferAttributes<Notification>, InferCreationAttributes<Notification>>}
+ */
 export class Notification extends SyModel<
   InferAttributes<Notification>,
   InferCreationAttributes<Notification>

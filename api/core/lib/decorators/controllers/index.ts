@@ -1,4 +1,3 @@
-export { ETag } from './etag';
-export { Monitor } from './monitor';
-export { Redirect } from './redirect';
-export { Role } from './role';
+export { ETag } from './Etag';
+export { Monitor } from './Monitor';
+export { Role } from './Role';

@@ -26,15 +26,15 @@ export class ReportManager {
    */
   private initializeReports() {
     this.reportProfiles.forEach((profile) => {
-      const job = new Job(
-        profile.name,
-        async () => {
+      const job = new Job({
+        name: profile.name,
+        task: async () => {
           profile.generator.analyzeLogs();
           profile.generator.clearLogs();
         },
-        profile.schedule,
-        profile.hooks
-      );
+        schedule: profile.schedule,
+        hooks: profile.hooks,
+      });
 
       this.scheduler.addJob(job);
     });
@@ -70,14 +70,14 @@ export class ReportManager {
    * @param profile - The report profile to be added.
    */
   public addReportProfile(profile: ReportProfile) {
-    const job = new Job(
-      profile.name,
-      async () => {
+    const job = new Job({
+      name: profile.name,
+      task: async () => {
         profile.generator.analyzeLogs();
       },
-      profile.schedule,
-      profile.hooks
-    );
+      schedule: profile.schedule,
+      hooks: profile.hooks,
+    });
 
     this.reportProfiles.push(profile);
     this.scheduler.addJob(job);

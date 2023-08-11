@@ -1,3 +1,4 @@
+import { ComposedMiddleware } from 'koa-compose';
 import * as Middleware from '../middleware';
 import { STATIC_DIR } from './general';
 
@@ -12,14 +13,7 @@ export const MIDDLEWARES = Middleware.compose([
   Middleware.bodyParser({
     jsonLimit: '2mb',
   }),
-  Middleware.compress(),
-  Middleware.responseTime(),
   Middleware.rateLimitMiddleware,
-  Middleware.normalizeMiddleware,
-  Middleware.jwtMiddleware,
-  Middleware.sessionMiddleware,
-  Middleware.loggingMiddleware,
-  Middleware.errorMiddleware,
   Middleware.maintenanceMiddleware,
   Middleware.serve(STATIC_DIR),
-]);
+]) as ComposedMiddleware<any>;

@@ -1,5 +1,4 @@
 import { Context, Next } from 'koa';
-import { APP_LOGGER } from '../../../../settings';
 
 /**
  * Interface for Retry Decorator options
@@ -51,12 +50,12 @@ export function Retry(options?: RetryOptions) {
           }
         } catch (error: any) {
           // Log error and increase retry count
-          APP_LOGGER.error('Error occurred:', error);
+          console.error('Error occurred:', error);
           currentRetry++;
 
           // If we haven't reached max retries, log retry message, wait and increase delay if needed
           if (currentRetry < maxRetries) {
-            APP_LOGGER.info(`Retrying in ${retryDelay}ms...`);
+            console.info(`Retrying in ${retryDelay}ms...`);
             await new Promise((resolve) => setTimeout(resolve, retryDelay));
 
             if (exponentialBackoff) {
@@ -66,7 +65,7 @@ export function Retry(options?: RetryOptions) {
         }
       }
 
-      APP_LOGGER.error('Max retry attempts reached.');
+      console.error('Max retry attempts reached.');
       return false;
     };
 

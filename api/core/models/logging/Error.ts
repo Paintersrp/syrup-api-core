@@ -9,6 +9,11 @@ import {
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 
+/**
+ * @class Error
+ * @classdesc Represents an error log entry within the system, capturing details of an erroneous request.
+ * @extends {Model<InferAttributes<Error>, InferCreationAttributes<Error>>}
+ */
 export class Error extends Model<InferAttributes<Error>, InferCreationAttributes<Error>> {
   @Field({
     type: DataTypes.INTEGER,

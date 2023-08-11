@@ -34,7 +34,7 @@ export class ErrorLogObject {
   public categorizeAndLogError(): ErrorLogObjectResponse {
     if (this.error instanceof SyError) {
       const errorResponse: ErrorResponse = this.error.toResponse(this.ctx);
-      this.error.logError(this.ctx);
+      this.error.logError(this.ctx, this.ctx.logger);
 
       return {
         timestamp: this.timestamp,

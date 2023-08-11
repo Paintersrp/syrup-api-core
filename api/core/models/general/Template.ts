@@ -9,6 +9,13 @@ import {
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 
+/**
+ * @class Template
+ *
+ * @classdesc Represents a template that can be used for various purposes such as notifications.
+ *
+ * @extends {Model<InferAttributes<Template>, InferCreationAttributes<Template>>}
+ */
 export class Template extends Model<InferAttributes<Template>, InferCreationAttributes<Template>> {
   @Field({
     type: DataTypes.STRING(500),
