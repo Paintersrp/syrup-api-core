@@ -1,7 +1,6 @@
 import {
   CreateOptions,
   DestroyOptions,
-  FindOptions,
   Model,
   ModelStatic,
   Transaction,
@@ -9,86 +8,143 @@ import {
   WhereOptions,
 } from 'sequelize';
 import { MakeNullishOptional } from 'sequelize/types/utils';
+import { ModelQueryBuilder } from './ModelQueryBuilder';
 
-// Unused, delete
-export class ModelCrudService<T extends Model> {
+/**
+ * A service class for performing CRUD (Create, Read, Update, Delete) operations on a Sequelize model.
+ *
+ * @template T - The type of the model on which operations will be performed.
+ */
+export class ModelCRUDService<T extends Model> {
+  private model: ModelStatic<T>;
+
+  /**
+   * Constructs a new instance of the service for the given model.
+   *
+   * @param model - The Sequelize model on which operations will be performed.
+   */
+  constructor(model: ModelStatic<T>) {
+    this.model = model;
+  }
+
+  /**
+   * Creates a new record in the database.
+   *
+   * @param data - The data to be inserted.
+   * @param options - Additional options for the creation.
+   * @param transaction - An optional transaction to use for the creation.
+   * @returns A promise that resolves to the newly created record.
+   */
   public async create(
-    model: ModelStatic<T>,
     data: MakeNullishOptional<T['_creationAttributes']>,
     options?: CreateOptions,
     transaction?: Transaction
   ): Promise<T> {
-    return (await model.create(data, { ...options, transaction: transaction })) as T;
+    return (await this.model.create(data, { ...options, transaction })) as T;
   }
 
+  /**
+   * Updates existing records in the database.
+   *
+   * @param data - The data to be updated.
+   * @param queryBuilder - The query builder defining the query.
+   * @param options - Additional options for the update.
+   * @param transaction - An optional transaction to use for the update.
+   * @returns A promise that resolves to an array containing the number of affected rows and the affected rows themselves.
+   */
   public async update(
     data: Partial<T['_attributes']>,
-    model: ModelStatic<T>,
-    scopes?: string,
+    queryBuilder: ModelQueryBuilder<T>,
     options?: UpdateOptions,
-    whereConditions: WhereOptions<T['_attributes']> = {},
     transaction?: Transaction
   ): Promise<[number, T[]]> {
-    return await model.scope(scopes).update(data, {
+    const { findOptions, scopes } = queryBuilder.returnOptions();
+
+    let whereConditions: WhereOptions<T['_attributes']> = {};
+
+    if (findOptions) {
+      if (findOptions.where) {
+        whereConditions = { ...whereConditions, ...findOptions.where };
+      }
+    }
+
+    if (options?.where) {
+      whereConditions = { ...whereConditions, ...options.where };
+    }
+
+    return await this.model.scope(...scopes).update(data, {
       ...options,
       where: whereConditions,
-      transaction: transaction,
+      transaction,
       returning: true,
     });
   }
 
+  /**
+   * Deletes records from the database that match the given query.
+   *
+   * @param queryBuilder - The query builder defining the query.
+   * @param options - Additional options for the deletion.
+   * @param transaction - An optional transaction to use for the deletion.
+   * @returns A promise that resolves to the number of records deleted.
+   */
   public async delete(
-    model: ModelStatic<T>,
+    queryBuilder: ModelQueryBuilder<T>,
     options?: DestroyOptions,
-    scopes?: string,
-    transaction?: Transaction,
-    findOptions?: FindOptions
+    transaction?: Transaction
   ): Promise<number> {
-    return await model.scope(scopes).destroy({
+    const { findOptions, scopes } = queryBuilder.returnOptions();
+
+    return await this.model.scope(...scopes).destroy({
       ...options,
-      transaction: transaction,
+      transaction,
       ...findOptions,
     });
   }
 
-  public async find(
-    model: ModelStatic<T>,
-    scopes?: string,
-    transaction?: Transaction,
-    findOptions?: FindOptions
-  ): Promise<T[]> {
-    return (await model.scope(scopes).findAll({
+  /**
+   * Finds records in the database that match the given query.
+   *
+   * @param queryBuilder - The query builder defining the query.
+   * @param transaction - An optional transaction to use for the find operation.
+   * @returns A promise that resolves to an array of matching records.
+   */
+  public async find(queryBuilder: ModelQueryBuilder<T>, transaction?: Transaction): Promise<T[]> {
+    const { findOptions, scopes } = queryBuilder.returnOptions();
+
+    return (await this.model.scope(...scopes).findAll({
       ...findOptions,
-      transaction: transaction,
+      transaction,
     })) as T[];
   }
 
+  /**
+   * Finds a single record in the database that matches the given query.
+   *
+   * @param queryBuilder - The query builder defining the query.
+   * @param transaction - An optional transaction to use for the find operation.
+   * @returns A promise that resolves to the matching record, or null if no matching record is found.
+   */
   public async findOne(
-    model: ModelStatic<T>,
-    scopes?: string[],
-    transaction?: Transaction,
-    findOptions?: FindOptions
+    queryBuilder: ModelQueryBuilder<T>,
+    transaction?: Transaction
   ): Promise<T | null> {
-    return (await model.scope(scopes).findOne({
+    const { findOptions, scopes } = queryBuilder.returnOptions();
+
+    return (await this.model.scope(...scopes).findOne({
       ...findOptions,
-      transaction: transaction,
+      transaction,
     })) as T;
   }
 
-  public async findById(
-    id: number,
-    model: ModelStatic<T>,
-    scopes?: string[],
-    transaction?: Transaction
-  ): Promise<T | null> {
-    return (await model.scope(scopes).findByPk(id, { transaction: transaction })) as T;
-  }
-
-  public async findAll(
-    model: ModelStatic<T>,
-    scopes?: string[],
-    findOptions?: FindOptions
-  ): Promise<T[]> {
-    return await model.scope(scopes).findAll(findOptions);
+  /**
+   * Finds a record in the database by its primary key.
+   *
+   * @param id - The primary key value.
+   * @param transaction - An optional transaction to use for the find operation.
+   * @returns A promise that resolves to the matching record, or null if no matching record is found.
+   */
+  public async findById(id: number, transaction?: Transaction): Promise<T | null> {
+    return (await this.model.findByPk(id, { transaction })) as T;
   }
 }

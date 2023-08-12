@@ -45,7 +45,7 @@ import { RequestReportGenerator } from './core/reports/request/RequestReportGene
 
 import { testAllStructures } from './core/structures/checkAll';
 import { ModelController } from './core/controller/model/ModelController';
-import { User } from './core/models/auth';
+import { Profile, User } from './core/models/auth';
 
 // import madge from 'madge';
 
@@ -211,30 +211,28 @@ async function runGenny() {
 // testAllStructures();
 
 async function testModelController() {
-  const userService = new ModelController<User>(User);
+  const userController = ModelController.of(User);
 
-  const newUser = await userService.create({
+  const newUser = await userController.create({
     username: 'john_doe',
-    password: 'password123',
+    password: 'yeetboi6969',
   });
 
-  const activeUsers = await userService
-    .where([{ username: 'Johnny' }])
+  const users = await userController
+    .where({ username: 'Johnny' })
+    .include([{ model: Profile }])
+    .orderBy([['createdAt', 'DESC']])
     .limit(10)
     .find();
 
-  console.log('activeUsers', activeUsers);
+  const page = 4;
+  const pageSize = 10;
+  const paginatedUsers = await userController
+    .where({ username: 'Johnny' })
+    .paginate(page, pageSize)
+    .find();
 
-  // const deletedCount = await userService.where({ id: 5 }).delete();
-  // console.log(deletedCount);
-
-  await userService.transaction(async (service) => {
-    const user = await service.where({ id: 1 }).findOne();
-    if (user) {
-      await service.where({ id: user.id }).update({ username: 'updated_username' });
-    }
-    console.log(user);
-  });
+  console.log(paginatedUsers);
 }
 
-testModelController();
+// testModelController();
