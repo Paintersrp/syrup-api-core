@@ -4,7 +4,7 @@ import { LoggerConfig } from './types';
 export const LoggerDefaults: LoggerConfig = {
   [LoggerNames.APP]: {
     name: LoggerNames.APP,
-    level: 'trace',
+    level: 'info',
     verbose: true,
     streams: [
       {
@@ -16,7 +16,7 @@ export const LoggerDefaults: LoggerConfig = {
   [LoggerNames.REQUEST]: {
     name: LoggerNames.REQUEST,
     level: 'trace',
-    verbose: true,
+    verbose: false,
     streams: [
       {
         target: 'pino/file',

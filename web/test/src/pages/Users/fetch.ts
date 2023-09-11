@@ -5,6 +5,8 @@ export const fetchUsersData = async () => {
     throw new Error('Failed to fetch users');
   }
 
+  console.log('ran', 'ran123');
+
   const res = await response.json();
   return res.data.data;
 };

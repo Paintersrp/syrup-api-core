@@ -22,7 +22,7 @@ export class SyLogger {
    * Creates a new SyLogger instance.
    * @param {LoggerConfig} [config=LoggerDefaults] - The system logger configuration.
    */
-  constructor(private config: LoggerConfig = LoggerDefaults) {
+  constructor(private config: LoggerConfig = {}) {
     this.initLoggers();
     this.startHousekeeping();
   }
@@ -33,10 +33,12 @@ export class SyLogger {
    */
   private initLoggers() {
     for (const name in this.config) {
-      if (this.config[name]) {
-        const config = this.config[name];
-        this.loggers[name] = new LoggerController(config);
-      }
+      const config = this.config[name];
+      this.loggers[name] = new LoggerController(config);
+    }
+    for (const name in LoggerDefaults) {
+      const config = LoggerDefaults[name];
+      this.loggers[name] = new LoggerController(config);
     }
   }
 
@@ -273,8 +275,7 @@ export class SyLogger {
         const filePath = path.join('./logs', file);
         const stats = await fs.stat(filePath);
 
-        if (stats.size > settings.LOGGERS.MAX_LOG_FILE_SIZE * DataSize.Megabytes) {
-          // change this value as per your need
+        if (stats.size > 5 * DataSize.Megabytes) {
           // create archive directory if not exist
           if (!fs.existsSync('./logs/archive')) {
             await fs.mkdir('./logs/archive');

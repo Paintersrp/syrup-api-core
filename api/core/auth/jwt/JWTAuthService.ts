@@ -1,7 +1,9 @@
 import jwt from 'jsonwebtoken';
-import { Blacklist, User } from '../../models/auth';
+
 import { RefreshPayload, UserPayload } from './types';
 import { RouterContext } from 'koa-router';
+import { Blacklist } from '../../features/blacklist/model';
+import { User } from '../../features/user';
 
 /**
  * `JWTAuthService` class provides methods for JWT authentication, including signing, verifying, and managing tokens.

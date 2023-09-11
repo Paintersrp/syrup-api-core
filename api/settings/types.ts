@@ -1,4 +1,4 @@
-interface SqlPool {
+export interface SqlPool {
   max: number;
   min: number;
   idle: number;
@@ -6,17 +6,17 @@ interface SqlPool {
   evict: number;
 }
 
-interface SqlDialectOptions {
+export interface SqlDialectOptions {
   connectTimeout: number;
 }
 
-interface SqlRetryOptions {
+export interface SqlRetryOptions {
   max: number;
   backoffBase: number;
   backoffExponent: number;
 }
 
-interface DatabaseConfig {
+export interface DatabaseConfig {
   PATH: string;
   TYPE: string;
   POOL?: SqlPool;
@@ -25,17 +25,17 @@ interface DatabaseConfig {
   SLOW_QUERY_THRESHOLD: number;
 }
 
-interface EmailConfig {
+export interface EmailConfig {
   EMAIL_BACKEND: string;
-  EMAIL_HOST: string;
-  EMAIL_PORT: number;
-  EMAIL_USE_TLS: boolean;
-  EMAIL_USE_SSL: boolean;
-  EMAIL_USER: string;
-  EMAIL_PASSWORD: string;
+  EMAIL_HOST?: string;
+  EMAIL_PORT?: number;
+  EMAIL_USE_TLS?: boolean;
+  EMAIL_USE_SSL?: boolean;
+  EMAIL_USER?: string;
+  EMAIL_PASSWORD?: string;
 }
 
-interface CacheOptions {
+export interface CacheOptions {
   defaultTTL: number;
   maxCacheSize: number;
   evictInterval: number;
@@ -43,37 +43,38 @@ interface CacheOptions {
   earlyExpirationWindow: number;
 }
 
-interface CacheAlertOptions {
+export interface CacheAlertOptions {
   minHitRatio: number;
   maxEvictions: number;
 }
 
-interface CacheConfig {
+export interface CacheConfig {
   TYPE: 'in-memory' | 'redis';
   OPTIONS?: CacheOptions;
   ALERTS?: CacheAlertOptions;
 }
 
-interface LoggerOptions {
+export interface LoggerOptions {
   ENABLED: boolean;
   LOGLEVEL: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
   VERBOSE: boolean;
   LOG_FILE_DESTINATION: string;
 }
 
-interface LoggerConfig {
-  APP: LoggerOptions;
-  QUERY: LoggerOptions;
-  ERROR: LoggerOptions;
-  AUDIT: LoggerOptions;
-  ACCESS: LoggerOptions;
+export interface LoggerConfig {
+  // APP: LoggerOptions;
+  // QUERY: LoggerOptions;
+  // ERROR: LoggerOptions;
+  // AUDIT: LoggerOptions;
+  // ACCESS: LoggerOptions;
+  MAX_LOG_FILE_SIZE: number;
 }
 
-interface RouteConfig {
+export interface RouteConfig {
   BASE_PATH: string;
 }
 
-interface AuthConfig {
+export interface AuthConfig {
   ADMIN_ROLES: string[];
   STRATEGY: 'jwt' | 'oauth2' | 'session';
   JWT_SECRET?: string; // If using JWT
@@ -82,7 +83,7 @@ interface AuthConfig {
   SESSION_SECRET?: string; // If using session-based auth
 }
 
-interface JobConfig {
+export interface JobConfig {
   ENGINE: 'bull' | 'agenda' | 'bee';
   CONCURRENCY: number;
 }

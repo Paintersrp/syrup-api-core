@@ -10,6 +10,7 @@ export class LoggerController {
   public readonly defaultLevel: Level = 'trace';
   public readonly logger: Logger;
 
+  public name: string;
   public verbose: boolean;
   public isEnabled: boolean;
 
@@ -21,6 +22,7 @@ export class LoggerController {
   constructor(config?: LoggerControllerConfig, isEnabled: boolean = true) {
     this.logger = this.createLogger(config || LoggerDefaults[LoggerNames.APP]);
     this.verbose = config?.verbose || true;
+    this.name = config?.name || 'default';
 
     this.isEnabled = isEnabled;
   }

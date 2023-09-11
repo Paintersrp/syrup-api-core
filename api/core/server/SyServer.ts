@@ -21,7 +21,7 @@ import {
   SessionManager,
   SSRManager,
 } from './managers';
-import { RouteConstructor } from '../../types';
+import { RouteConstructor } from './managers/routes/types';
 
 /**
  * @class

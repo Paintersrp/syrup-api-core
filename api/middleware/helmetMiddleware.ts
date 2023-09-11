@@ -1,20 +1,6 @@
+import Koa from 'koa';
 import helmet from 'koa-helmet';
 import { Interval } from '../core/lib';
-
-// const cspConfiguration = {
-//   directives: {
-//     defaultSrc: ["'self'"],
-//     scriptSrc: ["'self'", "'unsafe-inline'"],
-//     styleSrc: ["'self'", "'unsafe-inline'"],
-//     imgSrc: ["'self'", 'data:', 'validator.swagger.io'],
-//     childSrc: ["'none'"],
-//     connectSrc: ["'none'"],
-//     fontSrc: ["'self'"],
-//     objectSrc: ["'none'"],
-//     mediaSrc: ["'self'"],
-//     frameSrc: ["'none'"],
-//   },
-// };
 
 const hstsConfiguration = {
   maxAge: (Interval.Weekly / 1000) * 18,
@@ -26,11 +12,19 @@ const frameguardConfiguration = {
   action: 'sameorigin' as const,
 };
 
-const helmetOptions = {
-  // contentSecurityPolicy: cspConfiguration,
-  hsts: hstsConfiguration,
-  frameguard: frameguardConfiguration,
-  noSniff: true,
-};
+const hstsMiddleware = helmet.hsts(hstsConfiguration);
+const frameguardMiddleware = helmet.frameguard(frameguardConfiguration);
+const noSniffMiddleware = helmet.noSniff(true);
 
-export const helmetMiddleware = helmet(helmetOptions);
+export const helmetMiddleware: Koa.Middleware = async (ctx, next) => {
+  await hstsMiddleware(ctx, async () => {});
+  await frameguardMiddleware(ctx, async () => {});
+  await noSniffMiddleware(ctx, async () => {});
+
+  await helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [`'self'`, `'nonce-${ctx.state.cspNonce}'`],
+    },
+  })(ctx, next);
+};

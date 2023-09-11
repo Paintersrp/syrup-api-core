@@ -2,7 +2,7 @@ import { IMiddleware } from 'koa-router';
 import { ForbiddenError } from '../../errors/client';
 import { AuthResponses } from '../../lib/responses';
 import { AccessLogObject } from '../../logging/objects/AccessLogObject';
-import { UserRoleEnum } from '../../models/auth/User';
+import { UserRoleEnum } from '../../features/user/model';
 import { UserService } from '../../auth/user/UserService';
 
 /**

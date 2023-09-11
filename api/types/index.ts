@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
-import { UserRoleEnum } from '../core/models/auth/User';
+import { UserRoleEnum } from '../core/features/user/model';
 import { Context } from 'koa';
 
 export type SyContext = Context & {
@@ -21,8 +21,6 @@ export type UserSession = {
   role?: UserRoleEnum;
   theme?: string;
 };
-
-
 
 export type CacheDTO = {
   cacheKey: string;

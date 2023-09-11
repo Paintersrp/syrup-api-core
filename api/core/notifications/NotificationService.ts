@@ -90,6 +90,11 @@ export class NotificationService {
     await Notification.update({ read: true }, { where: { id: notificationId } });
   }
 
+
+}
+
+
+
   //   static async scheduleNotification(payload: NotificationPayload): Promise<Notification<any, any>> {
   //     // Logic to schedule the notification for later, e.g., using a job queue or scheduler
   //     // Replace with actual scheduling logic
@@ -107,4 +112,3 @@ export class NotificationService {
   //     // Example: Check 'do not disturb' mode, preferred channels, and other settings
   //     return true; // Example: allow all notifications
   //   }
-}

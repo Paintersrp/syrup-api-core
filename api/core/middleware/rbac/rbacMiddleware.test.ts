@@ -1,6 +1,6 @@
 import { UserService } from '../../auth/user';
 import { ForbiddenError } from '../../errors/client';
-import { UserRoleEnum } from '../../models/auth/User';
+import { UserRoleEnum } from '../../features/user/model';
 import { rbacMiddleware } from './rbacMiddleware';
 
 describe('rbacMiddleware', () => {

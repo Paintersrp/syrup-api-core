@@ -2,8 +2,12 @@ import Koa from 'koa';
 import Router from 'koa-router';
 
 import { LifecycleManager } from '../lifecycle/LifecycleManager';
-import { BlacklistRoutes, CacheRoutes, ProfileRoutes, UserRoutes } from '../../../routes/internal';
+
 import { RouteConstructor } from './types';
+import { UserRoutes } from '../../../features/user';
+import { ProfileRoutes } from '../../../features/profile';
+import { BlacklistRoutes } from '../../../features/blacklist';
+import { CacheRoutes } from '../../../features/cache';
 
 /**
  * Class responsible for managing and initializing routes within a Koa application.

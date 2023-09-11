@@ -1,5 +1,4 @@
 import { Context, Middleware, Next } from 'koa';
-import { User } from '../../models/auth';
 import { UserService } from '../../auth/user/UserService';
 
 /**

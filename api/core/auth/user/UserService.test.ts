@@ -1,6 +1,6 @@
 import { UserService } from './UserService';
 import { User } from '../../models/auth';
-import { ThemeEnum, UserRoleEnum } from '../../models/auth/User';
+import { ThemeEnum, UserRoleEnum } from '../../features/user/model';
 import bcrypt from 'bcrypt';
 import { IRouterContext } from 'koa-router';
 import { mock } from 'jest-mock-extended';

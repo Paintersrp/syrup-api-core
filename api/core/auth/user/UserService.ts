@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
-import { User } from '../../models/auth';
+
 import { APP_LOGGER } from '../../../settings';
 import { IRouterContext } from 'koa-router';
-import { UserRoleEnum } from '../../models/auth/User';
+import { User, UserRoleEnum } from '../../features/user/model';
 import { UserSession } from '../../../types';
 
 /**

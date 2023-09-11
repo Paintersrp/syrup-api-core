@@ -1,6 +1,14 @@
 import * as Routes from '../routes';
 import * as Middleware from '../middleware';
-import { RouteConstructor } from '../types';
+import { RouteConstructor } from '../core/server/managers/routes/types';
+import {
+  AuthConfig,
+  CacheConfig,
+  DatabaseConfig,
+  EmailConfig,
+  JobConfig,
+  LoggerConfig,
+} from './types';
 
 // Jobs?
 // Anomaly?
@@ -65,36 +73,6 @@ export const SETTINGS = {
 
   // Logger configurations (is this internal?)
   LOGGERS: {
-    APP: {
-      ENABLED: true,
-      LOGLEVEL: 'trace',
-      VERBOSE: true,
-      LOG_FILE_DESTINATION: './logs/app.log',
-    },
-    QUERY: {
-      ENABLED: true,
-      LOGLEVEL: 'trace',
-      VERBOSE: false,
-      LOG_FILE_DESTINATION: './logs/queries.log',
-    },
-    ERROR: {
-      ENABLED: true,
-      LOGLEVEL: 'trace',
-      VERBOSE: false,
-      LOG_FILE_DESTINATION: './logs/errors.log',
-    },
-    AUDIT: {
-      ENABLED: true,
-      LOGLEVEL: 'trace',
-      VERBOSE: true,
-      LOG_FILE_DESTINATION: './logs/audits.log',
-    },
-    ACCESS: {
-      ENABLED: true,
-      LOGLEVEL: 'trace',
-      VERBOSE: true,
-      LOG_FILE_DESTINATION: './logs/access.log',
-    },
     MAX_LOG_FILE_SIZE: 5, // MBs
   } as LoggerConfig,
 
@@ -114,25 +92,13 @@ export const SETTINGS = {
     Middleware.bodyParser({
       jsonLimit: '2mb',
     }),
-    Middleware.compress(),
-    Middleware.responseTime(),
     Middleware.rateLimitMiddleware,
-    Middleware.normalizeMiddleware,
-    Middleware.jwtMiddleware,
-    Middleware.sessionMiddleware,
-    Middleware.loggingMiddleware,
-    Middleware.errorMiddleware,
     Middleware.maintenanceMiddleware,
     Middleware.serve('public'), // ?
   ]),
 
   // Route configurations
-  ROUTES: [
-    Routes.UserRoutes,
-    Routes.ProfileRoutes,
-    Routes.BlacklistRoutes,
-    Routes.CacheRoutes,
-  ] as RouteConstructor[],
+  ROUTES: [] as RouteConstructor[],
 
   // Authentication configuration
   AUTH: {

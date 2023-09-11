@@ -5,5 +5,4 @@ export interface NotificationPayload {
   type: NotificationType;
   templateId: string;
   parameters?: Record<string, string>;
-
 }

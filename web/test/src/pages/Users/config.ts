@@ -1,4 +1,4 @@
-import { PageConfig } from '../../../../../api/core/mixins/pageconfig/PageConfig';
+import { PageConfig } from '../../../../../api/core/utils/PageConfigBuilder/PageConfig';
 import { fetchUsersData } from './fetch';
 
 const userPageConfig = new PageConfig()

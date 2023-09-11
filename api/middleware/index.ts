@@ -1,6 +1,7 @@
 export { circuitBreakerMiddleware } from './circuitBreakerMiddleware';
 export { helmetMiddleware } from './helmetMiddleware';
 export { maintenanceMiddleware } from './maintenanceMiddleware';
+export { nonceMiddleware } from './nonceMiddleware';
 export { rateLimitMiddleware } from './rateLimitMiddleware';
 
 export { default as bodyParser } from 'koa-bodyparser';

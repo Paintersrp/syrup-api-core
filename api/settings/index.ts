@@ -3,7 +3,6 @@ export * from './auth';
 export * from './database';
 export * from './general';
 export * from './jobs';
-export * from './loggers';
 export * from './middlewares';
 export * from './resource-thresholds';
 

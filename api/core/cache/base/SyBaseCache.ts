@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import { CacheContents, CacheStats } from '../types';
+import { CacheStats } from '../types';
 import { SyPersistMixin } from './mixins/SyPersistMixin';
 import { SyLogger } from '../../logging/SyLogger';
 

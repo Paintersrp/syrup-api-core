@@ -11,6 +11,8 @@ import {
   sessionMiddleware,
 } from '../../../middleware';
 import { ComposedMiddlewares } from '../../types';
+import { sseMiddleware } from '../../../middleware/sse/sseMiddleware';
+import { sseManager } from '../../../sse/SSEManager';
 
 /**
  * Class responsible for managing and initializing middleware within a Koa application.
@@ -29,6 +31,7 @@ export class MiddlewareManager {
     sessionMiddleware,
     loggingMiddleware,
     errorMiddleware,
+    sseMiddleware(sseManager),
   ]);
 
   /**

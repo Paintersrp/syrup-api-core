@@ -3,7 +3,7 @@ import { DataTypes, CreationOptional, InferAttributes, InferCreationAttributes }
 import { Field } from '../../lib/decorators/models';
 import { ORM } from '../../../settings';
 import { SyModel } from '../SyModel';
-import { User } from '../auth';
+import { User } from '../../features/user';
 
 /**
  * @class Notification

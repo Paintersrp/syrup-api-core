@@ -1,6 +1,19 @@
 import { JobCronError } from '../errors/cron';
 import { JobResponses } from '../lib';
+import { JobLifecycle } from './services/JobLifecycle/JobLifecycle';
+import { JobMiddleware } from './services/JobMiddleware/JobMiddleware';
+import { JobMiddlewareType } from './services/JobMiddleware/types';
+import { JobRetryService } from './services/JobRetryService/JobRetryService';
+import { RetryStrategy } from './services/JobRetryService/types';
 import { JobHooks, JobOptions, JobStatus, JobTask } from './types';
+
+export type ScheduleConfig = {
+  cron: string | null;
+  time?: string;
+  timeZone?: string;
+  excludeWeekends?: boolean;
+  excludeHolidays?: Date[];
+};
 
 /**
  * The Job class represents a job to be scheduled.
@@ -19,12 +32,15 @@ import { JobHooks, JobOptions, JobStatus, JobTask } from './types';
 export class Job {
   private readonly _name: string;
   private _task: JobTask;
-  private _schedule: string;
-  private _hooks: Partial<JobHooks>;
+  private _schedule: ScheduleConfig = { cron: '' };
   private _status: JobStatus = 'idle';
   private _priority: number;
-  private _maxRetries: number;
+
   private _retryCount: number = 0;
+
+  private _lifecycle: JobLifecycle;
+  private _middlewareService: JobMiddleware;
+  private _retryService: JobRetryService;
 
   /**
    * Creates a new Job.
@@ -33,10 +49,22 @@ export class Job {
   constructor(options: JobOptions) {
     this._name = options.name;
     this.task = options.task;
-    this.schedule = options.schedule;
-    this._hooks = options.hooks || {};
+    this.schedule = options.schedule.cron!;
     this._priority = options.priority || 0;
-    this._maxRetries = options.maxRetries || 0;
+
+    this._lifecycle = new JobLifecycle(options.hooks);
+    this._middlewareService = new JobMiddleware();
+    this._retryService = new JobRetryService(
+      options.retryStrategy,
+      options.maxRetries,
+      options.retryDelay
+    );
+
+    if (options.middleware) {
+      for (const middleware of options.middleware) {
+        this._middlewareService.use(middleware);
+      }
+    }
   }
 
   /**
@@ -64,7 +92,7 @@ export class Job {
   /**
    * @returns The schedule of the job.
    */
-  public get schedule(): string {
+  public get schedule(): ScheduleConfig {
     return this._schedule;
   }
 
@@ -74,35 +102,39 @@ export class Job {
    * @throws {Error} Will throw an error if the schedule is not in the correct cron format.
    */
   public set schedule(schedule: string) {
-    console.log(schedule);
     if (!/^(\*\/\d+|\*|\d+)( (\*\/\d+|\*|\d+)){4}$/.test(schedule)) {
       throw new JobCronError(JobResponses.INVALID_CRON);
     }
-    this._schedule = schedule;
+    this._schedule.cron = schedule;
   }
 
   /**
    * @returns The hooks of the job.
    */
   public get hooks(): Partial<JobHooks> {
-    return this._hooks;
+    return this._lifecycle.getHooks();
   }
 
   /**
    * Adds a hook to the job.
-   * @param {keyof JobHooks} hook - The name of the hook.
-   * @param {Function} callback - The function to be called when the hook is triggered.
+   * @param {keyof JobHooks} hook - The name of the event.
+   * @param {HookCallback} callback - The function to be called when the hook is triggered.
    */
-  public addHook(hook: keyof JobHooks, callback: () => void): void {
-    this._hooks[hook] = callback;
+  addHook(hook: keyof JobHooks, callback: JobTask): void {
+    this._lifecycle.registerHook(hook, callback);
   }
 
   /**
    * Removes a hook from the job.
    * @param {keyof JobHooks} hook - The name of the hook.
    */
-  public removeHook(hook: keyof JobHooks): void {
-    delete this._hooks[hook];
+  removeHook(hook: keyof JobHooks, callback: JobTask): void {
+    this._lifecycle.unregisterHook(hook, callback);
+  }
+
+  //doc
+  useMiddleware(middleware: JobMiddlewareType): void {
+    this._middlewareService.use(middleware);
   }
 
   /**
@@ -143,25 +175,34 @@ export class Job {
     }
   }
 
+  setRetryStrategy(strategy: RetryStrategy, maxRetries: number, delay?: number): void {
+    this._retryService.setStrategy(strategy, maxRetries, delay);
+  }
+
   /**
    * Executes the task of the job and updates its status and logs.
    * @throws {Error} Will throw an error if the job fails and has exhausted its maximum retries.
    */
-  public async execute(): Promise<void> {
+  async execute(): Promise<void> {
     this._status = 'running';
+    await this._lifecycle.executeHook('onStart');
+    await this._middlewareService.execute(this);
 
     try {
-      this._hooks.onStart && this._hooks.onStart();
-      await this._task();
-      this._hooks.onComplete && this._hooks.onComplete();
-      this._status = 'completed';
+      await this._retryService.execute(() => this.executeTask());
     } catch (err) {
       this._status = 'error';
+    }
+  }
 
-      if (this._retryCount < this._maxRetries) {
-        this._retryCount++;
-        await this.execute();
-      }
+  private async executeTask(): Promise<void> {
+    try {
+      await this._task();
+      await this._lifecycle.executeHook('onComplete');
+      this._status = 'completed';
+    } catch (err) {
+      await this._lifecycle.executeHook('onError');
+      this._status = 'error';
     }
   }
 }

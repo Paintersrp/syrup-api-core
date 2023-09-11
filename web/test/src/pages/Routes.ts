@@ -1,7 +1,7 @@
 import { fetchProfiles } from './Profiles/fetch';
-import { Profiles } from './Profiles/Profiles';
+import { Profiles } from './Profiles/page';
 import { fetchUsersData } from './Users/fetch';
-import { Users } from './Users/Users';
+import Users from './Users/page';
 
 export const routes = [
   {
