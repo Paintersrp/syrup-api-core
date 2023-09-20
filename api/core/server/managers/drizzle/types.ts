@@ -1,19 +1,45 @@
-export type Watcher = {
+/**
+ * Defines the basic configuration for a single file watcher.
+ */
+export interface Watcher {
+  /** Path to be watched */
   path: string;
-  type: 'newDir' | 'newFile';
-  pragma?: WatcherPragmaConfig;
-};
 
+  /** Type of watcher, either for a new directory or a new file */
+  type: 'newDir' | 'newFile';
+
+  /** Optional pragma configuration */
+  pragma?: WatcherPragmaConfig;
+}
+
+/**
+ * Configuration for multiple watchers.
+ */
 export interface WatcherConfig {
+  /** Array of watchers */
   watchers: Watcher[];
 }
 
-export type WatcherPragmaConfig = {
+export interface WatcherPragmaConfig {
+  /** General Pragmas */
   [key: string]: WatcherPragma;
-  drizzle: WatcherPragma;
-  pour: WatcherPragma;
-};
 
+  /** Specialized Pragma */
+  drizzle: WatcherPragma;
+
+  /** Specialized Pragma */
+  pour: WatcherPragma;
+}
+
+/**
+ * A task to be performed by a watcher.
+ */
 export type WatcherTask = () => void;
 
-export type WatcherPragma = { [pragma: string]: Function };
+/**
+ * Defines the shape of a watcher pragma.
+ */
+export interface WatcherPragma {
+  /** Pragma Function */
+  [pragma: string]: Function;
+}

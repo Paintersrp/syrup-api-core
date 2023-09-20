@@ -4,7 +4,18 @@ import path from 'path';
 import { WatcherTask } from './types';
 import { Queue } from '../../../structures';
 
+/**
+ * @class TemplateManager
+ * Handles file and directory creation based on predefined templates.
+ */
 export class TemplateManager {
+  /**
+   * @public
+   * Creates a file from a template.
+   * @param newDirName - The name of the new directory.
+   * @param templatePath - The path to the template.
+   * @param destPath - The destination path for the new file.
+   */
   public async createFileFromTemplate(newDirName: string, templatePath: string, destPath: string) {
     try {
       await this.writeFileFromTemplate(newDirName, templatePath, destPath);
@@ -13,6 +24,13 @@ export class TemplateManager {
     }
   }
 
+  /**
+   * @private
+   * Writes the actual file from the template.
+   * @param newDirName - The name of the new directory.
+   * @param templatePath - The path to the template.
+   * @param destPath - The destination path for the new file.
+   */
   private async writeFileFromTemplate(newDirName: string, templatePath: string, destPath: string) {
     const capitalizedDirName = this.capitalizeFirstLetter(newDirName);
     const templateFunction = this.getTemplateFunction(templatePath);
@@ -28,6 +46,14 @@ export class TemplateManager {
     return require(templatePath).default || require(templatePath);
   }
 
+  /**
+   * @public
+   * Recursively processes and creates directories and files based on a given template directory.
+   * @param newDirPath - The new directory path.
+   * @param templateDirPath - The template directory path.
+   * @param watcherInstance - The FSWatcher instance for the directory.
+   * @param taskQueue - The task queue for enqueuing new file creation tasks.
+   */
   public async cascadeDirectory(
     newDirPath: string,
     templateDirPath: string,
@@ -45,6 +71,14 @@ export class TemplateManager {
     watcherInstance.add(newDirPath);
   }
 
+  /**
+   * @private
+   * Processes each file in the template directory to create new directories or files.
+   * @param newDirPath - The new directory path.
+   * @param templateDirPath - The template directory path.
+   * @param watcherInstance - The FSWatcher instance for the directory.
+   * @param taskQueue - The task queue for enqueuing new file creation tasks.
+   */
   private async processFiles(
     newDirPath: string,
     templateDirPath: string,

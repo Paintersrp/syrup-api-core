@@ -9,17 +9,31 @@ import { TemplateManager } from './TemplateManager';
 import { Queue } from '../../../structures';
 import { debounce } from '../../../lib/debounce';
 
+/**
+ * @class WatcherManager
+ * Manages various types of file system watchers based on provided configurations.
+ */
 export class WatcherManager {
   private config: WatcherConfig;
   private templateManager: TemplateManager;
   private debounceDelay: number;
 
+  /**
+   * @constructor
+   * @param config - Watcher configurations.
+   * @param templateManager - An instance of TemplateManager to handle file and directory templates.
+   * @param debounceDelay - Time in milliseconds to debounce events.
+   */
   constructor(config: WatcherConfig, templateManager: TemplateManager, debounceDelay: number) {
     this.config = config;
     this.templateManager = templateManager;
     this.debounceDelay = debounceDelay;
   }
 
+  /**
+   * Initializes the watchers based on the provided configuration.
+   * @param taskQueue - The queue to which tasks can be added.
+   */
   public init(taskQueue: Queue<WatcherTask>) {
     this.config.watchers.forEach((watcher: Watcher) => {
       const watcherInstance = chokidar.watch(watcher.path, {
@@ -52,11 +66,24 @@ export class WatcherManager {
     });
   }
 
+  /**
+   * @private
+   * Resolves the absolute path of the template directory from the relative path.
+   * @param relativePath - The relative path to resolve.
+   * @returns The absolute path to the template directory.
+   */
   private getAbsoluteTemplateDir(relativePath: string): string {
     const templateDir = path.basename(relativePath);
     return path.join(SETTINGS.ROOT_DIR as string, 'templates', templateDir);
   }
 
+  /**
+   * @private
+   * Sets up a watcher for new directory creation.
+   * @param watcher - The watcher configuration.
+   * @param watcherInstance - The FSWatcher instance.
+   * @param taskQueue - The queue to which tasks can be added.
+   */
   private setUpNewDirWatcher(
     watcher: Watcher,
     watcherInstance: chokidar.FSWatcher,
@@ -76,6 +103,13 @@ export class WatcherManager {
     );
   }
 
+  /**
+   * @private
+   * Sets up a watcher for new file creation.
+   * @param watcher - The watcher configuration.
+   * @param watcherInstance - The FSWatcher instance.
+   * @param taskQueue - The queue to which tasks can be added.
+   */
   private setUpNewFileWatcher(
     watcher: Watcher,
     watcherInstance: chokidar.FSWatcher,
@@ -103,6 +137,12 @@ export class WatcherManager {
     );
   }
 
+  /**
+   * @private
+   * Sets up a watcher for file changes to parse pragmas.
+   * @param watcherInstance - The FSWatcher instance.
+   * @param pragmaManager - An instance of PragmaManager to handle file pragmas.
+   */
   private setUpFileChangeWatcher(
     watcherInstance: chokidar.FSWatcher,
     pragmaManager: PragmaManager
