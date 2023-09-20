@@ -7,7 +7,7 @@ import {
   EmailConfig,
   JobConfig,
   LoggerOptions,
-} from '../../../settings/types';
+} from '../../../types';
 
 export type MaintenanceConfig = {
   MODE: boolean;

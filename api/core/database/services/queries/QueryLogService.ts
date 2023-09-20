@@ -4,6 +4,7 @@ import * as settings from '../../../../settings';
 import { SyLogger } from '../../../logging/SyLogger';
 import { FixedAbstractQuery, FixedQueryOptions, QueryLogObjectContext } from './types';
 import { QueryLogObject } from '../../../logging/objects/QueryLogObject';
+import { SETTINGS } from '../../../../settings/settings';
 
 /**
  * @todo USE RESPONSES ENUMS
@@ -38,6 +39,7 @@ export class QueryLogService {
    */
   public startErrorLogging(): void {
     process.on('unhandledRejection', (error: any) => {
+      console.log(error);
       this.logger.error('Unhandled Promise Rejection', error);
     });
 
@@ -105,7 +107,7 @@ export class QueryLogService {
     // const logString = logObject.generateLogString();
     // this.logger.info(logString);
 
-    if (duration > settings.DATABASE.SLOW_QUERY_THRESHOLD) {
+    if (duration > SETTINGS.DATABASES.DEFAULT.SLOW_QUERY_THRESHOLD) {
       this.logger.warn(`Slow query detected. Query: ${logObject.sql}, Duration: ${duration}`);
       const explanation = await this.database.query(`EXPLAIN ${logObject.sql}`);
       this.logger.logQuery('Query explanation', { explanation });

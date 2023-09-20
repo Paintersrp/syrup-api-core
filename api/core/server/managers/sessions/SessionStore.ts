@@ -14,7 +14,7 @@ export class SessionStore {
    */
   async get(
     key: string,
-    maxAge: number | 'session' | undefined,
+    maxAge: number | 'session' | undefined, 
     data: { rolling: boolean | undefined }
   ): Promise<any> {
     const session = await Session.findOne({ where: { sid: key } });

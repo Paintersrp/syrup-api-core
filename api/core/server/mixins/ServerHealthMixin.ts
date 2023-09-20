@@ -9,6 +9,7 @@ import { ServerResourceThresholds } from '../types';
 
 import { AnomalyDetector } from '../../monitoring/anomaly/AnomlyDetector';
 import { HealthCheckService } from '../health';
+import { SETTINGS } from '../../../settings/settings';
 
 export class ServerHealthMixin extends HealthCheckService {
   server: SyServer;
@@ -25,11 +26,11 @@ export class ServerHealthMixin extends HealthCheckService {
     // Initialize resource thresholds with default values if not provided.
     this.resourceThresholds = {
       memoryUsageThreshold:
-        resourceThresholds?.memoryUsageThreshold || settings.RESOURCE_THRESHOLDS.memoryUsage,
+        resourceThresholds?.memoryUsageThreshold || SETTINGS.RESOURCE_THRESHOLDS.memoryUsage,
       cpuUsageThreshold:
-        resourceThresholds?.cpuUsageThreshold || settings.RESOURCE_THRESHOLDS.cpuUsage,
+        resourceThresholds?.cpuUsageThreshold || SETTINGS.RESOURCE_THRESHOLDS.cpuUsage,
       diskSpaceThreshold:
-        resourceThresholds?.diskSpaceThreshold || settings.RESOURCE_THRESHOLDS.diskUsage,
+        resourceThresholds?.diskSpaceThreshold || SETTINGS.RESOURCE_THRESHOLDS.diskUsage,
     };
 
     this.router.get(`/health`, this.checkHealth.bind(this));
@@ -53,7 +54,7 @@ export class ServerHealthMixin extends HealthCheckService {
     try {
       const checks = [this.checkVersion(ctx), this.checkDatabase(ctx), this.checkFrontend(ctx)];
 
-      if (!settings.MAINTENANCE_MODE) {
+      if (!SETTINGS.MAINTENANCE.MODE) {
         checks.push(this.checkResources(ctx));
       }
 
@@ -63,7 +64,7 @@ export class ServerHealthMixin extends HealthCheckService {
         version: results[0],
         database: results[1],
         frontend: results[2],
-        resources: settings.MAINTENANCE_MODE ? 'Skipped due to maintenance mode' : results[3],
+        resources: SETTINGS.MAINTENANCE.MODE ? 'Skipped due to maintenance mode' : results[3],
       };
 
       this.server.logger.logAudit('Health Check Metrics', resultsObject);

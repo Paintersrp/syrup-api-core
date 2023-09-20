@@ -2,11 +2,11 @@ import Koa, { DefaultContext, ParameterizedContext } from 'koa';
 import compose from 'koa-compose';
 import Router from 'koa-router';
 
-import { RouteConstructor } from '../../types';
 import { SyLFUCache } from '../cache/clients/lfu/SyLFUCache';
 import { SyLRUCache } from '../cache/clients/lru/SyLRUCache';
 import { SyDatabase } from '../database/SyDatabase';
 import { SyLogger } from '../logging/SyLogger';
+import { RouteConstructor } from './managers/routes/types';
 
 /**
  * Interface defining resource thresholds for server health monitoring.

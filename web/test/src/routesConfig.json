@@ -1,0 +1,59 @@
+[
+  {
+    "path": "about",
+    "hasIndex": true,
+    "nestedRoutes": null
+  },
+  {
+    "path": "home",
+    "hasIndex": true,
+    "nestedRoutes": null
+  },
+  {
+    "path": "products",
+    "hasIndex": true,
+    "nestedRoutes": [
+      {
+        "path": "categories",
+        "hasIndex": true,
+        "nestedRoutes": [
+          {
+            "path": "clothing",
+            "hasIndex": true,
+            "nestedRoutes": null
+          },
+          {
+            "path": "electronics",
+            "hasIndex": true,
+            "nestedRoutes": null
+          },
+          {
+            "path": ":name",
+            "hasIndex": true,
+            "nestedRoutes": null
+          }
+        ]
+      },
+      {
+        "path": ":id",
+        "hasIndex": true,
+        "nestedRoutes": null
+      }
+    ]
+  },
+  {
+    "path": "profiles",
+    "hasIndex": true,
+    "nestedRoutes": null
+  },
+  {
+    "path": "users",
+    "hasIndex": true,
+    "nestedRoutes": null
+  },
+  {
+    "path": "yeet",
+    "hasIndex": true,
+    "nestedRoutes": null
+  }
+]

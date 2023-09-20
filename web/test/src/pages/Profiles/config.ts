@@ -1,5 +1,5 @@
 import { PageConfig } from '../../../../../api/core/utils/PageConfigBuilder/PageConfig';
-import { fetchProfiles } from './fetch';
+import { genericFetch } from '../../utils/genericFetch';
 
 const profilePageConfig = new PageConfig()
   .setPath('/app/profiles')
@@ -10,7 +10,7 @@ const profilePageConfig = new PageConfig()
     url: 'https://yourwebsite.com/app/profiles',
     image: 'https://yourwebsite.com/path-to-your-image.jpg',
   })
-  .setFetchData(fetchProfiles)
+  .setFetchData(genericFetch('profile'))
   .finalize();
 
 export default profilePageConfig;

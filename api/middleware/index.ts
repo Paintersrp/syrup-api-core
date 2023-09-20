@@ -12,5 +12,5 @@ export { default as serve } from 'koa-static';
 
 /**
  * @todo JWT auth, exclude certain paths
- * @example app.use(jwt({ secret: JWT_SECRET }).unless({ path: [/^\/public/, /^\/login/] }));
+ * @example app.use(jwt({ secret: SETTINGS2.AUTH.JWT_SECRET }).unless({ path: [/^\/public/, /^\/login/] }));
  */

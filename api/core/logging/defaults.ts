@@ -38,7 +38,7 @@ export const LoggerDefaults: LoggerConfig = {
   [LoggerNames.ERROR]: {
     name: LoggerNames.ERROR,
     level: 'trace',
-    verbose: false,
+    verbose: true,
     streams: [
       {
         target: 'pino/file',

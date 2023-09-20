@@ -1,16 +1,16 @@
 import Koa from 'koa';
 
-import * as settings from '../settings';
+import { SETTINGS } from '../settings/settings';
 
 export const maintenanceMiddleware: Koa.Middleware = async (ctx, next) => {
-  if (settings.MAINTENANCE_MODE) {
-    ctx.status = settings.MAINTENANCE_STATUS || 503;
+  if (SETTINGS.MAINTENANCE.MODE) {
+    ctx.status = SETTINGS.MAINTENANCE.STATUS || 503;
     ctx.body = {
       message:
-        settings.MAINTENANCE_MESSAGE ||
+        SETTINGS.MAINTENANCE.MESSAGE ||
         'Server is currently under maintenance. Please try again later.',
-      end_estimate: settings.MAINTENANCE_END_ESTIMATE
-        ? `Estimated end of maintenance: ${settings.MAINTENANCE_END_ESTIMATE}`
+      end_estimate: SETTINGS.MAINTENANCE.END_ESTIMATE
+        ? `Estimated end of maintenance: ${SETTINGS.MAINTENANCE.END_ESTIMATE}`
         : undefined,
     };
   } else {

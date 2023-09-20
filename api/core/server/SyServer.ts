@@ -22,6 +22,7 @@ import {
   SSRManager,
 } from './managers';
 import { RouteConstructor } from './managers/routes/types';
+import { DrizzleManager } from './managers/drizzle/DrizzleManager';
 
 /**
  * @class
@@ -74,6 +75,7 @@ export class SyServer {
   protected cacheManager: CacheManager;
   protected databaseManager: DatabaseManager;
   protected clusterManager: ClusterManager;
+  protected drizzleManager: DrizzleManager;
 
   /**
    * @constructor
@@ -140,6 +142,7 @@ export class SyServer {
     this.routeManager = new RouteManager(app, this.router, this.lifecycleManager, routes);
     this.eventManager = new EventManager(this.logger, this.lifecycleManager);
     this.clusterManager = new ClusterManager(this.logger, this.lifecycleManager.start.bind(this));
+    this.drizzleManager = new DrizzleManager();
   }
 
   /**

@@ -47,8 +47,8 @@ export class SyRoutes<T extends SyController> {
     this.logger = app.context.logger;
     this.version = `${routeName}-${version}`;
 
-    this.initModelRoutes(); // Initialize all model-related routes.
-    this.addRoutesToApp(app); // Add these routes to Koa application.
+    this.initModelRoutes();
+    this.addRoutesToApp(app);
   }
 
   /**

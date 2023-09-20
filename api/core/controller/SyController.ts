@@ -59,7 +59,7 @@ import { InternalMethodsToBind } from './enums';
  *
  * userRouter.get('/users/:id', userController.read);
  */
-export abstract class SyController extends EventEmitter {
+export class SyController extends EventEmitter {
   protected model: ModelStatic<Model>;
   protected schema: Yup.AnyObjectSchema;
   protected logger: Logger;

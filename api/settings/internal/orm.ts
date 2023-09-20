@@ -1,8 +1,8 @@
 import { Dialect } from 'sequelize';
 import { SyDatabase } from '../../core/database/SyDatabase';
-import { DATABASE } from '../database';
 
 import { APP_LOGGER } from './logger';
+import { SETTINGS } from '../settings';
 
 /**
  * @description Syrup Internal Database Configuration
@@ -10,12 +10,12 @@ import { APP_LOGGER } from './logger';
  * Before making adjustments to these internal configurations be sure to review the SyDatabase Class. For most cases, adjustments to the available user configuration options should suffice.
  */
 export const DB_CONFIG = {
-  dialect: DATABASE.TYPE as Dialect,
-  storage: DATABASE.PATH,
+  dialect: SETTINGS.DATABASES.DEFAULT.TYPE as Dialect,
+  storage: SETTINGS.DATABASES.DEFAULT.PATH,
   logging: false,
-  pool: DATABASE.POOL,
-  dialectOptions: DATABASE.DIALECT_OPTIONS,
-  retry: DATABASE.RETRY,
+  pool: SETTINGS.DATABASES.DEFAULT.POOL,
+  dialectOptions: SETTINGS.DATABASES.DEFAULT.DIALECT_OPTIONS,
+  retry: SETTINGS.DATABASES.DEFAULT.RETRY,
 };
 
 export const ORM = new SyDatabase(DB_CONFIG, APP_LOGGER);

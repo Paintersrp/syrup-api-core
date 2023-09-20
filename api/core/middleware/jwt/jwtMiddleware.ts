@@ -1,9 +1,9 @@
 import Koa from 'koa';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { JWT_SECRET } from '../../../settings';
+import { SETTINGS } from '../../../settings/settings';
 
 // Implement at Config level
-// if (!JWT_SECRET) {
+// if (!SETTINGS2.AUTH.JWT_SECRET) {
 //   throw new Error('Missing JWT_SECRET');
 // }
 
@@ -34,7 +34,7 @@ export const jwtMiddleware: Koa.Middleware = async (ctx, next) => {
   }
 
   try {
-    const decodedToken = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decodedToken = jwt.verify(token, SETTINGS.AUTH.JWT_SECRET) as JwtPayload;
 
     if (!decodedToken) {
       return await next();

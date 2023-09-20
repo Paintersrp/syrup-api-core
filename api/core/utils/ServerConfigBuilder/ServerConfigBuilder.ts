@@ -7,9 +7,8 @@ import {
   DatabaseConfig,
   EmailConfig,
   JobConfig,
-  LoggerConfig,
   LoggerOptions,
-} from '../../../settings/types';
+} from '../../../types';
 
 export class SyrupConfigBuilder {
   private config: Partial<Configuration> = {};
