@@ -11,6 +11,7 @@ export interface RouteConfig {
   path: string;
   hasIndex: boolean;
   nestedRoutes: RouteConfig[] | null;
+  layout: string;
 }
 
 export type GeneratedRoute = {

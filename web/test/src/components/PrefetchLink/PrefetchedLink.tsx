@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
-import { fetchUsersData } from '../../pages/users/fetch';
-import { fetchProfiles } from '../../pages/profiles/fetch';
+import { fetchUsersData } from '../../pages/+users/fetch';
+import { fetchProfiles } from '../../pages/+profiles/fetch';
 
 export const PrefetchLink = ({
   to,

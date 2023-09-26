@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import { getLinks } from '../../utils/getLinks';
 import { NavLink } from '../../utils/types';
+import { Link } from '../../core/router/components/Link';
 
-const Navbar: React.FC = () => {
+export const Navbar: React.FC = () => {
   const links = getLinks();
 
   const renderLink = (link: NavLink) => (
@@ -20,8 +21,10 @@ const Navbar: React.FC = () => {
   return (
     <div className={styles.navbar}>
       <div className={styles.logo}>
-        <i className="fa-solid fa-bacon fa-spin" style={{ marginRight: 8 }}></i>
-        Syrup
+        <Link to="/">
+          <i className="fa-solid fa-bacon fa-spin" style={{ marginRight: 8 }}></i>
+          Syrup (Root Layout)
+        </Link>
       </div>
       <div className={styles.links}>{links.map(renderLink)}</div>
       {/* <div className={styles.extras}>

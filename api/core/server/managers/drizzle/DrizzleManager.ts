@@ -1,22 +1,14 @@
 import { SETTINGS } from '../../../../settings/settings';
 
 import { WatcherTask } from './types';
-import { TemplateManager } from './TemplateManager';
-import { QueueManager } from './QueueManager';
-import { WatcherManager } from './WatcherManager';
+import { QueueManager } from './queue/QueueManager';
+import { WatcherManager } from './watcher/WatcherManager';
 
 /**
  * @class DrizzleManager
  * Manages the coordination of file system watching, task queuing, and template management.
  */
 export class DrizzleManager {
-  /**
-   * @private
-   * @type {TemplateManager}
-   * Manages template file operations.
-   */
-  private templateManager: TemplateManager;
-
   /**
    * @private
    * @type {QueueManager<WatcherTask>}
@@ -37,9 +29,8 @@ export class DrizzleManager {
    * Initializes the templateManager, queueManager, and watcherManager, and starts processing.
    */
   constructor(debounceDelay: number = 500) {
-    this.templateManager = new TemplateManager();
     this.queueManager = new QueueManager<WatcherTask>();
-    this.watcherManager = new WatcherManager(SETTINGS.DRIZZLE, this.templateManager, debounceDelay);
+    this.watcherManager = new WatcherManager(SETTINGS.DRIZZLE, debounceDelay);
 
     this.initializeWatchers();
     this.processQueue();

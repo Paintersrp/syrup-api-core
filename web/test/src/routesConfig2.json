@@ -1,0 +1,39 @@
+[
+  {
+    "path": "about"
+  },
+  {
+    "path": "home"
+  },
+  {
+    "path": "products",
+    "children": [
+      {
+        "path": "categories",
+        "children": [
+          {
+            "path": "clothing"
+          },
+          {
+            "path": "electronics"
+          },
+          {
+            "path": ":name"
+          }
+        ]
+      },
+      {
+        "path": ":id"
+      }
+    ]
+  },
+  {
+    "path": "profiles"
+  },
+  {
+    "path": "users"
+  },
+  {
+    "path": "yeet"
+  }
+]

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 export type SEOData = {
@@ -10,6 +10,10 @@ export type SEOData = {
 };
 
 export const SEO: React.FC<SEOData> = (seoData) => {
+  useEffect(() => {
+    console.log('SEO props updated:', seoData);
+  }, [seoData]);
+  
   return (
     <Helmet>
       <title>{seoData.title}</title>

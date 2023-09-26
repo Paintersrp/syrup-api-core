@@ -20,12 +20,13 @@
           {
             "path": "clothing",
             "hasIndex": true,
-            "nestedRoutes": null
-          },
-          {
-            "path": "electronics",
-            "hasIndex": true,
-            "nestedRoutes": null
+            "nestedRoutes": [
+              {
+                "path": "electronics",
+                "hasIndex": true,
+                "nestedRoutes": null
+              }
+            ]
           },
           {
             "path": ":name",
